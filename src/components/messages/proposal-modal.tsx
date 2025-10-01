@@ -8,6 +8,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 
 const proposalSchema = z.object({
@@ -21,16 +27,56 @@ type ProposalFormValues = z.infer<typeof proposalSchema>;
 interface ProposalModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  conversationId: string;
 }
 
-export function ProposalModal({ isOpen, onOpenChange }: ProposalModalProps) {
+export function ProposalModal({ isOpen, onOpenChange, conversationId }: ProposalModalProps) {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
     const form = useForm<ProposalFormValues>({
         resolver: zodResolver(proposalSchema),
+        defaultValues: {
+            conditions: "",
+        }
     });
 
-    const onSubmit = (data: ProposalFormValues) => {
-        console.log("Proposal submitted:", data);
-        onOpenChange(false);
+    const onSubmit = async (data: ProposalFormValues) => {
+        if (!user) {
+            toast({ variant: "destructive", title: "Você não está logado."});
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            const messagesCol = collection(db, "conversations", conversationId, "messages");
+            await addDoc(messagesCol, {
+                content: `Proposta enviada no valor de R$ ${data.value.toFixed(2)}`,
+                sender: user.uid,
+                timestamp: serverTimestamp(),
+                type: 'proposal',
+                proposalDetails: {
+                    ...data,
+                    conditions: data.conditions || "Sem condições especiais",
+                    status: 'pending'
+                }
+            });
+
+             const conversationRef = doc(db, "conversations", conversationId);
+             await updateDoc(conversationRef, {
+                 lastMessage: "Uma nova proposta foi enviada.",
+                 lastMessageTimestamp: serverTimestamp(),
+             });
+
+            toast({ title: "Proposta Enviada!", description: "Sua proposta foi registrada na conversa."});
+            form.reset();
+            onOpenChange(false);
+        } catch (error) {
+            console.error("Error sending proposal:", error);
+            toast({ variant: "destructive", title: "Erro ao enviar proposta." });
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
   return (
@@ -67,10 +113,10 @@ export function ProposalModal({ isOpen, onOpenChange }: ProposalModalProps) {
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="3d">Em até 3 dias</SelectItem>
-                                    <SelectItem value="1w">1 semana</SelectItem>
-                                    <SelectItem value="2w">2 semanas</SelectItem>
-                                    <SelectItem value="other">Outro (a combinar)</SelectItem>
+                                    <SelectItem value="3 dias úteis">Em até 3 dias úteis</SelectItem>
+                                    <SelectItem value="1 semana">1 semana</SelectItem>
+                                    <SelectItem value="2 semanas">2 semanas</SelectItem>
+                                    <SelectItem value="A combinar">Outro (a combinar)</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -82,7 +128,7 @@ export function ProposalModal({ isOpen, onOpenChange }: ProposalModalProps) {
                     name="conditions"
                     render={({ field }) => (
                         <FormItem>
-                            <Label>Condições Especiais</Label>
+                            <Label>Condições Especiais (opcional)</Label>
                             <FormControl>
                                 <Textarea placeholder="Garantia, condições de pagamento, etc." {...field} />
                             </FormControl>
@@ -91,8 +137,11 @@ export function ProposalModal({ isOpen, onOpenChange }: ProposalModalProps) {
                     )}
                 />
                  <DialogFooter>
-                    <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>Cancelar</Button>
-                    <Button type="submit">Enviar Proposta</Button>
+                    <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancelar</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="animate-spin mr-2" />}
+                        {isSubmitting ? "Enviando..." : "Enviar Proposta"}
+                    </Button>
                 </DialogFooter>
             </form>
         </Form>

@@ -51,6 +51,7 @@ export interface Conversation {
 
 export interface Message {
   id: string;
+  conversationId: string;
   type: 'user' | 'system' | 'proposal';
   content: string;
   sender: string; // user.uid

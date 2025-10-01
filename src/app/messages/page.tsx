@@ -65,7 +65,7 @@ export default function MessagesPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const msgs: Message[] = [];
       querySnapshot.forEach((doc) => {
-        msgs.push({ id: doc.id, ...doc.data() } as Message);
+        msgs.push({ id: doc.id, conversationId: activeConversation.id, ...doc.data() } as Message);
       });
       setMessages(msgs);
       setIsLoadingMessages(false);

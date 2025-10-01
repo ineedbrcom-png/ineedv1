@@ -1,4 +1,3 @@
-
  "use client";
 
 import { useState } from "react";
@@ -132,7 +131,7 @@ export function MessageInput({ conversationId }: MessageInputProps) {
         </form>
       </div>
       <ContractModal isOpen={isContractModalOpen} onOpenChange={setIsContractModalOpen} />
-      <ProposalModal isOpen={isProposalModalOpen} onOpenChange={setIsProposalModalOpen} />
+      <ProposalModal isOpen={isProposalModalOpen} onOpenChange={setIsProposalModalOpen} conversationId={conversationId} />
     </>
   );
 }
