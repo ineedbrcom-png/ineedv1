@@ -224,18 +224,20 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
             <CardHeader>
               <CardTitle className="text-xl">Informações do Solicitante</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center gap-4">
-              <Avatar className="h-14 w-14">
-                {authorAvatar && <AvatarImage src={authorAvatar.imageUrl} alt={listing.author.name} />}
-                <AvatarFallback>{getInitials(listing.author.name)}</AvatarFallback>
-              </Avatar>
-              <div>
-                <h4 className="font-bold">{listing.author.name}</h4>
-                <Button variant="link" className="p-0 h-auto">Ver Perfil</Button>
-                 <Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={handleStartConversation}>
-                    <MessageSquare className="h-4 w-4"/> Iniciar Conversa
-                </Button>
+            <CardContent className="flex flex-col items-start gap-4">
+              <div className="flex items-center gap-4">
+                  <Avatar className="h-14 w-14">
+                    {authorAvatar && <AvatarImage src={authorAvatar.imageUrl} alt={listing.author.name} />}
+                    <AvatarFallback>{getInitials(listing.author.name)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-bold">{listing.author.name}</h4>
+                    <Button variant="link" className="p-0 h-auto">Ver Perfil</Button>
+                  </div>
               </div>
+              <Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={handleStartConversation}>
+                  <MessageSquare className="h-4 w-4"/> Iniciar Conversa
+              </Button>
             </CardContent>
           </Card>
           
