@@ -15,7 +15,7 @@ import {
   PlusCircle,
   Search,
   CheckCircle,
-  Tshirt,
+  Shirt,
   Utensils,
   Wrench,
   Laptop2 as LaptopCode,
@@ -38,7 +38,7 @@ export default function Home() {
   const productCategories = [
     { name: "Tecnologia", icon: Laptop },
     { name: "Casa", icon: HomeIcon },
-    { name: "Moda", icon: Tshirt },
+    { name: "Moda", icon: Shirt },
     { name: "Games", icon: Gamepad },
     { name: "Alimentos", icon: Utensils },
     { name: "Automóveis", icon: Car },
