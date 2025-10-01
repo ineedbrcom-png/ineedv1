@@ -15,6 +15,9 @@ import {
   Calendar,
   ShieldCheck,
   Plus,
+  Pencil,
+  Loader2,
+  X,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
@@ -28,9 +31,15 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { useState, useEffect } from "react";
-import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 
 interface UserProfile {
@@ -49,12 +58,48 @@ interface UserProfile {
   isDocumentVerified?: boolean;
 }
 
+const profileFormSchema = z.object({
+  displayName: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
+  about: z.string().optional(),
+  skills: z.string().optional(),
+});
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
 
 export default function ProfilePage() {
-  const { user, isLoggedIn, isAuthLoading: isAuthContextLoading } = useAuth();
+  const { user, isLoggedIn, isAuthContextLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+  });
+
+  const fetchUserProfile = async () => {
+    if (user) {
+      setIsProfileLoading(true);
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const profileData = userDocSnap.data() as UserProfile;
+        setProfile(profileData);
+        form.reset({
+          displayName: profileData.displayName,
+          about: profileData.about || "",
+          skills: (profileData.skills || []).join(", "),
+        });
+      } else {
+        console.log("No such document!");
+      }
+      setIsProfileLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isLoggedIn && !isAuthContextLoading) {
@@ -62,26 +107,54 @@ export default function ProfilePage() {
       setIsProfileLoading(false);
     }
 
-    const fetchUserProfile = async () => {
-      if (user) {
-        setIsProfileLoading(true);
-        const userDocRef = doc(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-          setProfile(userDocSnap.data() as UserProfile);
-        } else {
-          // Handle case where user profile doesn't exist in Firestore
-          console.log("No such document!");
-        }
-        setIsProfileLoading(false);
-      }
-    };
-
-    if (!isAuthContextLoading) {
+    if (!isAuthContextLoading && user) {
        fetchUserProfile();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isLoggedIn, isAuthContextLoading]);
+
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+        form.reset({
+            displayName: profile?.displayName,
+            about: profile?.about || "",
+            skills: (profile?.skills || []).join(", "),
+        });
+    }
+    setIsEditing(!isEditing);
+  }
+
+  const onSubmit = async (data: ProfileFormValues) => {
+    if (!user) return;
+    setIsSaving(true);
+    try {
+        const userDocRef = doc(db, "users", user.uid);
+        const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
+        
+        await updateDoc(userDocRef, {
+            displayName: data.displayName,
+            about: data.about,
+            skills: skillsArray,
+        });
+
+        await fetchUserProfile(); // Re-fetch to update UI
+        setIsEditing(false);
+        toast({
+            title: "Perfil Atualizado!",
+            description: "Suas informações foram salvas com sucesso.",
+        });
+    } catch (error) {
+        console.error("Error updating profile: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao atualizar",
+            description: "Não foi possível salvar suas alterações. Tente novamente.",
+        });
+    } finally {
+        setIsSaving(false);
+    }
+  }
 
 
   const portfolioImage1 = findImage("listing-3");
@@ -129,6 +202,8 @@ export default function ProfilePage() {
   return (
     <div className="container mx-auto py-8">
       <Card className="w-full max-w-5xl mx-auto">
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader className="bg-muted/30 p-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <Avatar className="h-24 w-24 border-4 border-background">
@@ -139,12 +214,42 @@ export default function ProfilePage() {
               </Avatar>
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start">
-                <h1 className="text-2xl font-bold">{profile.displayName || "Usuário"}</h1>
+                 {isEditing ? (
+                    <FormField
+                        control={form.control}
+                        name="displayName"
+                        render={({ field }) => (
+                            <FormItem>
+                               <FormControl>
+                                    <Input className="text-2xl font-bold" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                ) : (
+                    <h1 className="text-2xl font-bold">{profile.displayName || "Usuário"}</h1>
+                )}
                 <span className="text-gray-500 ml-0 md:ml-2">
                   @{profile.email?.split("@")[0]}
                 </span>
               </div>
-              <p className="text-gray-600 mt-2">{profile.about || mockCurrentUser.about}</p>
+                {isEditing ? (
+                     <FormField
+                        control={form.control}
+                        name="about"
+                        render={({ field }) => (
+                            <FormItem className="mt-2">
+                               <FormControl>
+                                    <Textarea placeholder="Fale um pouco sobre você..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                ) : (
+                    <p className="text-gray-600 mt-2">{profile.about || mockCurrentUser.about}</p>
+                )}
               <div className="flex flex-wrap items-center justify-center md:justify-start mt-3 text-sm text-muted-foreground gap-x-4 gap-y-1">
                  {profile.address && (
                   <span className="flex items-center">
@@ -186,8 +291,23 @@ export default function ProfilePage() {
                 </Badge>
               </div>
             </div>
-            <div className="mt-6 md:mt-0 md:ml-auto">
-              <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
+             <div className="mt-6 md:mt-0 md:ml-auto flex flex-col items-center gap-2">
+                {isEditing ? (
+                    <div className="flex gap-2">
+                        <Button type="submit" disabled={isSaving}>
+                            {isSaving ? <Loader2 className="animate-spin" /> : "Salvar"}
+                        </Button>
+                        <Button variant="ghost" onClick={handleEditToggle} type="button">
+                            <X />
+                        </Button>
+                    </div>
+                ) : (
+                     <Button onClick={handleEditToggle} type="button">
+                        <Pencil className="mr-2 h-4 w-4" /> Editar Perfil
+                    </Button>
+                )}
+                
+              <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200 mt-4">
                 <div className="text-3xl font-bold text-blue-600">{profile.rating.toFixed(1)}</div>
                  <StarRating 
                   rating={profile.rating} 
@@ -223,18 +343,37 @@ export default function ProfilePage() {
             <TabsContent value="supplier" className="p-6">
               <h2 className="text-xl font-bold mb-4">O que eu ofereço</h2>
               <div className="mb-6 space-y-2">
-                <h3 className="font-medium">Categorias de Serviço</h3>
-                <div className="flex flex-wrap gap-2">
-                  {(profile.skills || mockCurrentUser.skills).map((skill) => (
-                    <Badge
-                      key={skill}
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-800 px-3 py-1 text-sm"
-                    >
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
+                <h3 className="font-medium">Habilidades / Categorias de Serviço</h3>
+                 {isEditing ? (
+                     <FormField
+                        control={form.control}
+                        name="skills"
+                        render={({ field }) => (
+                            <FormItem>
+                               <FormControl>
+                                    <Input placeholder="Ex: Design Gráfico, Edição de Vídeo" {...field} />
+                                </FormControl>
+                                <p className="text-xs text-muted-foreground">Separe as habilidades por vírgula.</p>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                 ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {(profile.skills && profile.skills.length > 0 ? profile.skills : mockCurrentUser.skills).map((skill) => (
+                        <Badge
+                          key={skill}
+                          variant="secondary"
+                          className="bg-blue-100 text-blue-800 px-3 py-1 text-sm"
+                        >
+                          {skill}
+                        </Badge>
+                      ))}
+                      {(!profile.skills || profile.skills.length === 0) && !isEditing && (
+                          <p className="text-sm text-muted-foreground">Adicione suas habilidades para que os clientes possam te encontrar.</p>
+                      )}
+                    </div>
+                 )}
               </div>
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-4">
@@ -527,7 +666,11 @@ export default function ProfilePage() {
             </TabsContent>
           </Tabs>
         </CardContent>
+        </form>
+        </Form>
       </Card>
     </div>
   );
 }
+
+    
