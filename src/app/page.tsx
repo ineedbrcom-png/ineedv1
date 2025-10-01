@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { listings } from "@/lib/data";
 import { productCategories, serviceCategories } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
-import { MapPlaceholder } from "@/components/map-placeholder";
+import { Map } from "@/components/map";
 import {
   ChevronRight,
   PlusCircle,
@@ -225,7 +225,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Pedidos Ativos no Mapa
           </h2>
-          <MapPlaceholder />
+          <Map listings={listings} />
         </div>
       </section>
 
