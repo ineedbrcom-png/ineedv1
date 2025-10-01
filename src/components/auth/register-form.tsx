@@ -20,8 +20,9 @@ import Link from 'next/link';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "O nome é obrigatório."),
@@ -38,6 +39,7 @@ const formSchema = z.object({
   city: z.string().min(1, "A cidade é obrigatória.").optional(),
   state: z.string().min(2, "O estado é obrigatório.").optional(),
   terms: z.boolean().refine(val => val === true, "Você deve aceitar os termos."),
+  recaptcha: z.string().min(1, "Por favor, complete o reCAPTCHA."),
 }).refine(data => data.password === data.confirmPassword, {
   message: "As senhas não coincidem.",
   path: ["confirmPassword"],
@@ -53,6 +55,7 @@ interface RegisterFormProps {
 export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
 
   const form = useForm<FormValues>({
@@ -72,6 +75,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       city: "",
       state: "",
       terms: false,
+      recaptcha: "",
     },
   });
 
@@ -125,7 +129,6 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       
       const displayName = `${values.firstName} ${values.lastName}`;
 
-      // Run user profile creation and Firestore document creation in parallel
       const promises = [];
 
       promises.push(updateProfile(user, {
@@ -174,6 +177,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       });
     } finally {
       setIsLoading(false);
+      recaptchaRef.current?.reset();
     }
   }
 
@@ -399,6 +403,25 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="recaptcha"
+            render={({ field }) => (
+              <FormItem>
+                 <FormControl>
+                    <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+                        onChange={field.onChange}
+                    />
+                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+
           <div className="pt-2">
             <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="animate-spin" />}
