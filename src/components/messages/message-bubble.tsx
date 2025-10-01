@@ -1,10 +1,12 @@
 
+"use client";
+
 import { type Message } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { findImage } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Check, X, Loader2 } from "lucide-react";
+import { Check, X, Loader2, FileText } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from 'date-fns';
@@ -12,6 +14,7 @@ import { db } from "@/lib/firebase";
 import { doc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from "react";
+import { ContractModal } from "./contract-modal";
 
 interface MessageBubbleProps {
   message: Message;
@@ -23,6 +26,9 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const [proposalStatus, setProposalStatus] = useState(message.proposalDetails?.status);
+  const [contractStatus, setContractStatus] = useState(message.contractDetails?.status);
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+
 
   const isMe = message.sender === user?.uid;
 
@@ -30,10 +36,14 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
     setProposalStatus(message.proposalDetails?.status);
   }, [message.proposalDetails?.status])
 
+  useEffect(() => {
+    setContractStatus(message.contractDetails?.status);
+  }, [message.contractDetails?.status])
+
+
   const handleUpdateProposal = async (newStatus: 'accepted' | 'rejected') => {
     if (!message.proposalDetails || !user) return;
     
-    // The client should not be able to accept their own proposal
     if (isMe) {
         toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode aceitar ou recusar sua própria proposta." });
         return;
@@ -48,7 +58,6 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
         });
         setProposalStatus(newStatus);
         
-        // Also reject all other pending proposals in the conversation
         if (newStatus === 'accepted') {
              const messagesRef = collection(db, `conversations/${message.conversationId}/messages`);
              const q = query(messagesRef, where('type', '==', 'proposal'), where('proposalDetails.status', '==', 'pending'));
@@ -70,6 +79,34 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
         setIsUpdating(false);
     }
   }
+
+  const handleUpdateContract = async (newStatus: 'accepted' | 'rejected') => {
+    if (!message.contractDetails || !user) return;
+    
+    // The sender of the contract cannot accept it
+    if (isMe) {
+        toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode aceitar ou recusar um contrato que você enviou." });
+        return;
+    }
+
+    setIsUpdating(true);
+    try {
+        const messageRef = doc(db, `conversations/${message.conversationId}/messages/${message.id}`);
+
+        await updateDoc(messageRef, {
+            'contractDetails.status': newStatus
+        });
+        setContractStatus(newStatus);
+
+        toast({ title: `Contrato ${newStatus === 'accepted' ? 'aceito' : 'recusado'}!`, description: `O status do contrato foi atualizado.`});
+    } catch (error) {
+        console.error("Error updating contract:", error);
+        toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar o status do contrato."})
+    } finally {
+        setIsUpdating(false);
+    }
+  }
+
   
   if (message.type === 'system') {
     return (
@@ -108,6 +145,43 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
           </div>
         </div>
       </div>
+    );
+  }
+
+   if (message.type === 'contract' && message.contractDetails) {
+    return (
+      <>
+      <div className="text-center my-4">
+        <div className="inline-block bg-yellow-50 rounded-lg p-4 text-center border border-yellow-200 max-w-sm w-full">
+          <h4 className="font-bold mb-2 flex items-center justify-center gap-2"><FileText /> Contrato Gerado</h4>
+          <p className="mb-4 text-sm">{isMe ? "Você enviou um contrato." : "Você recebeu uma proposta de contrato."}</p>
+          <Button onClick={() => setIsContractModalOpen(true)}>Ver Detalhes do Contrato</Button>
+          <div className="mt-4">
+            {contractStatus === 'pending' && !isMe && (
+              <div className="flex justify-center gap-4">
+                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleUpdateContract('accepted')} disabled={isUpdating}>
+                  {isUpdating ? <Loader2 className="mr-1 h-4 w-4 animate-spin"/> : <Check className="mr-1 h-4 w-4" />} Aceitar Contrato
+                </Button>
+                <Button size="sm" variant="destructive" onClick={() => handleUpdateContract('rejected')} disabled={isUpdating}>
+                  <X className="mr-1 h-4 w-4" /> Recusar Contrato
+                </Button>
+              </div>
+            )}
+            {contractStatus === 'pending' && isMe && (
+                 <p className="font-medium text-yellow-600 text-sm mt-2">Aguardando resposta da outra parte...</p>
+            )}
+            {contractStatus === 'accepted' && <p className="font-medium text-green-600 mt-2">Contrato aceito por ambas as partes!</p>}
+            {contractStatus === 'rejected' && <p className="font-medium text-red-600 mt-2">Contrato recusado.</p>}
+          </div>
+        </div>
+      </div>
+      <ContractModal 
+        isOpen={isContractModalOpen} 
+        onOpenChange={setIsContractModalOpen} 
+        contractDetails={message.contractDetails}
+        isSigner={!isMe}
+      />
+      </>
     );
   }
   

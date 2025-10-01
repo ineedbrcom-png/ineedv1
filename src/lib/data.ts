@@ -52,12 +52,13 @@ export interface Conversation {
 export interface Message {
   id: string;
   conversationId: string;
-  type: 'user' | 'system' | 'proposal';
+  type: 'user' | 'system' | 'proposal' | 'contract';
   content: string;
   sender: string; // user.uid
   timestamp: any;
   read?: boolean;
   proposalDetails?: Proposal;
+  contractDetails?: Contract;
   images?: string[];
 }
 
@@ -65,6 +66,12 @@ export interface Proposal {
     value: number;
     deadline: string;
     conditions: string;
+    status: 'pending' | 'accepted' | 'rejected';
+}
+
+export interface Contract {
+    value: number;
+    terms: string;
     status: 'pending' | 'accepted' | 'rejected';
 }
 

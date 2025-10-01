@@ -1,105 +1,212 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Printer, X } from "lucide-react";
+import { Download, Printer, Loader2, FileText, CheckCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useState, useEffect } from "react";
+import { type Proposal, type Contract } from "@/lib/data";
+
+const contractSchema = z.object({
+    terms: z.string().min(50, "Os termos do contrato devem ter pelo menos 50 caracteres."),
+});
+
+type ContractFormValues = z.infer<typeof contractSchema>;
+
 
 interface ContractModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  conversationId?: string;
+  acceptedProposal?: Proposal | null;
+  onContractSent?: () => void;
+  contractDetails?: Contract;
+  isSigner?: boolean;
 }
 
-export function ContractModal({ isOpen, onOpenChange }: ContractModalProps) {
+export function ContractModal({ 
+    isOpen, 
+    onOpenChange, 
+    conversationId,
+    acceptedProposal,
+    onContractSent,
+    contractDetails,
+    isSigner,
+}: ContractModalProps) {
+    const { toast } = useToast();
+    const { user } = useAuth();
+    const [isSubmitting, setIsSubmitting] = useState(false);
     
-  const handlePrint = () => {
-    const printContent = document.getElementById("contractContent")?.innerHTML;
-    if (printContent) {
-      const originalContent = document.body.innerHTML;
-      document.body.innerHTML = printContent;
-      window.print();
-      document.body.innerHTML = originalContent;
-      window.location.reload(); // To re-attach event listeners
-    }
-  };
+    const form = useForm<ContractFormValues>({
+        resolver: zodResolver(contractSchema),
+    });
 
-  const contractNumber = '001/2023';
-  const clientName = "Roger Ruviaro";
-  const providerName = "Tech Solutions";
-  const serviceDescription = "O CONTRATADO se obriga a fornecer notebook Dell Inspiron 15 5000 com i5, 8GB RAM, SSD 256GB e placa MX150, conforme acordo entre as partes.";
-  const contractValue = 2500.00;
-  const contractValueText = "dois mil e quinhentos reais";
-  const paymentTerms = `
-    <p>- 50% no ato da assinatura (R$ 1.250,00)</p>
-    <p>- 50% na entrega do produto (R$ 1.250,00)</p>
-  `;
-  const deliveryTime = "3 dias úteis";
-  const warranty = "3 meses";
-  const legalJurisdiction = "Santa Maria/RS";
-  const contractDate = new Date().toLocaleDateString('pt-BR');
+    const finalContractDetails = acceptedProposal || contractDetails;
+
+    useEffect(() => {
+        if(acceptedProposal) {
+            const terms = `Este contrato formaliza o acordo para a prestação de serviço/produto com base na proposta aceita.\n\nValor: R$ ${acceptedProposal.value.toFixed(2)}\nPrazo: ${acceptedProposal.deadline}\nCondições: ${acceptedProposal.conditions}\n\nAmbas as partes concordam em cumprir os termos aqui estabelecidos.`;
+            form.setValue('terms', terms);
+        } else if (contractDetails) {
+            form.setValue('terms', contractDetails.terms);
+        }
+    }, [acceptedProposal, contractDetails, form]);
+
+
+    const onSubmit = async (data: ContractFormValues) => {
+        if (!user || !conversationId) {
+            toast({ variant: "destructive", title: "Erro", description: "Não foi possível enviar o contrato. Tente novamente."});
+            return;
+        }
+        if (!acceptedProposal) {
+            toast({ variant: "destructive", title: "Nenhuma proposta aceita", description: "Um contrato só pode ser gerado com base em uma proposta aceita."});
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const messagesCol = collection(db, "conversations", conversationId, "messages");
+            await addDoc(messagesCol, {
+                content: `Contrato gerado com base na proposta.`,
+                sender: user.uid,
+                timestamp: serverTimestamp(),
+                type: 'contract',
+                contractDetails: {
+                    value: acceptedProposal.value,
+                    terms: data.terms,
+                    status: 'pending'
+                }
+            });
+
+            const conversationRef = doc(db, "conversations", conversationId);
+             await updateDoc(conversationRef, {
+                 lastMessage: "Um contrato foi gerado para revisão.",
+                 lastMessageTimestamp: serverTimestamp(),
+             });
+            
+            toast({ title: "Contrato Enviado!", description: "O contrato foi enviado na conversa para revisão e aceite."});
+            if(onContractSent) onContractSent();
+            onOpenChange(false);
+            form.reset();
+
+        } catch (error) {
+             console.error("Error sending contract:", error);
+             toast({ variant: "destructive", title: "Erro ao enviar contrato." });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+    
+    const handlePrint = () => {
+      const printContent = document.getElementById("contractPrintContent")?.innerHTML;
+      if (printContent) {
+        const originalContent = document.body.innerHTML;
+        const title = "Contrato de Serviço - iNeed";
+        document.body.innerHTML = `<html><head><title>${title}</title></head><body>${printContent}</body></html>`;
+        window.print();
+        document.body.innerHTML = originalContent;
+        window.location.reload(); 
+      }
+    };
+
+
+    // If we are just viewing details of an existing contract
+    if (contractDetails) {
+        return (
+            <Dialog open={isOpen} onOpenChange={onOpenChange}>
+                <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2"><FileText /> Detalhes do Contrato</DialogTitle>
+                         <DialogDescription>
+                            Revise os termos do contrato abaixo. Se você é o destinatário, pode aceitar ou recusar na janela de chat.
+                         </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4 py-4" id="contractPrintContent">
+                        <h3 className="font-bold">CONTRATO DE SERVIÇO/PRODUTO</h3>
+                        <div>
+                            <strong>Valor:</strong>
+                            <p>R$ {finalContractDetails?.value.toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <strong>Termos e Condições:</strong>
+                            <p className="whitespace-pre-wrap text-sm text-muted-foreground bg-muted/50 p-4 rounded-md">{contractDetails.terms}</p>
+                        </div>
+
+                        <div className="border-t pt-4 mt-4 text-xs text-muted-foreground">
+                            <p className="font-semibold">Validade Jurídica e Assinatura Digital:</p>
+                            <p>Este documento, uma vez aceito por ambas as partes na plataforma iNeed, constitui um acordo vinculativo.</p>
+                            <p>Opcionalmente, para maior formalidade, as partes podem baixar este contrato e utilizar uma assinatura digital qualificada, como a oferecida gratuitamente pelo portal GOV.BR, que possui validade jurídica nos termos da Lei nº 14.063/2020.</p>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => onOpenChange(false)}>Fechar</Button>
+                        <Button onClick={handlePrint}><Printer className="mr-2 h-4 w-4" /> Imprimir</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        )
+    }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Gerar Contrato</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><FileText /> Gerar Contrato</DialogTitle>
+          <DialogDescription>
+            Revise e envie o contrato com base na proposta aceita.
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto p-6" id="contractContent">
-            <h2 className="text-center text-xl font-bold mb-6">CONTRATO DE PRESTAÇÃO DE SERVIÇOS</h2>
-            
-            <p className="text-sm text-gray-500 mb-6">Nº {contractNumber}</p>
-            
-            <p>Pelo presente instrumento particular, as partes abaixo qualificadas celebram o presente Contrato de Prestação de Serviços, que se regerá pelas seguintes cláusulas:</p>
-            
-            <h3 className="font-bold mt-6 mb-2">CLÁUSULA PRIMEIRA - DAS PARTES</h3>
-            <p><strong>CONTRATANTE:</strong> {clientName}</p>
-            <p><strong>CONTRATADO:</strong> {providerName}</p>
-            
-            <h3 className="font-bold mt-6 mb-2">CLÁUSULA SEGUNDA - DO OBJETO</h3>
-            <p>{serviceDescription}</p>
-            
-            <h3 className="font-bold mt-6 mb-2">CLÁUSULA TERCEIRA - DO VALOR E FORMA DE PAGAMENTO</h3>
-            <p>O valor total do serviço será de R$ {contractValue.toFixed(2)} ({contractValueText}), a ser pago da seguinte forma:</p>
-            <div dangerouslySetInnerHTML={{ __html: paymentTerms }} />
-            
-            <h3 className="font-bold mt-6 mb-2">CLÁUSULA QUARTA - DO PRAZO</h3>
-            <p>O prazo para entrega será de {deliveryTime} a contar da assinatura deste contrato.</p>
-            
-            <h3 className="font-bold mt-6 mb-2">CLÁUSULA QUINTA - DAS OBRIGAÇÕES</h3>
-            <p>1. O CONTRATADO obriga-se a fornecer o produto nas condições acordadas;</p>
-            <p>2. O CONTRATANTE obriga-se a efetuar o pagamento conforme acordado;</p>
-            <p>3. O produto terá garantia de {warranty} contra defeitos de fabricação.</p>
-            
-            <h3 className="font-bold mt-6 mb-2">CLÁUSULA SEXTA - DO FORO</h3>
-            <p>Fica eleito o foro da Comarca de {legalJurisdiction} para dirimir quaisquer dúvidas oriundas deste contrato.</p>
-            
-            <div className="text-center mt-12">
-                <p>E por estarem justos e contratados, assinam o presente contrato em 02 vias de igual teor.</p>
-                
-                <div className="flex justify-between mt-12">
-                    <div className="text-center">
-                        <p className="border-t border-black w-64 mx-auto pt-2 mt-16">{clientName}</p>
-                        <p>CONTRATANTE</p>
+        {acceptedProposal ? (
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg text-sm">
+                        <p className="flex items-center gap-2 font-semibold"><CheckCircle /> Proposta aceita!</p>
+                        <p>Valor: R$ {acceptedProposal.value.toFixed(2)}</p>
+                        <p>Prazo: {acceptedProposal.deadline}</p>
                     </div>
-                    
-                    <div className="text-center">
-                        <p className="border-t border-black w-64 mx-auto pt-2 mt-16">{providerName}</p>
-                        <p>CONTRATADO</p>
+
+                    <FormField
+                        control={form.control}
+                        name="terms"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Termos do Contrato</FormLabel>
+                                <FormControl>
+                                    <Textarea className="min-h-48" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <div className="border-t pt-4 text-xs text-muted-foreground">
+                        <p className="font-semibold">Validade Jurídica e Assinatura Digital:</p>
+                        <p>Este documento, uma vez aceito por ambas as partes na plataforma iNeed, constitui um acordo vinculativo.</p>
+                        <p>Opcionalmente, para maior formalidade, as partes podem baixar este contrato e utilizar uma assinatura digital qualificada, como a oferecida gratuitamente pelo portal GOV.BR, que possui validade jurídica nos termos da Lei nº 14.063/2020.</p>
                     </div>
-                </div>
-                
-                <div className="text-center mt-6">
-                    <p>{legalJurisdiction}, {contractDate}</p>
-                </div>
+                    <DialogFooter>
+                        <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancelar</Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting && <Loader2 className="animate-spin mr-2" />}
+                            {isSubmitting ? "Enviando..." : "Enviar Contrato para Aceite"}
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </Form>
+        ) : (
+             <div className="py-8 text-center text-muted-foreground">
+                <p>Nenhuma proposta foi aceita nesta conversa ainda.</p>
+                <p>Para gerar um contrato, uma proposta deve ser enviada e aceita primeiro.</p>
             </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" /> Imprimir Contrato
-          </Button>
-          <Button className="bg-green-600 hover:bg-green-700">
-            <Download className="mr-2 h-4 w-4" /> Baixar PDF
-          </Button>
-        </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
 }
+

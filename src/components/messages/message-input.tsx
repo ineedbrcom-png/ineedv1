@@ -1,6 +1,6 @@
  "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Paperclip, Send, FileSignature, Handshake, X } from "lucide-react";
@@ -8,9 +8,10 @@ import Image from "next/image";
 import { ContractModal } from "./contract-modal";
 import { ProposalModal } from "./proposal-modal";
 import { useAuth } from "@/hooks/use-auth";
-import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, doc, updateDoc, getDocs, query, where, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { Proposal } from "@/lib/data";
 
 interface MessageInputProps {
     conversationId: string;
@@ -25,6 +26,40 @@ export function MessageInput({ conversationId }: MessageInputProps) {
   const [isSending, setIsSending] = useState(false);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
+  const [acceptedProposal, setAcceptedProposal] = useState<Proposal | null>(null);
+  const [canCreateContract, setCanCreateContract] = useState(false);
+
+  useEffect(() => {
+    const checkAcceptedProposals = async () => {
+        const messagesRef = collection(db, "conversations", conversationId, "messages");
+        const q = query(
+            messagesRef, 
+            where('type', '==', 'proposal'), 
+            where('proposalDetails.status', '==', 'accepted'),
+            orderBy('timestamp', 'desc'),
+            limit(1)
+        );
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+            const doc = snapshot.docs[0];
+            setAcceptedProposal(doc.data().proposalDetails as Proposal);
+
+            // Check if a contract already exists for this conversation
+            const contractQuery = query(db, `conversations/${conversationId}/messages`, where('type', '==', 'contract'));
+            const contractSnapshot = await getDocs(contractQuery);
+            if(contractSnapshot.empty) {
+                setCanCreateContract(true);
+            } else {
+                setCanCreateContract(false);
+            }
+        } else {
+             setAcceptedProposal(null);
+             setCanCreateContract(false);
+        }
+    }
+    checkAcceptedProposals();
+  }, [conversationId]);
+
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -122,7 +157,14 @@ export function MessageInput({ conversationId }: MessageInputProps) {
                 <Button type="button" variant="link" className="text-primary p-0 h-auto" onClick={() => setIsProposalModalOpen(true)}>
                     <Handshake className="mr-1 h-4 w-4" /> Enviar Proposta
                 </Button>
-                <Button type="button" variant="link" className="text-primary p-0 h-auto" onClick={() => setIsContractModalOpen(true)}>
+                <Button 
+                    type="button" 
+                    variant="link" 
+                    className="text-primary p-0 h-auto" 
+                    onClick={() => setIsContractModalOpen(true)}
+                    disabled={!canCreateContract}
+                    title={!canCreateContract ? "Um contrato só pode ser criado após uma proposta ser aceita." : "Criar Contrato com base na proposta aceita"}
+                >
                     <FileSignature className="mr-1 h-4 w-4" /> Criar Contrato
                 </Button>
             </div>
@@ -130,7 +172,13 @@ export function MessageInput({ conversationId }: MessageInputProps) {
           </div>
         </form>
       </div>
-      <ContractModal isOpen={isContractModalOpen} onOpenChange={setIsContractModalOpen} />
+      <ContractModal 
+        isOpen={isContractModalOpen} 
+        onOpenChange={setIsContractModalOpen} 
+        conversationId={conversationId} 
+        acceptedProposal={acceptedProposal}
+        onContractSent={() => setCanCreateContract(false)}
+      />
       <ProposalModal isOpen={isProposalModalOpen} onOpenChange={setIsProposalModalOpen} conversationId={conversationId} />
     </>
   );
