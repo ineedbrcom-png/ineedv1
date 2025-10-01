@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Paperclip, Send, FileContract, Handshake, X } from "lucide-react";
+import { Paperclip, Send, FileSignature, Handshake, X } from "lucide-react";
 import Image from "next/image";
 import { ContractModal } from "./contract-modal";
 import { ProposalModal } from "./proposal-modal";
@@ -83,7 +83,7 @@ export function MessageInput() {
                     <Handshake className="mr-1 h-4 w-4" /> Enviar Proposta
                 </Button>
                 <Button type="button" variant="link" className="text-primary p-0 h-auto" onClick={() => setIsContractModalOpen(true)}>
-                    <FileContract className="mr-1 h-4 w-4" /> Criar Contrato
+                    <FileSignature className="mr-1 h-4 w-4" /> Criar Contrato
                 </Button>
             </div>
             <span className="text-xs text-gray-500">{message.length}/500</span>
