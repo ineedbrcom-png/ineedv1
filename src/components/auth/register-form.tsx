@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -25,6 +26,12 @@ const formSchema = z.object({
   phone: z.string().min(14, "O telefone é obrigatório."),
   password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres."),
   confirmPassword: z.string(),
+  cep: z.string().min(9, "O CEP é obrigatório."),
+  street: z.string().min(1, "O endereço é obrigatório."),
+  number: z.string().min(1, "O número é obrigatório."),
+  neighborhood: z.string().min(1, "O bairro é obrigatório."),
+  city: z.string().min(1, "A cidade é obrigatória."),
+  state: z.string().min(2, "O estado é obrigatório."),
   terms: z.boolean().refine(val => val === true, "Você deve aceitar os termos."),
 }).refine(data => data.password === data.confirmPassword, {
   message: "As senhas não coincidem.",
@@ -51,9 +58,32 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       phone: "",
       password: "",
       confirmPassword: "",
+      cep: "",
+      street: "",
+      number: "",
+      neighborhood: "",
+      city: "",
+      state: "",
       terms: false,
     },
   });
+
+  const handleCepBlur = async (cep: string) => {
+    if (cep.length !== 9) return;
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep.replace('-', '')}/json/`);
+      const data = await response.json();
+      if (!data.erro) {
+        form.setValue("street", data.logradouro);
+        form.setValue("neighborhood", data.bairro);
+        form.setValue("city", data.localidade);
+        form.setValue("state", data.uf);
+        form.setFocus("number");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CEP:", error);
+    }
+  };
 
   function formatCPF(cpf: string) {
     cpf = cpf.replace(/\D/g, '');
@@ -73,6 +103,13 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       return phone;
   }
 
+  function formatCEP(cep: string) {
+    cep = cep.replace(/\D/g, '');
+    cep = cep.replace(/^(\d{5})(\d)/, '$1-$2');
+    return cep;
+  }
+
+
   function onSubmit(values: FormValues) {
     console.log(values);
     toast({
@@ -85,7 +122,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   return (
     <div className="space-y-4">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
           <div className="grid grid-cols-2 gap-4">
              <FormField
                 control={form.control}
@@ -127,74 +164,168 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               </FormItem>
             )}
           />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="cpf"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CPF</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="000.000.000-00" 
+                      {...field}
+                      onChange={(e) => field.onChange(formatCPF(e.target.value))}
+                      maxLength={14}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="(00) 00000-0000" 
+                      {...field}
+                      onChange={(e) => field.onChange(formatPhone(e.target.value))}
+                      maxLength={15}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Crie uma senha" {...field} />
+                  </FormControl>
+                  <p className="text-xs text-gray-500 mt-1">Mínimo de 8 caracteres.</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirmar Senha</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Confirme sua senha" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
           <FormField
-            control={form.control}
-            name="cpf"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>CPF</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="000.000.000-00" 
-                    {...field}
-                    onChange={(e) => field.onChange(formatCPF(e.target.value))}
-                    maxLength={14}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Telefone</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="(00) 00000-0000" 
-                    {...field}
-                    onChange={(e) => field.onChange(formatPhone(e.target.value))}
-                     maxLength={15}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Senha</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="Crie uma senha" {...field} />
-                </FormControl>
-                 <p className="text-xs text-gray-500 mt-1">Mínimo de 8 caracteres.</p>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirmar Senha</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="Confirme sua senha" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              control={form.control}
+              name="cep"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CEP</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="00000-000" 
+                      {...field}
+                      onChange={(e) => field.onChange(formatCEP(e.target.value))}
+                      onBlur={(e) => handleCepBlur(e.target.value)}
+                      maxLength={9}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-3 gap-4">
+               <FormField
+                control={form.control}
+                name="street"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel>Endereço</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Sua rua, avenida..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="number"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nº" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="neighborhood"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bairro</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Seu bairro" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cidade</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Sua cidade" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="state"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado</FormLabel>
+                    <FormControl>
+                      <Input placeholder="UF" {...field} maxLength={2} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          
           <FormField
             control={form.control}
             name="terms"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-0">
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-0 pt-4">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -210,9 +341,11 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full">
-            Criar conta
-          </Button>
+          <div className="pt-2">
+            <Button type="submit" className="w-full">
+              Criar conta
+            </Button>
+          </div>
         </form>
       </Form>
       <div className="text-center text-gray-600 text-sm">
@@ -229,3 +362,5 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     </div>
   );
 }
+
+    
