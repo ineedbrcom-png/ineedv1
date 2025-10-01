@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { currentUser as mockCurrentUser } from "@/lib/data";
 import { findImage } from "@/lib/placeholder-images";
 import { StarRating } from "@/components/star-rating";
 import {
@@ -180,10 +179,6 @@ export default function ProfilePage() {
   }
 
 
-  const portfolioImage1 = findImage("listing-3");
-  const portfolioImage2 = findImage("listing-4");
-  const portfolioImage3 = findImage("listing-2");
-
   if (isAuthContextLoading || isProfileLoading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -288,7 +283,7 @@ export default function ProfilePage() {
                         )}
                     />
                 ) : (
-                    <p className="text-gray-600 mt-2">{profile.about || mockCurrentUser.about}</p>
+                    <p className="text-gray-600 mt-2">{profile.about || "Edite seu perfil para adicionar uma descrição."}</p>
                 )}
               <div className="flex flex-wrap items-center justify-center md:justify-start mt-3 text-sm text-muted-foreground gap-x-4 gap-y-1">
                  {profile.address && (
@@ -400,7 +395,7 @@ export default function ProfilePage() {
                     />
                  ) : (
                     <div className="flex flex-wrap gap-2">
-                      {(profile.skills && profile.skills.length > 0 ? profile.skills : mockCurrentUser.skills).map((skill) => (
+                      {profile.skills && profile.skills.length > 0 ? profile.skills.map((skill) => (
                         <Badge
                           key={skill}
                           variant="secondary"
@@ -408,9 +403,8 @@ export default function ProfilePage() {
                         >
                           {skill}
                         </Badge>
-                      ))}
-                      {(!profile.skills || profile.skills.length === 0) && !isEditing && (
-                          <p className="text-sm text-muted-foreground">Adicione suas habilidades para que os clientes possam te encontrar.</p>
+                      )) : (
+                          <p className="text-sm text-muted-foreground">Você ainda não adicionou nenhuma habilidade. Edite seu perfil para adicioná-las.</p>
                       )}
                     </div>
                  )}
@@ -422,64 +416,21 @@ export default function ProfilePage() {
                     <Plus className="mr-1 h-4 w-4" /> Adicionar item
                   </Button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {portfolioImage1 && (
-                    <Card>
-                      <Image
-                        src={portfolioImage1.imageUrl}
-                        alt={portfolioImage1.description}
-                        width={320}
-                        height={160}
-                        className="w-full h-40 object-cover rounded-t-lg"
-                      />
-                      <p className="text-sm font-medium p-2">
-                        Montagem de Computador Gamer
-                      </p>
-                    </Card>
-                  )}
-                  {portfolioImage2 && (
-                    <Card>
-                      <Image
-                        src={portfolioImage2.imageUrl}
-                        alt={portfolioImage2.description}
-                        width={320}
-                        height={160}
-                        className="w-full h-40 object-cover rounded-t-lg"
-                      />
-                      <p className="text-sm font-medium p-2">
-                        Edição de Vídeo Corporativo
-                      </p>
-                    </Card>
-                  )}
-                  {portfolioImage3 && (
-                    <Card>
-                      <Image
-                        src={portfolioImage3.imageUrl}
-                        alt={portfolioImage3.description}
-                        width={320}
-                        height={160}
-                        className="w-full h-40 object-cover rounded-t-lg"
-                      />
-                      <p className="text-sm font-medium p-2">
-                        Reforma Elétrica Residencial
-                      </p>
-                    </Card>
-                  )}
-                </div>
+                 <Card className="flex items-center justify-center h-40 text-muted-foreground bg-muted/50 border-dashed">
+                    <p>Nenhum item no portfólio ainda.</p>
+                </Card>
               </div>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="font-medium mb-2">Preços</h3>
                   <p className="text-muted-foreground">
-                    A partir de R$ 80/hora
+                    Configure sua faixa de preço.
                   </p>
                 </div>
                 <div>
                   <h3 className="font-medium mb-2">Área de Atendimento</h3>
-                  <div className="bg-muted border rounded-lg h-48 flex items-center justify-center">
-                    <p className="text-muted-foreground">
-                      Mapa com raio de atendimento de 30km
-                    </p>
+                   <div className="bg-muted border rounded-lg h-48 flex items-center justify-center text-muted-foreground">
+                    <p>Funcionalidade em desenvolvimento.</p>
                   </div>
                 </div>
               </div>
@@ -493,51 +444,8 @@ export default function ProfilePage() {
                         Histórico de Pedidos
                       </h2>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="border-b pb-4">
-                        <div className="flex justify-between">
-                          <h3 className="font-medium">
-                            Instalação de Prateleiras
-                          </h3>
-                          <span className="text-green-600 font-medium">
-                            Concluído
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Para Juliana C. - ⭐⭐⭐⭐⭐
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Concluído em 15 de outubro de 2025
-                        </p>
-                      </div>
-                      <div className="border-b pb-4">
-                        <div className="flex justify-between">
-                          <h3 className="font-medium">Reparo de Notebook</h3>
-                          <span className="text-blue-600 font-medium">
-                            Em andamento
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Para Carlos M.
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Iniciado em 22 de outubro de 2025
-                        </p>
-                      </div>
-                      <div>
-                        <div className="flex justify-between">
-                          <h3 className="font-medium">Design de Logo</h3>
-                          <span className="text-green-600 font-medium">
-                            Concluído
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Para Empresa XYZ - ⭐⭐⭐⭐⭐
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Concluído em 5 de outubro de 2025
-                        </p>
-                      </div>
+                     <CardContent className="flex items-center justify-center h-40 text-muted-foreground">
+                        <p>Nenhum pedido concluído ainda.</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -546,32 +454,8 @@ export default function ProfilePage() {
                     <CardHeader>
                       <h2 className="text-xl font-bold">Depoimentos</h2>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <p className="text-sm text-gray-700">
-                          "Serviço excelente! Roger foi pontual, profissional e
-                          entregou exatamente o que prometeu."
-                        </p>
-                        <p className="font-medium text-sm text-right mt-2">
-                          - Juliana C. ⭐⭐⭐⭐⭐
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <h2 className="text-xl font-bold">Minhas Avaliações</h2>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <p className="text-sm text-gray-700">
-                          "Fornecedor confiável e competente. Entregou no prazo
-                          combinado."
-                        </p>
-                        <p className="font-medium text-sm text-right mt-2">
-                          - Marcos T. ⭐⭐⭐⭐
-                        </p>
-                      </div>
+                    <CardContent className="flex items-center justify-center h-24 text-muted-foreground">
+                       <p>Nenhum depoimento recebido.</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -712,3 +596,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
