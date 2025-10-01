@@ -64,7 +64,12 @@ export function Header() {
   
   const handleSearch = (e: React.FormEvent) => {
       e.preventDefault();
-      router.push(`/explore/all?q=${searchTerm}`);
+      if(searchTerm.trim()){
+        router.push(`/explore/all?q=${encodeURIComponent(searchTerm.trim())}`);
+      } else {
+        router.push('/explore/all');
+      }
+      setSearchTerm("");
   }
 
   const handleLogout = async () => {
@@ -268,3 +273,5 @@ export function Header() {
     </>
   );
 }
+
+    

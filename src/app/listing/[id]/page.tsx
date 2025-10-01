@@ -261,7 +261,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                     </Button>
                   </div>
               </div>
-              <Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={handleStartConversation}>
+              <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={handleStartConversation}>
                   <MessageSquare className="h-4 w-4"/> Iniciar Conversa
               </Button>
             </CardContent>
@@ -283,3 +283,5 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
     </div>
   );
 }
+
+    

@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { findImage } from "@/lib/placeholder-images";
 import { StarRating } from "@/components/star-rating";
 import {
   CheckCircle,
@@ -40,24 +39,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-
-
-interface UserProfile {
-  displayName: string;
-  email: string;
-  photoURL?: string;
-  about?: string;
-  address?: {
-    city: string;
-    state: string;
-  };
-  createdAt: Timestamp;
-  rating: number;
-  reviewCount: number;
-  skills?: string[];
-  isPhoneVerified?: boolean;
-  isDocumentVerified?: boolean;
-}
+import type { User as UserProfile } from "@/lib/data";
 
 const profileFormSchema = z.object({
   displayName: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),

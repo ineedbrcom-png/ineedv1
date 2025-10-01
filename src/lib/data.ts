@@ -60,7 +60,7 @@ export interface Listing {
 export interface ConversationParticipant {
     id: string;
     name: string;
-    avatarId: string; // This is still used in conversation details, can be refactored later
+    photoURL?: string;
 }
 
 export interface Conversation {
@@ -89,7 +89,7 @@ export interface Message {
   proposalDetails?: Proposal;
   contractDetails?: Contract;
   contactDetails?: ContactDetails;
-  images?: string[];
+  imageUrls?: string[];
 }
 
 export interface Proposal {
@@ -139,3 +139,5 @@ export const popularTags = [
 
 export const conversations: Conversation[] = [];
 export const messages: Message[] = [];
+
+    

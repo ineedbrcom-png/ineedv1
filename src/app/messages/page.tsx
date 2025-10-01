@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Button } from "@/components/ui/button";
 import { Loader2, Inbox } from "lucide-react";
-import { collection, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useSearchParams } from "next/navigation";
 import { allCategories } from "@/lib/categories";
@@ -48,12 +48,12 @@ export default function MessagesPage() {
       );
 
       const querySnapshot = await getDocs(q);
-      let existingConversation = null;
+      let existingConversation: Conversation | null = null;
 
       querySnapshot.forEach(doc => {
           const conversation = doc.data() as Omit<Conversation, 'id'>;
           if(conversation.participants.includes(targetUserId)) {
-              existingConversation = { id: doc.id, ...conversation };
+              existingConversation = { id: doc.id, ...conversation } as Conversation;
           }
       });
 
@@ -66,12 +66,15 @@ export default function MessagesPage() {
         const user2Doc = await getDoc(doc(db, "users", participants[1]));
 
         if (!user1Doc.exists() || !user2Doc.exists()) return;
+        
+        const user1Data = user1Doc.data();
+        const user2Data = user2Doc.data();
 
         const newConversationData = {
           participants: participants,
           participantsDetails: [
-             { id: user1Doc.id, name: user1Doc.data()?.displayName, avatarId: 'avatar-1' },
-             { id: user2Doc.id, name: user2Doc.data()?.displayName, avatarId: 'avatar-2' },
+             { id: user1Doc.id, name: user1Data?.displayName, photoURL: user1Data?.photoURL },
+             { id: user2Doc.id, name: user2Data?.displayName, photoURL: user2Data?.photoURL },
           ],
           listingId: targetListingId,
           listingAuthorId: listingData.authorId,
@@ -130,10 +133,18 @@ export default function MessagesPage() {
   }, [user, isAuthLoading, activeConversation, targetListingId]);
 
   useEffect(() => {
-    if (!activeConversation) {
+    if (!activeConversation || !user) {
         setMessages([]);
         return;
     };
+
+    // Mark messages as read
+    if (activeConversation.unreadBy.includes(user.uid)) {
+        const conversationRef = doc(db, 'conversations', activeConversation.id);
+        updateDoc(conversationRef, {
+            unreadBy: activeConversation.unreadBy.filter(id => id !== user.uid)
+        });
+    }
 
     setIsLoadingMessages(true);
     const messagesCol = collection(
@@ -150,11 +161,11 @@ export default function MessagesPage() {
         msgs.push({ id: doc.id, conversationId: activeConversation.id, ...doc.data() } as Message);
       });
       setMessages(msgs);
-setIsLoadingMessages(false);
+      setIsLoadingMessages(false);
     });
 
     return () => unsubscribe();
-  }, [activeConversation]);
+  }, [activeConversation, user]);
 
 
   if (isAuthLoading) {
@@ -221,3 +232,5 @@ setIsLoadingMessages(false);
     </div>
   );
 }
+
+    

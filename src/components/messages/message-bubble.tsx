@@ -3,7 +3,6 @@
 
 import { type Message, type Conversation } from "@/lib/data";
 import { cn } from "@/lib/utils";
-import { findImage } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Check, X, Loader2, FileText, User, Phone, Home, Star } from "lucide-react";
@@ -20,10 +19,9 @@ import { ReviewModal } from "./review-modal";
 interface MessageBubbleProps {
   message: Message;
   conversation: Conversation;
-  userAvatarUrl?: string;
 }
 
-export function MessageBubble({ message, conversation, userAvatarUrl }: MessageBubbleProps) {
+export function MessageBubble({ message, conversation }: MessageBubbleProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -253,10 +251,10 @@ export function MessageBubble({ message, conversation, userAvatarUrl }: MessageB
 
   return (
     <div className={cn("flex items-start gap-3", isMe && "justify-end")}>
-      {!isMe && (
+      {!isMe && otherParticipant && (
         <Avatar className="w-8 h-8">
-            <AvatarImage src={userAvatarUrl} />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage src={otherParticipant.photoURL} />
+            <AvatarFallback>{otherParticipant.name.charAt(0)}</AvatarFallback>
         </Avatar>
       )}
       <div className={cn("max-w-xs lg:max-w-md", isMe && "text-right")}>
@@ -269,12 +267,11 @@ export function MessageBubble({ message, conversation, userAvatarUrl }: MessageB
           )}
         >
           <p className="text-left">{message.content}</p>
-          {message.images && message.images.length > 0 && (
+          {message.imageUrls && message.imageUrls.length > 0 && (
             <div className="grid grid-cols-2 gap-2 mt-2">
-              {message.images.map(imageId => {
-                const img = findImage(imageId);
-                return img ? <Image key={imageId} src={img.imageUrl} alt={img.description} width={100} height={100} className="rounded-md" /> : null
-              })}
+              {message.imageUrls.map((url, index) => (
+                <Image key={index} src={url} alt={`attachment ${index + 1}`} width={100} height={100} className="rounded-md object-cover" />
+              ))}
             </div>
           )}
         </div>
@@ -283,3 +280,5 @@ export function MessageBubble({ message, conversation, userAvatarUrl }: MessageB
     </div>
   );
 }
+
+    

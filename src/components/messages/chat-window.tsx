@@ -1,12 +1,12 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { findImage } from "@/lib/placeholder-images";
 import { type Conversation, type Message } from "@/lib/data";
 import { MessageInput } from "./message-input";
 import { MessageBubble } from "./message-bubble";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface ChatWindowProps {
   conversation: Conversation;
@@ -17,14 +17,21 @@ interface ChatWindowProps {
 export function ChatWindow({ conversation, messages, isLoading }: ChatWindowProps) {
   const { user } = useAuth();
   const otherParticipant = conversation.participantsDetails.find(p => p.id !== user?.uid);
-  const userAvatar = findImage(otherParticipant?.avatarId || 'avatar-2');
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll to bottom when messages change
+    if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages])
 
   return (
     <div className="w-full lg:w-2/3 flex flex-col">
       <div className="p-4 border-b border-gray-200 flex items-center">
-        {userAvatar && (
+        {otherParticipant && (
             <Avatar className="h-10 w-10 mr-3">
-                <AvatarImage src={userAvatar.imageUrl} alt={otherParticipant?.name} />
+                <AvatarImage src={otherParticipant.photoURL} alt={otherParticipant?.name} />
                 <AvatarFallback>{otherParticipant?.name?.charAt(0)}</AvatarFallback>
             </Avatar>
         )}
@@ -38,14 +45,14 @@ export function ChatWindow({ conversation, messages, isLoading }: ChatWindowProp
           </p>
         </div>
       </div>
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+      <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50/50">
         {isLoading ? (
             <div className="flex justify-center items-center h-full">
                 <Loader2 className="h-6 w-6 animate-spin" />
             </div>
         ) : (
             messages.map(msg => (
-                <MessageBubble key={msg.id} message={msg} conversation={conversation} userAvatarUrl={userAvatar?.imageUrl} />
+                <MessageBubble key={msg.id} message={msg} conversation={conversation} />
             ))
         )}
       </div>
@@ -53,3 +60,5 @@ export function ChatWindow({ conversation, messages, isLoading }: ChatWindowProp
     </div>
   );
 }
+
+    

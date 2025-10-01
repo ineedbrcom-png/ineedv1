@@ -1,7 +1,6 @@
 
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { findImage } from "@/lib/placeholder-images";
 import { type Conversation } from "@/lib/data";
 import { Inbox, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -51,7 +50,6 @@ export function ConversationList({ conversations, activeConversationId, onConver
         ) : (
           conversations.map((convo) => {
           const otherParticipant = convo.participantsDetails.find(p => p.id !== user?.uid);
-          const userAvatar = findImage(otherParticipant?.avatarId || 'avatar-2');
           return (
             <button
               key={convo.id}
@@ -61,9 +59,9 @@ export function ConversationList({ conversations, activeConversationId, onConver
                 convo.id === activeConversationId && "bg-blue-50 hover:bg-blue-50"
               )}
             >
-              {userAvatar && (
+              {otherParticipant && (
                  <Avatar className="h-10 w-10 mr-3">
-                    <AvatarImage src={userAvatar.imageUrl} alt={otherParticipant?.name || ''} />
+                    <AvatarImage src={otherParticipant.photoURL} alt={otherParticipant?.name || ''} />
                     <AvatarFallback>{otherParticipant?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
@@ -84,3 +82,5 @@ export function ConversationList({ conversations, activeConversationId, onConver
     </div>
   );
 }
+
+    
