@@ -17,6 +17,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from 'next/link';
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   firstName: z.string().min(1, "O nome é obrigatório."),
@@ -47,6 +51,8 @@ interface RegisterFormProps {
 
 export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -110,13 +116,34 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   }
 
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
-    toast({
-      title: "Cadastro realizado!",
-      description: "Sua conta foi criada com sucesso.",
-    });
-    onSwitchToLogin();
+  async function onSubmit(values: FormValues) {
+    setIsLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: `${values.firstName} ${values.lastName}`
+        });
+      }
+      toast({
+        title: "Cadastro realizado!",
+        description: "Sua conta foi criada com sucesso.",
+      });
+      onSwitchToLogin();
+    } catch (error: any) {
+      console.error("Registration failed:", error);
+      let description = "Ocorreu um erro ao tentar se cadastrar.";
+      if(error.code === 'auth/email-already-in-use') {
+        description = "Este e-mail já está em uso por outra conta.";
+      }
+      toast({
+        variant: "destructive",
+        title: "Falha no cadastro",
+        description,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -342,8 +369,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             )}
           />
           <div className="pt-2">
-            <Button type="submit" className="w-full">
-              Criar conta
+            <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="animate-spin" />}
+                {!isLoading && "Criar conta"}
             </Button>
           </div>
         </form>
@@ -362,5 +390,3 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     </div>
   );
 }
-
-    

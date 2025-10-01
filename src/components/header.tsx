@@ -31,18 +31,20 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { currentUser } from "@/lib/data";
-import { findImage } from "@/lib/placeholder-images";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { useAuth } from "@/hooks/use-auth";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
+
 
 export function Header() {
-  const { isLoggedIn, setIsLoggedIn, isAuthLoading } = useAuth();
-  const userAvatar = isLoggedIn ? findImage(currentUser.avatarId) : null;
+  const { user, isLoggedIn, isAuthLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const router = useRouter();
+  const { toast } = useToast();
 
   const openAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
@@ -59,14 +61,25 @@ export function Header() {
     setIsSheetOpen(false);
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push("/");
+      toast({
+        title: "Logout bem-sucedido",
+        description: "Você foi desconectado com sucesso.",
+      })
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao sair",
+        description: "Não foi possível fazer logout. Tente novamente.",
+      })
+    }
     setIsSheetOpen(false);
   };
   
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
     setIsAuthModalOpen(false);
   }
 
@@ -96,6 +109,11 @@ export function Header() {
     </>
   );
 
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return "";
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase();
+  }
+
   return (
     <>
       <header className="gradient-bg text-white shadow-md sticky top-0 z-40">
@@ -122,7 +140,7 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-4">
-              {(isAuthLoading) ? null : isLoggedIn && currentUser ? (
+              {(isAuthLoading) ? null : isLoggedIn && user ? (
                 <>
                   <nav className="hidden md:flex space-x-6 items-center">
                     {navLinks}
@@ -135,17 +153,14 @@ export function Header() {
                         className="hidden md:flex hover:bg-white/10 p-2 rounded-full h-auto"
                       >
                         <Avatar className="h-8 w-8">
-                          {userAvatar && (
+                          {user.photoURL && (
                             <AvatarImage
-                              src={userAvatar.imageUrl}
-                              alt={userAvatar.description}
+                              src={user.photoURL}
+                              alt={user.displayName || 'User Avatar'}
                             />
                           )}
                           <AvatarFallback className="bg-blue-300 text-blue-800">
-                            {currentUser.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
+                           {getInitials(user.displayName)}
                           </AvatarFallback>
                         </Avatar>
                       </Button>
@@ -154,10 +169,10 @@ export function Header() {
                       <DropdownMenuLabel>
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium leading-none">
-                            {currentUser.name}
+                            {user.displayName}
                           </p>
                           <p className="text-xs leading-none text-muted-foreground">
-                            {currentUser.email}
+                            {user.email}
                           </p>
                         </div>
                       </DropdownMenuLabel>
@@ -198,16 +213,16 @@ export function Header() {
                   </SheetTrigger>
                   <SheetContent side="right" className="gradient-bg text-white border-l-0">
                      <nav className="flex flex-col gap-6 mt-10">
-                      {isLoggedIn ? (
+                      {isLoggedIn && user ? (
                         <>
                           <div className="flex items-center gap-3 border-b border-white/20 pb-6">
                             <Avatar className="h-12 w-12">
-                              {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt={userAvatar.description} />}
-                              <AvatarFallback className="bg-blue-300 text-blue-800 text-xl">{currentUser.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
+                              {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User Avatar'} />}
+                              <AvatarFallback className="bg-blue-300 text-blue-800 text-xl">{getInitials(user.displayName)}</AvatarFallback>
                             </Avatar>
                             <div>
-                               <p className="text-lg font-medium leading-none">{currentUser.name}</p>
-                               <p className="text-sm leading-none text-white/80">{currentUser.email}</p>
+                               <p className="text-lg font-medium leading-none">{user.displayName}</p>
+                               <p className="text-sm leading-none text-white/80">{user.email}</p>
                             </div>
                           </div>
                           {navLinks}

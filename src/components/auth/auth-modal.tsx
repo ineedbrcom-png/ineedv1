@@ -24,14 +24,12 @@ export function AuthModal({
   onLoginSuccess,
 }: AuthModalProps) {
   const [mode, setMode] = useState(initialMode);
-  const { setIsLoggedIn } = useAuth();
-
+  
   useEffect(() => {
     setMode(initialMode);
   }, [initialMode, isOpen]);
 
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
     if(onLoginSuccess) {
       onLoginSuccess();
     }

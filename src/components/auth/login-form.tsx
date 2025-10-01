@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -16,6 +17,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLogins } from "./social-logins";
 import { Separator } from "@/components/ui/separator";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   email: z.string().email("Por favor, insira um e-mail válido."),
@@ -31,6 +36,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -40,13 +46,29 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
     },
   });
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
-    toast({
-      title: "Login bem-sucedido!",
-      description: "Que bom te ver de novo!",
-    });
-    onLoginSuccess();
+  async function onSubmit(values: FormValues) {
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Login bem-sucedido!",
+        description: "Que bom te ver de novo!",
+      });
+      onLoginSuccess();
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      let description = "Ocorreu um erro ao tentar fazer login.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        description = "E-mail ou senha inválidos. Por favor, tente novamente.";
+      }
+      toast({
+        variant: "destructive",
+        title: "Falha no login",
+        description,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -90,8 +112,9 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
               Esqueceu sua senha?
             </Button>
           </div>
-          <Button type="submit" className="w-full">
-            Entrar
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading && <Loader2 className="animate-spin" />}
+            {!isLoading && "Entrar"}
           </Button>
         </form>
       </Form>
