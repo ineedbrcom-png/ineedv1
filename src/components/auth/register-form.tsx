@@ -27,7 +27,7 @@ const formSchema = z.object({
   firstName: z.string().min(1, "O nome é obrigatório."),
   lastName: z.string().min(1, "O sobrenome é obrigatório."),
   email: z.string().email("Por favor, insira um e-mail válido."),
-  cpf: z.string().length(14, "O CPF deve ter 11 dígitos.").optional(),
+  cpf: z.string().length(14, "O CPF deve ter 11 dígitos."),
   phone: z.string().min(14, "O telefone é obrigatório.").optional(),
   password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres."),
   confirmPassword: z.string(),
@@ -221,7 +221,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               name="cpf"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CPF (opcional)</FormLabel>
+                  <FormLabel>CPF</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="000.000.000-00" 
@@ -414,3 +414,5 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     </div>
   );
 }
+
+    
