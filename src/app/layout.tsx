@@ -25,7 +25,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased bg-gray-50`}>
         <AuthProvider>
           <Header />
-          <main>{children}</main>
+          <main className="pb-20 md:pb-0">{children}</main>
           <Footer />
           <Toaster />
         </AuthProvider>

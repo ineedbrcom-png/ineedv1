@@ -13,7 +13,7 @@ import {
   HandHeart,
   MessageCircle,
   Home,
-  PlusCircle,
+  Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { currentUser } from "@/lib/data";
 import { findImage } from "@/lib/placeholder-images";
@@ -35,12 +40,14 @@ export function Header() {
   const { isLoggedIn, setIsLoggedIn, isAuthLoading } = useAuth();
   const userAvatar = isLoggedIn ? findImage(currentUser.avatarId) : null;
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const router = useRouter();
 
   const openAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
+    setIsSheetOpen(false);
   };
 
   const handleLinkClick = (path: string) => {
@@ -49,17 +56,45 @@ export function Header() {
     } else {
       router.push(path);
     }
+    setIsSheetOpen(false);
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     router.push("/");
+    setIsSheetOpen(false);
   };
   
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
     setIsAuthModalOpen(false);
   }
+
+  const navLinks = (
+    <>
+      <Button
+        variant="link"
+        className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
+        onClick={() => { router.push('/'); setIsSheetOpen(false); }}
+      >
+        <Home className="h-4 w-4" /> Início
+      </Button>
+      <Button
+        variant="link"
+        className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
+        onClick={() => handleLinkClick("/messages")}
+      >
+        <MessageCircle className="h-4 w-4" /> Mensagens
+      </Button>
+      <Button
+        variant="link"
+        className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
+        onClick={() => handleLinkClick("/profile")}
+      >
+        <User className="h-4 w-4" /> Perfil
+      </Button>
+    </>
+  );
 
   return (
     <>
@@ -90,26 +125,14 @@ export function Header() {
               {(isAuthLoading) ? null : isLoggedIn && currentUser ? (
                 <>
                   <nav className="hidden md:flex space-x-6 items-center">
-                    <Link
-                      href="/"
-                      className="hover:underline font-medium flex items-center gap-1"
-                    >
-                      <Home className="h-4 w-4" /> Início
-                    </Link>
-                    <Button
-                      variant="link"
-                      className="hover:underline font-medium flex items-center gap-1 text-white p-0 h-auto"
-                      onClick={() => handleLinkClick("/messages")}
-                    >
-                      <MessageCircle className="h-4 w-4" /> Mensagens
-                    </Button>
+                    {navLinks}
                   </nav>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="hover:bg-white/10 p-2 rounded-full h-auto"
+                        className="hidden md:flex hover:bg-white/10 p-2 rounded-full h-auto"
                       >
                         <Avatar className="h-8 w-8">
                           {userAvatar && (
@@ -125,10 +148,6 @@ export function Header() {
                               .join("")}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="hidden lg:inline ml-2">
-                          {currentUser.name.split(" ")[0]}
-                        </span>
-                        <ChevronDown className="ml-1 h-4 w-4 hidden lg:inline" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56 mt-2">
@@ -142,33 +161,6 @@ export function Header() {
                           </p>
                         </div>
                       </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => handleLinkClick("/profile")}
-                        className="cursor-pointer"
-                      >
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Ver Meu Perfil</span>
-                      </DropdownMenuItem>
-                       <DropdownMenuItem
-                        onClick={() => handleLinkClick("/profile")}
-                        className="cursor-pointer"
-                      >
-                        <Bell className="mr-2 h-4 w-4" />
-                        <span>Notificações</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleLinkClick("/profile")}
-                        className="cursor-pointer"
-                      >
-                        <span>Meus Pedidos</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleLinkClick("/profile")}
-                        className="cursor-pointer"
-                      >
-                        <span>Configurações</span>
-                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={handleLogout}
@@ -197,6 +189,40 @@ export function Header() {
                   </Button>
                 </div>
               )}
+               <div className="md:hidden">
+                <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Menu />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="gradient-bg text-white border-l-0">
+                     <nav className="flex flex-col gap-6 mt-10">
+                      {isLoggedIn ? (
+                        <>
+                          <div className="flex items-center gap-3 border-b border-white/20 pb-6">
+                            <Avatar className="h-12 w-12">
+                              {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt={userAvatar.description} />}
+                              <AvatarFallback className="bg-blue-300 text-blue-800 text-xl">{currentUser.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                               <p className="text-lg font-medium leading-none">{currentUser.name}</p>
+                               <p className="text-sm leading-none text-white/80">{currentUser.email}</p>
+                            </div>
+                          </div>
+                          {navLinks}
+                          <Button variant="ghost" className="justify-start p-0 h-auto text-base" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />Sair</Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button onClick={() => openAuthModal("login")} className="justify-center" variant="ghost" size="lg">Entrar</Button>
+                          <Button onClick={() => openAuthModal("register")} className="justify-center bg-white text-blue-600" size="lg">Cadastrar</Button>
+                        </>
+                      )}
+                     </nav>
+                  </SheetContent>
+                </Sheet>
+              </div>
             </div>
           </div>
         </div>

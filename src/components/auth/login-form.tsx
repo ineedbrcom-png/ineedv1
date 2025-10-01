@@ -85,7 +85,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
               </FormItem>
             )}
           />
-           <div className="text-center text-sm">
+           <div className="text-right text-sm">
             <Button variant="link" type="button" className="p-0 h-auto">
               Esqueceu sua senha?
             </Button>
