@@ -1,7 +1,8 @@
 
 {
   "hosting": {
-    "source": "src",
+    "site": "ineed-app-2dcbd",
+    "source": ".",
     "ignore": [
       "firebase.json",
       ".firebaserc",
