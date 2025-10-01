@@ -17,10 +17,21 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { SocialLogins } from "./social-logins";
 import { Separator } from "@/components/ui/separator";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const formSchema = z.object({
   email: z.string().email("Por favor, insira um e-mail válido."),
@@ -37,6 +48,8 @@ interface LoginFormProps {
 export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -72,6 +85,24 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
       setIsLoading(false);
     }
   }
+
+  const handlePasswordReset = async () => {
+    if (!resetEmail) {
+        toast({variant: "destructive", title: "E-mail não informado", description: "Por favor, digite seu e-mail para redefinir a senha."});
+        return;
+    }
+    setIsResettingPassword(true);
+    try {
+        await sendPasswordResetEmail(auth, resetEmail);
+        toast({title: "E-mail de redefinição enviado", description: "Verifique sua caixa de entrada para criar uma nova senha."});
+    } catch (error: any) {
+        console.error("Password reset error:", error);
+        toast({variant: "destructive", title: "Falha ao enviar e-mail", description: "Não foi possível enviar o e-mail de redefinição. Verifique o e-mail digitado."});
+    } finally {
+        setIsResettingPassword(false);
+    }
+}
+
 
   return (
     <div className="space-y-4">
@@ -110,9 +141,31 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
             )}
           />
            <div className="text-right text-sm">
-            <Button variant="link" type="button" className="p-0 h-auto">
-              Esqueceu sua senha?
-            </Button>
+             <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="link" type="button" className="p-0 h-auto">Esqueceu sua senha?</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Redefinir sua senha</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Digite seu endereço de e-mail abaixo e enviaremos um link para você redefinir sua senha.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <Input 
+                        type="email" 
+                        placeholder="seu@email.com" 
+                        value={resetEmail} 
+                        onChange={(e) => setResetEmail(e.target.value)}
+                    />
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handlePasswordReset} disabled={isResettingPassword}>
+                        {isResettingPassword ? <Loader2 className="animate-spin" /> : "Enviar E-mail"}
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="animate-spin" />}

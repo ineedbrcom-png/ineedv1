@@ -43,6 +43,7 @@ export function Header() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
   const { toast } = useToast();
 
@@ -60,6 +61,11 @@ export function Header() {
     }
     setIsSheetOpen(false);
   };
+  
+  const handleSearch = (e: React.FormEvent) => {
+      e.preventDefault();
+      router.push(`/explore/all?q=${searchTerm}`);
+  }
 
   const handleLogout = async () => {
     try {
@@ -128,20 +134,23 @@ export function Header() {
               <h1 className="text-2xl font-bold">iNeed</h1>
             </Link>
 
-            <div className="relative w-1/2 hidden md:block">
+            <form className="relative w-1/2 hidden md:block" onSubmit={handleSearch}>
               <Input
                 type="text"
                 placeholder="Buscar pedidos..."
                 className="w-full py-2 px-4 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 h-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
               <Button
+                type="submit"
                 variant="ghost"
                 size="icon"
                 className="absolute right-0 top-0 h-full px-4 text-gray-600 hover:text-gray-800"
               >
                 <Search className="h-4 w-4" />
               </Button>
-            </div>
+            </form>
 
             <div className="flex items-center gap-4">
               {(isAuthLoading) ? null : isLoggedIn && user ? (

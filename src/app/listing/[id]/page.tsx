@@ -25,6 +25,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import Link from "next/link";
 
 export default function ListingDetailPage({ params }: { params: { id: string } }) {
   const [recommendations, setRecommendations] = useState<ServiceProviderRecommendationOutput | null>(null);
@@ -211,7 +212,9 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                           </div>
                         </CardHeader>
                         <CardContent>
-                            <Button>Ver Perfil</Button>
+                            <Button asChild>
+                                <Link href={`/profile`}>Ver Perfil</Link>
+                            </Button>
                         </CardContent>
                       </Card>
                     ))}
@@ -253,7 +256,9 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                   </Avatar>
                   <div>
                     <h4 className="font-bold">{listing.author.name}</h4>
-                    <Button variant="link" className="p-0 h-auto">Ver Perfil</Button>
+                    <Button variant="link" className="p-0 h-auto" asChild>
+                        <Link href={`/profile`}>Ver Perfil</Link>
+                    </Button>
                   </div>
               </div>
               <Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={handleStartConversation}>
