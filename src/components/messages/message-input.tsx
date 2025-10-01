@@ -1,3 +1,4 @@
+
  "use client";
 
 import { useState } from "react";
@@ -7,11 +8,22 @@ import { Paperclip, Send, FileSignature, Handshake, X } from "lucide-react";
 import Image from "next/image";
 import { ContractModal } from "./contract-modal";
 import { ProposalModal } from "./proposal-modal";
+import { useAuth } from "@/hooks/use-auth";
+import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
-export function MessageInput() {
+interface MessageInputProps {
+    conversationId: string;
+}
+
+export function MessageInput({ conversationId }: MessageInputProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [message, setMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
 
@@ -32,12 +44,40 @@ export function MessageInput() {
     setPreview(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() || file) {
-      console.log("Sending message:", { message, file });
-      setMessage("");
-      removeAttachment();
+    if (!message.trim() && !file) return;
+    if (!user) {
+        toast({ variant: "destructive", title: "Você não está logado." });
+        return;
+    }
+
+    setIsSending(true);
+    try {
+        const messagesCol = collection(db, "conversations", conversationId, "messages");
+        await addDoc(messagesCol, {
+            content: message,
+            sender: user.uid,
+            timestamp: serverTimestamp(),
+            type: 'user',
+            read: false,
+            // image upload logic would go here
+        });
+
+        const conversationRef = doc(db, "conversations", conversationId);
+        await updateDoc(conversationRef, {
+            lastMessage: message,
+            lastMessageTimestamp: serverTimestamp(),
+        });
+
+        setMessage("");
+        removeAttachment();
+
+    } catch (error) {
+        console.error("Error sending message:", error);
+        toast({ variant: "destructive", title: "Erro ao enviar mensagem." });
+    } finally {
+        setIsSending(false);
     }
   };
 
@@ -60,7 +100,7 @@ export function MessageInput() {
             </div>
           )}
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="icon">
+            <Button asChild variant="ghost" size="icon" disabled={isSending}>
               <label htmlFor="file-upload">
                 <Paperclip />
                 <input id="file-upload" type="file" className="hidden" onChange={handleFileChange}/>
@@ -72,8 +112,9 @@ export function MessageInput() {
               placeholder="Digite sua mensagem..."
               className="flex-1 rounded-full py-2 px-4 resize-none max-h-32"
               rows={1}
+              disabled={isSending}
             />
-            <Button type="submit" size="icon" className="rounded-full">
+            <Button type="submit" size="icon" className="rounded-full" disabled={isSending}>
               <Send />
             </Button>
           </div>

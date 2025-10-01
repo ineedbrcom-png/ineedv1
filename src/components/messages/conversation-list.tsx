@@ -1,17 +1,29 @@
+
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { findImage } from "@/lib/placeholder-images";
 import { type Conversation } from "@/lib/data";
-import { Inbox, Search } from "lucide-react";
+import { Inbox, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useAuth } from "@/hooks/use-auth";
 
 interface ConversationListProps {
   conversations: Conversation[];
   activeConversationId: string;
   onConversationSelect: (conversation: Conversation) => void;
+  isLoading: boolean;
 }
 
-export function ConversationList({ conversations, activeConversationId, onConversationSelect }: ConversationListProps) {
+export function ConversationList({ conversations, activeConversationId, onConversationSelect, isLoading }: ConversationListProps) {
+  const { user } = useAuth();
+  
+  const getTimestamp = (timestamp: any) => {
+    if (!timestamp?.toDate) return '';
+    return formatDistanceToNow(timestamp.toDate(), { addSuffix: true, locale: ptBR });
+  }
+
   return (
     <div className="w-full lg:w-1/3 border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
@@ -28,8 +40,18 @@ export function ConversationList({ conversations, activeConversationId, onConver
       </div>
 
       <div className="overflow-y-auto flex-1">
-        {conversations.map((convo) => {
-          const userAvatar = findImage(convo.userAvatarId);
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        ) : conversations.length === 0 ? (
+           <div className="text-center p-6 text-gray-500">
+             <p>Nenhuma conversa encontrada.</p>
+           </div>
+        ) : (
+          conversations.map((convo) => {
+          const otherParticipant = convo.participantsDetails.find(p => p.id !== user?.uid);
+          const userAvatar = findImage(otherParticipant?.avatarId || 'avatar-2');
           return (
             <button
               key={convo.id}
@@ -41,22 +63,23 @@ export function ConversationList({ conversations, activeConversationId, onConver
             >
               {userAvatar && (
                  <Avatar className="h-10 w-10 mr-3">
-                    <AvatarImage src={userAvatar.imageUrl} alt={convo.userName} />
-                    <AvatarFallback>{convo.userName.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={userAvatar.imageUrl} alt={otherParticipant?.name || ''} />
+                    <AvatarFallback>{otherParticipant?.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between">
-                  <p className="font-medium truncate">{convo.userName}</p>
-                  <span className="text-xs text-gray-500">{convo.timestamp}</span>
+                  <p className="font-medium truncate">{otherParticipant?.name}</p>
+                  <span className="text-xs text-gray-500 flex-shrink-0 ml-2">{getTimestamp(convo.lastMessageTimestamp)}</span>
                 </div>
                 <p className="text-sm text-gray-600 truncate">{convo.listingTitle}</p>
                 <p className="text-sm text-gray-500 truncate">{convo.lastMessage}</p>
               </div>
-              {convo.unread && <div className="w-2 h-2 rounded-full bg-blue-600 absolute right-4 top-1/2 -translate-y-1/2"></div>}
+              {convo.unreadBy && convo.unreadBy.includes(user?.uid || '') && <div className="w-2 h-2 rounded-full bg-blue-600 absolute right-4 top-1/2 -translate-y-1/2"></div>}
             </button>
           );
-        })}
+        })
+        )}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { type Message } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { findImage } from "@/lib/placeholder-images";
@@ -5,6 +6,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/use-auth";
+import { format } from 'date-fns';
 
 interface MessageBubbleProps {
   message: Message;
@@ -12,7 +15,8 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
-  const isMe = message.sender === 'me';
+  const { user } = useAuth();
+  const isMe = message.sender === user?.uid;
   
   if (message.type === 'system') {
     return (
@@ -47,6 +51,13 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
     );
   }
   
+  const getTimestamp = () => {
+      if(message.timestamp?.toDate) {
+          return format(message.timestamp.toDate(), 'HH:mm');
+      }
+      return '';
+  }
+
   return (
     <div className={cn("flex items-start gap-3", isMe && "justify-end")}>
       {!isMe && (
@@ -64,7 +75,7 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
               : "bg-muted rounded-bl-none"
           )}
         >
-          <p>{message.content}</p>
+          <p className="text-left">{message.content}</p>
           {message.images && message.images.length > 0 && (
             <div className="grid grid-cols-2 gap-2 mt-2">
               {message.images.map(imageId => {
@@ -74,7 +85,7 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
             </div>
           )}
         </div>
-        <p className="text-xs text-gray-500 mt-1">{message.timestamp} {isMe && '✓✓'}</p>
+        <p className="text-xs text-gray-500 mt-1">{getTimestamp()} {isMe && '✓✓'}</p>
       </div>
     </div>
   );
