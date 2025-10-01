@@ -1,36 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { listings, categories } from "@/lib/data";
+import { listings } from "@/lib/data";
+import { productCategories, serviceCategories } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
 import { MapPlaceholder } from "@/components/map-placeholder";
 import {
-  Car,
   ChevronRight,
-  Dog,
-  Edit,
-  Gamepad,
-  Handshake,
-  Home as HomeIcon,
-  Laptop,
-  Paintbrush,
   PlusCircle,
   Search,
   CheckCircle,
-  Shirt,
-  Utensils,
-  Wrench,
-  Laptop2 as LaptopCode,
-  GraduationCap as UserGraduate,
-  Baby,
   Box,
-  Scissors,
-  Dumbbell,
-  Sparkles,
-  ShieldAlert,
-  Smartphone,
-  Book,
-  Sofa,
-  KeyRound,
-  Cog,
+  Wrench,
+  Edit,
+  Handshake,
 } from "lucide-react";
 import {
   Tabs,
@@ -43,33 +24,6 @@ import { SafetySection } from "@/components/safety-section";
 
 
 export default function Home() {
-  const productCategories = [
-    { name: "Tecnologia", icon: Laptop },
-    { name: "Celulares", icon: Smartphone },
-    { name: "Móveis & Eletro", icon: Sofa },
-    { name: "Auto Peças", icon: Cog },
-    { name: "Aluguéis", icon: KeyRound },
-    { name: "Livros", icon: Book },
-    { name: "Moda", icon: Shirt },
-    { name: "Games", icon: Gamepad },
-    { name: "Alimentos", icon: Utensils },
-    { name: "Infantil", icon: Baby },
-  ];
-
-  const serviceCategories = [
-    { name: "Reparos", icon: Wrench },
-    { name: "Jardinagem", icon: Scissors },
-    { name: "Pet Care", icon: Dog },
-    { name: "Reformas", icon: Paintbrush },
-    { name: "Mecânica", icon: Car },
-    { name: "TI", icon: LaptopCode },
-    { name: "Aulas", icon: UserGraduate },
-    { name: "Estética", icon: Sparkles },
-    { name: "Fitness", icon: Dumbbell },
-    { name: "Procura-se", icon: Search },
-    { name: "Denúncias", icon: ShieldAlert },
-  ];
-
   return (
     <>
       <section className="gradient-bg text-white py-16">
@@ -138,13 +92,14 @@ export default function Home() {
                     "bg-green-50 text-green-600 hover:bg-green-100",
                   ];
                   return (
-                  <div
-                    key={cat.name}
-                    className={`${colors[index % colors.length]} p-4 rounded-lg text-center cursor-pointer transition`}
-                  >
-                    <cat.icon className="mx-auto text-2xl mb-2" />
-                    <p>{cat.name}</p>
-                  </div>
+                  <Link href={`/explore/${cat.slug}`} key={cat.name} className="block">
+                    <div
+                      className={`${colors[index % colors.length]} p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
+                    >
+                      <cat.icon className="mx-auto h-6 w-6 mb-2" />
+                      <p className="text-sm font-medium">{cat.name}</p>
+                    </div>
+                  </Link>
                 )})}
               </div>
             </div>
@@ -156,14 +111,14 @@ export default function Home() {
                   Pedidos Recentes de Produtos
                 </h3>
                 <Link
-                  href="#"
+                  href="/explore/all"
                   className="text-blue-600 hover:underline font-medium flex items-center"
                 >
                   Ver todos <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {listings.map((listing) => (
+                {listings.slice(0,3).map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
               </div>
@@ -192,13 +147,14 @@ export default function Home() {
                     "bg-rose-50 text-rose-600 hover:bg-rose-100",
                   ];
                   return (
-                  <div
-                    key={cat.name}
-                     className={`${colors[index % colors.length]} p-4 rounded-lg text-center cursor-pointer transition`}
-                  >
-                    <cat.icon className="mx-auto text-2xl mb-2" />
-                    <p>{cat.name}</p>
-                  </div>
+                  <Link href={`/explore/${cat.slug}`} key={cat.name} className="block">
+                    <div
+                       className={`${colors[index % colors.length]} p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
+                    >
+                      <cat.icon className="mx-auto h-6 w-6 mb-2" />
+                      <p className="text-sm font-medium">{cat.name}</p>
+                    </div>
+                  </Link>
                 )})}
               </div>
             </div>
@@ -210,14 +166,14 @@ export default function Home() {
                   Pedidos Recentes de Serviços
                 </h3>
                 <Link
-                  href="#"
+                  href="/explore/all"
                   className="text-blue-600 hover:underline font-medium flex items-center"
                 >
                   Ver todos <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {listings.filter(l => l.category.id === 'home-services' || l.category.id === 'repairs').map((listing) => (
+                 {listings.filter(l => l.category.type === 'service').slice(0,3).map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
               </div>

@@ -1,20 +1,13 @@
 import type { LucideIcon } from "lucide-react";
-import {
-  Home,
-  Paintbrush,
-  Code,
-  GraduationCap,
-  HeartPulse,
-  Wrench,
-  Camera,
-  Briefcase,
-  PenTool,
-} from "lucide-react";
+import { allCategories } from "./categories";
+
 
 export interface Category {
   id: string;
   name: string;
+  slug: string;
   icon: LucideIcon;
+  type: 'product' | 'service';
   subcategories: string[];
 }
 
@@ -32,112 +25,83 @@ export interface Listing {
   imageId: string;
 }
 
-export const categories: Category[] = [
-  {
-    id: "home-services",
-    name: "Home Services",
-    icon: Home,
-    subcategories: ["Plumbing", "Cleaning", "Electrical"],
-  },
-  {
-    id: "creative",
-    name: "Creative",
-    icon: Paintbrush,
-    subcategories: ["Graphic Design", "Writing", "Video Editing"],
-  },
-  {
-    id: "tech",
-    name: "Tech",
-    icon: Code,
-    subcategories: ["Web Development", "Mobile Apps", "IT Support"],
-  },
-  {
-    id: "education",
-    name: "Education",
-    icon: GraduationCap,
-    subcategories: ["Tutoring", "Music Lessons", "Language"],
-  },
-  {
-    id: "health",
-    name: "Health & Wellness",
-    icon: HeartPulse,
-    subcategories: ["Personal Training", "Yoga", "Nutrition"],
-  },
-  {
-    id: "repairs",
-    name: "Repairs",
-    icon: Wrench,
-    subcategories: ["Auto", "Electronics", "Appliances"],
-  },
-  {
-    id: "events",
-    name: "Events",
-    icon: Camera,
-    subcategories: ["Photography", "Planning", "Catering"],
-  },
-  {
-    id: "business",
-    name: "Business",
-    icon: Briefcase,
-    subcategories: ["Consulting", "Accounting", "Legal"],
-  },
-];
-
 export const listings: Listing[] = [
   {
     id: "1",
-    title: "Need a modern logo for my new coffee shop",
+    title: "Preciso de um notebook com 8GB de RAM",
     description:
-      "Looking for a talented graphic designer to create a minimalist and modern logo for a specialty coffee shop. The brand is focused on sustainability and high-quality, ethically sourced beans. Should be versatile for use on cups, signage, and social media.",
-    budget: 500,
-    location: "Brooklyn, NY",
-    category: categories[1],
+      "Busco um notebook com pelo menos 8GB de RAM e SSD para trabalho com edição de vídeo. Preferência por marcas conhecidas e em bom estado.",
+    budget: 2500,
+    location: "São Paulo, SP",
+    category: allCategories.find(c => c.slug === 'tecnologia')!,
     author: { name: "Alice", avatarId: "avatar-2" },
     imageId: "listing-1",
   },
   {
     id: "2",
-    title: "Help with weekly garden maintenance",
+    title: "Ajuda com manutenção semanal de jardim",
     description:
-      "My backyard garden is getting out of hand. I need someone to come once a week for weeding, pruning, and general upkeep. The garden is approximately 500 sq ft and has a mix of flowers and vegetables. All tools will be provided.",
-    budget: 75,
-    location: "Austin, TX",
-    category: categories[0],
+      "Meu jardim está precisando de cuidados. Preciso de alguém uma vez por semana para aparar a grama, podar e manter tudo em ordem. Jardim de aprox. 50m².",
+    budget: 150,
+    location: "Curitiba, PR",
+    category: allCategories.find(c => c.slug === 'jardinagem')!,
     author: { name: "Bob", avatarId: "avatar-3" },
     imageId: "listing-2",
   },
   {
     id: "3",
-    title: "Build a responsive landing page for my SaaS product",
+    title: "Desenvolvedor para criar landing page responsiva",
     description:
-      "Seeking an experienced web developer to build a single-page landing site for a new software product. I have the Figma designs ready. Must be built with Next.js and Tailwind CSS, and be fully responsive. Fast turnaround needed.",
-    budget: 1200,
-    location: "Remote",
-    category: categories[2],
+      "Procuro desenvolvedor experiente para criar uma landing page para meu novo software. Design no Figma já está pronto. Deve ser em Next.js e Tailwind.",
+    budget: 1800,
+    location: "Remoto",
+    category: allCategories.find(c => c.slug === 'ti')!,
     author: { name: "Charlie", avatarId: "avatar-4" },
     imageId: "listing-3",
   },
   {
     id: "4",
-    title: "Private Spanish tutoring for beginner",
+    title: "Aulas particulares de Espanhol para iniciante",
     description:
-      "I want to learn Spanish for an upcoming trip to Spain. Looking for a tutor for 2-3 sessions per week. I'm a complete beginner, so patience is a must! Prefer in-person sessions if possible, but open to virtual.",
-    budget: 40,
+      "Quero aprender espanhol para uma viagem. Procuro tutor para 2-3 aulas por semana. Sou iniciante, então preciso de alguém com paciência!",
+    budget: 50,
     location: "Miami, FL",
-    category: categories[3],
+    category: allCategories.find(c => c.slug === 'aulas')!,
     author: { name: "Diana", avatarId: "avatar-5" },
     imageId: "listing-4",
+  },
+  {
+    id: "5",
+    title: "Sofá de 3 lugares em bom estado",
+    description:
+      "Estou procurando um sofá de 3 lugares para minha sala. Pode ser usado, mas precisa estar em boas condições, sem rasgos ou manchas grandes.",
+    budget: 700,
+    location: "Rio de Janeiro, RJ",
+    category: allCategories.find(c => c.slug === 'moveis-e-eletro')!,
+    author: { name: "Frank", avatarId: "avatar-2" },
+    imageId: "listing-2",
+  },
+  {
+    id: "6",
+    title: "Tênis de corrida masculino, tamanho 42",
+    description:
+      "Busco tênis para corrida, de preferência das marcas Nike, Adidas ou Asics. Pode ser pouco usado, mas em bom estado de conservação.",
+    budget: 200,
+    location: "Belo Horizonte, MG",
+    category: allCategories.find(c => c.slug === 'moda')!,
+    author: { name: "Grace", avatarId: "avatar-3" },
+    imageId: "listing-1",
   },
 ];
 
 export const popularTags = [
-  "urgent",
-  "remote",
-  "beginner-friendly",
-  "logo-design",
+  "urgente",
+  "remoto",
+  "iniciante",
+  "design-grafico",
   "react",
-  "full-time",
-  "part-time",
+  "tempo-integral",
+  "meio-periodo",
 ];
 
 export const currentUser = {
