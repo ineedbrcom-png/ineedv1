@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -9,7 +10,7 @@ import {
   ChevronDown,
   HandHeart,
   MessageCircle,
-  Home
+  Home,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,8 @@ import { currentUser } from "@/lib/data";
 import { findImage } from "@/lib/placeholder-images";
 
 export function Header() {
-  const userAvatar = findImage(currentUser.avatarId);
+  const [isLoggedIn, setIsLoggedIn] = useState(true); 
+  const userAvatar = isLoggedIn ? findImage(currentUser.avatarId) : null;
 
   return (
     <header className="gradient-bg text-white shadow-md sticky top-0 z-40">
@@ -53,70 +55,104 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-4">
-            <nav className="hidden md:flex space-x-6 items-center">
-               <Link href="/" className="hover:underline font-medium flex items-center gap-1">
-                <Home className="h-4 w-4"/> Início
-              </Link>
-              <Link href="#" className="hover:underline font-medium flex items-center gap-1">
-                <Bell className="h-4 w-4"/> Notificações
-              </Link>
-               <Link href="#" className="hover:underline font-medium flex items-center gap-1">
-                <MessageCircle className="h-4 w-4"/> Mensagens
-              </Link>
-            </nav>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="hover:bg-white/10 p-2 rounded-full h-auto">
-                  <Avatar className="h-8 w-8">
-                    {userAvatar && (
-                      <AvatarImage
-                        src={userAvatar.imageUrl}
-                        alt={userAvatar.description}
-                      />
-                    )}
-                    <AvatarFallback className="bg-blue-300 text-blue-800">
-                      {currentUser.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                   <span className="hidden lg:inline ml-2">{currentUser.name.split(" ")[0]}</span>
-                   <ChevronDown className="ml-1 h-4 w-4 hidden lg:inline" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-2">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {currentUser.name}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {currentUser.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Ver Meu Perfil</span>
+            {isLoggedIn && currentUser ? (
+              <>
+                <nav className="hidden md:flex space-x-6 items-center">
+                  <Link
+                    href="/"
+                    className="hover:underline font-medium flex items-center gap-1"
+                  >
+                    <Home className="h-4 w-4" /> Início
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                   <span>Meus Pedidos</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                   <span>Configurações</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sair</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <Link
+                    href="#"
+                    className="hover:underline font-medium flex items-center gap-1"
+                  >
+                    <Bell className="h-4 w-4" /> Notificações
+                  </Link>
+                  <Link
+                    href="#"
+                    className="hover:underline font-medium flex items-center gap-1"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Mensagens
+                  </Link>
+                </nav>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="hover:bg-white/10 p-2 rounded-full h-auto"
+                    >
+                      <Avatar className="h-8 w-8">
+                        {userAvatar && (
+                          <AvatarImage
+                            src={userAvatar.imageUrl}
+                            alt={userAvatar.description}
+                          />
+                        )}
+                        <AvatarFallback className="bg-blue-300 text-blue-800">
+                          {currentUser.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden lg:inline ml-2">
+                        {currentUser.name.split(" ")[0]}
+                      </span>
+                      <ChevronDown className="ml-1 h-4 w-4 hidden lg:inline" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 mt-2">
+                    <DropdownMenuLabel>
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {currentUser.name}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {currentUser.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Ver Meu Perfil</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <span>Meus Pedidos</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <span>Configurações</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sair</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <div className="hidden md:flex space-x-4">
+                <Button
+                  onClick={() => setIsLoggedIn(true)}
+                  className="px-4 py-2 text-white hover:bg-blue-700 rounded-lg transition duration-300"
+                  variant="ghost"
+                >
+                  Entrar
+                </Button>
+                <Button
+                  onClick={() => setIsLoggedIn(true)}
+                  className="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-100 transition duration-300"
+                >
+                  Cadastrar
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
