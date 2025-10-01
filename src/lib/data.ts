@@ -235,7 +235,7 @@ export const messages: Message[] = [
       value: 2500,
       deadline: '3 dias úteis',
       conditions: 'Garantia de 3 meses',
-      status: 'pending',
+      status: 'accepted',
     },
   },
   {
@@ -252,5 +252,12 @@ export const messages: Message[] = [
     sender: 'them',
     timestamp: '10:40 AM',
     read: true,
+  },
+  {
+    id: '8',
+    type: 'system',
+    content: 'O acordo foi finalizado. Por favor, avalie sua experiência com Tech Solutions em até 5 dias. Após esse prazo, o link de avaliação irá expirar.',
+    sender: 'me',
+    timestamp: '',
   }
 ];
