@@ -80,7 +80,7 @@ export function Header() {
                       <Bell className="h-4 w-4" /> Notificações
                     </Link>
                     <Link
-                      href="#"
+                      href="/messages"
                       className="hover:underline font-medium flex items-center gap-1"
                     >
                       <MessageCircle className="h-4 w-4" /> Mensagens
