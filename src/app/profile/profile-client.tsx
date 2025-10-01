@@ -42,7 +42,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserProfile } from "@/lib/data";
-import { useParams, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 
 const profileFormSchema = z.object({
   displayName: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
@@ -52,12 +52,14 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
+interface ProfileClientProps {
+    profileId?: string;
+}
 
-export function ProfileClient() {
+export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientProps) {
   const { user, isLoggedIn, isAuthContextLoading } = useAuth();
-  const params = useParams();
-  const profileId = params.id as string || user?.uid;
-  const isOwnProfile = !params.id || params.id === user?.uid;
+  const profileId = profileIdFromProps || user?.uid;
+  const isOwnProfile = profileIdFromProps ? profileIdFromProps === user?.uid : true;
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -72,40 +74,37 @@ export function ProfileClient() {
     resolver: zodResolver(profileFormSchema),
   });
 
-  const fetchUserProfile = async (id: string) => {
-      if (!id) return;
-      setIsProfileLoading(true);
-      const userDocRef = doc(db, "users", id);
-      const userDocSnap = await getDoc(userDocRef);
-
-      if (userDocSnap.exists()) {
-        const profileData = {uid: id, ...userDocSnap.data()} as UserProfile;
-        setProfile(profileData);
-        if(isOwnProfile) {
-            form.reset({
-                displayName: profileData.displayName,
-                about: profileData.about || "",
-                skills: (profileData.skills || []).join(", "),
-            });
-        }
-      } else {
-        notFound();
-      }
-      setIsProfileLoading(false);
-  };
-
   useEffect(() => {
-    // If viewing someone else's profile or own profile when logged in
+    const fetchUserProfile = async (id: string) => {
+        if (!id) return;
+        setIsProfileLoading(true);
+        const userDocRef = doc(db, "users", id);
+        const userDocSnap = await getDoc(userDocRef);
+  
+        if (userDocSnap.exists()) {
+          const profileData = {uid: id, ...userDocSnap.data()} as UserProfile;
+          setProfile(profileData);
+          if(isOwnProfile) {
+              form.reset({
+                  displayName: profileData.displayName,
+                  about: profileData.about || "",
+                  skills: (profileData.skills || []).join(", "),
+              });
+          }
+        } else {
+          notFound();
+        }
+        setIsProfileLoading(false);
+    };
+
     if (profileId) {
        fetchUserProfile(profileId);
     } 
-    // If trying to view own profile but not logged in
     else if (!isAuthContextLoading && !user) {
       setIsAuthModalOpen(true);
       setIsProfileLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileId, user, isAuthContextLoading]);
+  }, [profileId, user, isAuthContextLoading, isOwnProfile, form]);
 
 
   const handleEditToggle = () => {
@@ -137,7 +136,7 @@ export function ProfileClient() {
         await updateProfile(user, { photoURL });
       }
 
-      await fetchUserProfile(user.uid);
+      setProfile(prev => prev ? {...prev, photoURL} : null)
       toast({
           title: "Imagem de perfil atualizada!",
           description: "Sua nova foto de perfil está visível."
@@ -159,17 +158,19 @@ export function ProfileClient() {
         const userDocRef = doc(db, "users", user.uid);
         const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
         
-        await updateDoc(userDocRef, {
+        const updatedData = {
             displayName: data.displayName,
             about: data.about,
             skills: skillsArray,
-        });
+        };
+
+        await updateDoc(userDocRef, updatedData);
 
         if (user.displayName !== data.displayName) {
           await updateProfile(user, { displayName: data.displayName });
         }
 
-        await fetchUserProfile(user.uid); // Re-fetch to update UI
+        setProfile(prev => prev ? {...prev, ...updatedData} : null);
         setIsEditing(false);
         toast({
             title: "Perfil Atualizado!",
@@ -196,7 +197,11 @@ export function ProfileClient() {
     );
   }
 
-  if (!profile) {
+  if (!profile && !isOwnProfile) {
+      notFound();
+  }
+
+  if (!profile && isOwnProfile) {
     return (
       <>
         <div className="flex flex-col items-center justify-center text-center py-20">
@@ -218,6 +223,9 @@ export function ProfileClient() {
       </>
     );
   }
+
+  if(!profile) return null;
+
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "";

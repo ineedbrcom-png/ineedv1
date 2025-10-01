@@ -4,7 +4,8 @@
 import { Suspense } from 'react';
 import { ProfileClient } from './profile-client';
 import { Loader2 } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
+import { redirect } from 'next/navigation';
 
 function ProfileLoading() {
   return (
@@ -14,18 +15,24 @@ function ProfileLoading() {
   );
 }
 
-function ProfilePageContent() {
-    const params = useParams();
-    const profileId = params.id as string | undefined;
-    
-    return <ProfileClient key={profileId} />;
-}
-
-
+// This page will be for the logged-in user's own profile.
+// It will redirect to /profile/[uid]
 export default function ProfilePage() {
-  return (
-    <Suspense fallback={<ProfileLoading />}>
-      <ProfilePageContent />
-    </Suspense>
-  );
+    const { user, isAuthLoading } = useAuth();
+
+    if (isAuthLoading) {
+        return <ProfileLoading />;
+    }
+
+    if (!user) {
+        // Redirect to login or show a message, but for now we'll handle this inside the client component
+        return (
+             <Suspense fallback={<ProfileLoading />}>
+                <ProfileClient />
+             </Suspense>
+        )
+    }
+
+    // Redirect to the dynamic route for the user's own profile
+    redirect(`/profile/${user.uid}`);
 }
