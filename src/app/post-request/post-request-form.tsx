@@ -27,11 +27,12 @@ import {
 import { allCategories } from "@/lib/categories";
 import { refineListingDescription } from "@/ai/flows/listing-description-refinement";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Upload, X } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const formSchema = z.object({
   title: z.string().min(10, "O título deve ter pelo menos 10 caracteres."),
@@ -44,6 +45,7 @@ const formSchema = z.object({
     .positive("O orçamento deve ser um número positivo.")
     .min(1, "O orçamento deve ser de pelo menos R$1."),
   location: z.string().min(2, "A localização é obrigatória."),
+  images: z.array(z.instanceof(File)).max(4, "Você pode enviar no máximo 4 imagens.").optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,6 +53,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function PostRequestForm() {
   const [isRefining, setIsRefining] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previews, setPreviews] = useState<string[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
@@ -61,8 +64,33 @@ export function PostRequestForm() {
       title: "",
       description: "",
       location: "",
+      images: [],
     },
   });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      const currentFiles = form.getValues('images') || [];
+      const combinedFiles = [...currentFiles, ...newFiles].slice(0, 4);
+
+      form.setValue('images', combinedFiles, { shouldValidate: true });
+
+      const newPreviews = combinedFiles.map(file => URL.createObjectURL(file));
+      setPreviews(newPreviews);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    const currentFiles = form.getValues('images') || [];
+    const updatedFiles = currentFiles.filter((_, i) => i !== index);
+    form.setValue('images', updatedFiles, { shouldValidate: true });
+
+    const updatedPreviews = updatedFiles.map(file => URL.createObjectURL(file));
+    setPreviews(updatedPreviews);
+  };
+
 
   async function handleRefineDescription() {
     const description = form.getValues("description");
@@ -108,12 +136,23 @@ export function PostRequestForm() {
     }
     setIsSubmitting(true);
     try {
-      const docRef = await addDoc(collection(db, "listings"), {
-        ...values,
+      // NOTE: Firebase Storage upload logic would go here.
+      // For now, we will use placeholder URLs.
+      const imageUrls = [`https://picsum.photos/seed/${Math.random()}/800/400`];
+      
+      const docData = {
+        title: values.title,
+        categoryId: values.categoryId,
+        description: values.description,
+        budget: values.budget,
+        location: values.location,
         authorId: user.uid,
         createdAt: serverTimestamp(),
-        imageId: `listing-${Math.ceil(Math.random() * 4)}` // Temporary random image
-      });
+        imageUrls: imageUrls,
+      };
+
+      const docRef = await addDoc(collection(db, "listings"), docData);
+
       toast({
         title: "Pedido Enviado!",
         description: "Seu pedido foi publicado com sucesso.",
@@ -180,6 +219,49 @@ export function PostRequestForm() {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="images"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Fotos do Pedido (até 4)</FormLabel>
+              <FormControl>
+                <div className="flex items-center justify-center w-full">
+                    <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. 800x400px)</p>
+                        </div>
+                        <input id="dropzone-file" type="file" className="hidden" onChange={handleImageChange} multiple accept="image/*" disabled={(form.getValues('images') || []).length >= 4} />
+                    </label>
+                </div> 
+              </FormControl>
+              <FormMessage />
+              {previews.length > 0 && (
+                <div className="grid grid-cols-4 gap-4 mt-4">
+                  {previews.map((src, index) => (
+                    <div key={index} className="relative aspect-video">
+                      <Image src={src} alt={`Preview ${index + 1}`} fill className="object-cover rounded-md" />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={() => removeImage(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </FormItem>
+          )}
+        />
+
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}

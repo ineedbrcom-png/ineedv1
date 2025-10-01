@@ -18,6 +18,7 @@ import {
   Pencil,
   Loader2,
   X,
+  Camera,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
@@ -30,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useForm } from "react-hook-form";
@@ -45,6 +46,7 @@ import { useToast } from "@/hooks/use-toast";
 interface UserProfile {
   displayName: string;
   email: string;
+  photoURL?: string;
   about?: string;
   address?: {
     city: string;
@@ -75,6 +77,8 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -124,6 +128,25 @@ export default function ProfilePage() {
     }
     setIsEditing(!isEditing);
   }
+
+  const handleProfileImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // NOTE: This is where you would upload the file to Firebase Storage
+    // and get the download URL. For now, we'll just show a toast.
+    toast({
+        title: "Funcionalidade em desenvolvimento",
+        description: "O upload da imagem do perfil será implementado em breve."
+    });
+    // Example:
+    // const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+    // await uploadBytes(storageRef, file);
+    // const photoURL = await getDownloadURL(storageRef);
+    // await updateDoc(doc(db, "users", user.uid), { photoURL });
+    // await updateProfile(user, { photoURL });
+    // fetchUserProfile();
+  };
 
   const onSubmit = async (data: ProfileFormValues) => {
     if (!user) return;
@@ -206,12 +229,29 @@ export default function ProfilePage() {
             <form onSubmit={form.handleSubmit(onSubmit)}>
         <CardHeader className="bg-muted/30 p-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-              <Avatar className="h-24 w-24 border-4 border-background">
-                 {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || ""} />}
-                <AvatarFallback className="text-3xl">
-                  {getInitials(profile.displayName)}
-                </AvatarFallback>
-              </Avatar>
+            <div className="relative group">
+                <Avatar className="h-24 w-24 border-4 border-background">
+                    <AvatarImage src={profile.photoURL || user.photoURL || undefined} alt={user.displayName || ""} />
+                    <AvatarFallback className="text-3xl">
+                    {getInitials(profile.displayName)}
+                    </AvatarFallback>
+                </Avatar>
+                <Button 
+                    type="button"
+                    size="icon"
+                    className="absolute bottom-0 right-0 rounded-full h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <Camera className="h-4 w-4" />
+                </Button>
+                <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={handleProfileImageUpload}
+                />
+            </div>
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start">
                  {isEditing ? (
@@ -672,5 +712,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

@@ -19,6 +19,13 @@ import { allCategories } from "@/lib/categories";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 export default function ListingDetailPage({ params }: { params: { id: string } }) {
   const [recommendations, setRecommendations] = useState<ServiceProviderRecommendationOutput | null>(null);
@@ -41,7 +48,6 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
         const data = docSnap.data();
         const category = allCategories.find(c => c.id === data.categoryId)!;
         
-        // Fetch author details
         let author = { name: "Usuário", id: data.authorId, avatarId: 'avatar-1', rating: 0, reviewCount: 0 };
         const userDocRef = doc(db, "users", data.authorId);
         const userDocSnap = await getDoc(userDocRef);
@@ -94,7 +100,6 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
       router.push(`/messages?listingId=${listing.id}&userId=${listing.authorId}`);
   }
 
-  const listingImage = findImage(listing.imageId || "listing-1");
   const authorAvatar = findImage(listing.author.avatarId);
 
   const handleGetRecommendations = async () => {
@@ -132,18 +137,36 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Coluna principal */}
         <div className="lg:col-span-2">
           <Card>
-            {listingImage && (
-              <Image
-                src={listingImage.imageUrl}
-                alt={listing.title}
-                width={800}
-                height={400}
-                className="w-full h-64 object-cover rounded-t-lg"
-              />
-            )}
+            {listing.imageUrls && listing.imageUrls.length > 0 ? (
+                <Carousel className="w-full rounded-t-lg overflow-hidden">
+                  <CarouselContent>
+                    {listing.imageUrls.map((url, index) => (
+                      <CarouselItem key={index}>
+                        <Image
+                          src={url}
+                          alt={`${listing.title} - Imagem ${index + 1}`}
+                          width={800}
+                          height={450}
+                          className="w-full aspect-video object-cover"
+                        />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  {listing.imageUrls.length > 1 && (
+                    <>
+                      <CarouselPrevious className="left-4" />
+                      <CarouselNext className="right-4" />
+                    </>
+                  )}
+                </Carousel>
+              ) : (
+                <div className="w-full h-64 bg-muted flex items-center justify-center rounded-t-lg">
+                  <p className="text-muted-foreground">Nenhuma imagem fornecida</p>
+                </div>
+              )
+            }
             <CardHeader>
               <CardTitle className="text-3xl font-bold">{listing.title}</CardTitle>
               <CardDescription className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base pt-2">

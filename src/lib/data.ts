@@ -26,7 +26,7 @@ export interface Listing {
   location: string;
   category: Category;
   author: User;
-  imageId: string;
+  imageUrls: string[];
   authorId: string;
   createdAt: any;
   categoryId: string;
