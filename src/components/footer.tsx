@@ -46,10 +46,6 @@ export function Footer() {
                 <Mail className="mr-2 h-4 w-4 text-gray-400" />
                 <span className="text-gray-400">contato@ineed.com.br</span>
               </li>
-              <li className="flex items-center">
-                <Phone className="mr-2 h-4 w-4 text-gray-400" />
-                <span className="text-gray-400">(11) 1234-5678</span>
-              </li>
             </ul>
           </div>
 
