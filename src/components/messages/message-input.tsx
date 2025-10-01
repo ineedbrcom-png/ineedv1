@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Paperclip, Send, FileSignature, Handshake, X, Share2, Loader2 } from "lucide-react";
+import { Paperclip, Send, FileSignature, Handshake, X, Share2, Loader2, CheckCircle } from "lucide-react";
 import Image from "next/image";
 import { ContractModal } from "./contract-modal";
 import { ProposalModal } from "./proposal-modal";
@@ -29,6 +29,8 @@ export function MessageInput({ conversation }: MessageInputProps) {
   const [acceptedProposal, setAcceptedProposal] = useState<Proposal | null>(null);
   const [canCreateContract, setCanCreateContract] = useState(false);
   const [isSharingContact, setIsSharingContact] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+
 
   // Determine if the current user is the author of the listing
   const isListingAuthor = user?.uid === conversation.listingAuthorId;
@@ -57,7 +59,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
             setAcceptedProposal(doc.data().proposalDetails as Proposal);
 
             // Check if a contract already exists for this conversation
-            const contractQuery = query(db, `conversations/${conversationId}/messages`, where('type', '==', 'contract'));
+            const contractQuery = query(collection(db, "conversations", conversationId, "messages"), where('type', '==', 'contract'));
             const contractSnapshot = await getDocs(contractQuery);
             if(contractSnapshot.empty) {
                 setCanCreateContract(true);
@@ -172,6 +174,34 @@ export function MessageInput({ conversation }: MessageInputProps) {
     }
   }
 
+  const handleMarkAsCompleted = async () => {
+    if (!user) return;
+    setIsCompleting(true);
+    try {
+        const conversationRef = doc(db, "conversations", conversation.id);
+        await updateDoc(conversationRef, {
+            status: "completed",
+            lastMessage: "O pedido foi marcado como concluído.",
+            lastMessageTimestamp: serverTimestamp(),
+        });
+
+        const messagesCol = collection(db, "conversations", conversation.id, "messages");
+        await addDoc(messagesCol, {
+            content: "Pedido marcado como concluído. Agora vocês podem deixar uma avaliação.",
+            sender: user.uid,
+            timestamp: serverTimestamp(),
+            type: 'review_prompt',
+        });
+        
+        toast({ title: "Pedido Concluído!", description: "O pedido foi marcado como concluído. Não se esqueça de avaliar o prestador."});
+    } catch(error) {
+        console.error("Error marking as complete:", error);
+        toast({ variant: "destructive", title: "Erro", description: "Não foi possível marcar o pedido como concluído." });
+    } finally {
+        setIsCompleting(false);
+    }
+  }
+
   return (
     <>
       <div className="p-4 border-t border-gray-200">
@@ -210,7 +240,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
             </Button>
           </div>
           <div className="flex justify-between items-center pt-1">
-            <div className="flex flex-wrap space-x-2">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 <Button type="button" variant="link" className="text-primary p-0 h-auto" onClick={() => setIsProposalModalOpen(true)}>
                     <Handshake className="mr-1 h-4 w-4" /> Enviar Proposta
                 </Button>
@@ -234,6 +264,18 @@ export function MessageInput({ conversation }: MessageInputProps) {
                     >
                         {isSharingContact ? <Loader2 className="animate-spin mr-1" /> : <Share2 className="mr-1 h-4 w-4" />}
                         {isSharingContact ? "Compartilhando..." : "Compartilhar Dados de Contato"}
+                    </Button>
+                 )}
+                 {isListingAuthor && conversation.contractAccepted && conversation.status === 'open' && (
+                     <Button 
+                        type="button" 
+                        variant="link" 
+                        className="text-blue-600 p-0 h-auto font-bold" 
+                        onClick={handleMarkAsCompleted}
+                        disabled={isCompleting}
+                    >
+                        {isCompleting ? <Loader2 className="animate-spin mr-1" /> : <CheckCircle className="mr-1 h-4 w-4" />}
+                        {isCompleting ? "Finalizando..." : "Marcar como Concluído"}
                     </Button>
                  )}
             </div>

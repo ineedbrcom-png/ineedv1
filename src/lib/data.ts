@@ -49,12 +49,14 @@ export interface Conversation {
   lastMessageTimestamp: any;
   unreadBy: string[];
   contractAccepted: boolean;
+  status: 'open' | 'completed';
+  reviewedBy: string[];
 }
 
 export interface Message {
   id: string;
   conversationId: string;
-  type: 'user' | 'system' | 'proposal' | 'contract' | 'contact_details';
+  type: 'user' | 'system' | 'proposal' | 'contract' | 'contact_details' | 'review_prompt';
   content: string;
   sender: string; // user.uid
   timestamp: any;
@@ -83,6 +85,15 @@ export interface ContactDetails {
     phone: string;
     address: string;
     location: string;
+}
+
+export interface Review {
+    rating: number;
+    comment: string;
+    fromUserId: string;
+    toUserId: string;
+    conversationId: string;
+    createdAt: any;
 }
 
 

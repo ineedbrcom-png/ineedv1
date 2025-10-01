@@ -51,7 +51,7 @@ export default function MessagesPage() {
       let existingConversation = null;
 
       querySnapshot.forEach(doc => {
-          const conversation = doc.data() as Conversation;
+          const conversation = doc.data() as Omit<Conversation, 'id'>;
           if(conversation.participants.includes(targetUserId)) {
               existingConversation = { id: doc.id, ...conversation };
           }
@@ -80,6 +80,8 @@ export default function MessagesPage() {
           lastMessageTimestamp: serverTimestamp(),
           unreadBy: [targetUserId],
           contractAccepted: false,
+          status: 'open' as 'open' | 'completed',
+          reviewedBy: [],
         };
 
         const docRef = await addDoc(collection(db, "conversations"), newConversationData);
@@ -113,8 +115,13 @@ export default function MessagesPage() {
       });
       setConversations(convos);
       setIsLoadingConversations(false);
-      // If there's no active conversation and it's not being set by query params
-      if (!activeConversation && convos.length > 0 && !targetListingId) {
+
+      if (activeConversation) {
+        const updatedActiveConvo = convos.find(c => c.id === activeConversation.id);
+        if (updatedActiveConvo) {
+          setActiveConversation(updatedActiveConvo);
+        }
+      } else if (convos.length > 0 && !targetListingId) {
         setActiveConversation(convos[0]);
       }
     });
@@ -143,7 +150,7 @@ export default function MessagesPage() {
         msgs.push({ id: doc.id, conversationId: activeConversation.id, ...doc.data() } as Message);
       });
       setMessages(msgs);
-      setIsLoadingMessages(false);
+setIsLoadingMessages(false);
     });
 
     return () => unsubscribe();
