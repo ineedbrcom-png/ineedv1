@@ -45,7 +45,7 @@ export function ChatWindow({ conversation, messages, isLoading }: ChatWindowProp
             </div>
         ) : (
             messages.map(msg => (
-                <MessageBubble key={msg.id} message={msg} userAvatarUrl={userAvatar?.imageUrl} />
+                <MessageBubble key={msg.id} message={msg} conversation={conversation} userAvatarUrl={userAvatar?.imageUrl} />
             ))
         )}
       </div>

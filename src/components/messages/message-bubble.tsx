@@ -1,36 +1,42 @@
 
 "use client";
 
-import { type Message } from "@/lib/data";
+import { type Message, type Conversation } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import { findImage } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Check, X, Loader2, FileText, User, Phone, Home } from "lucide-react";
+import { Check, X, Loader2, FileText, User, Phone, Home, Star } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from 'date-fns';
 import { db } from "@/lib/firebase";
-import { doc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
+import { doc, updateDoc, collection, getDocs, query, where, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from "react";
 import { ContractModal } from "./contract-modal";
+import { ReviewModal } from "./review-modal";
 
 interface MessageBubbleProps {
   message: Message;
+  conversation: Conversation;
   userAvatarUrl?: string;
 }
 
-export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
+export function MessageBubble({ message, conversation, userAvatarUrl }: MessageBubbleProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const [proposalStatus, setProposalStatus] = useState(message.proposalDetails?.status);
   const [contractStatus, setContractStatus] = useState(message.contractDetails?.status);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
-
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   const isMe = message.sender === user?.uid;
+  const otherParticipant = conversation.participantsDetails.find(p => p.id !== user?.uid);
+
+  const hasUserReviewed = conversation.reviewedBy?.includes(user?.uid || '');
+  const hasOtherUserReviewed = conversation.reviewedBy?.includes(otherParticipant?.id || '');
 
   useEffect(() => {
     setProposalStatus(message.proposalDetails?.status);
@@ -51,26 +57,23 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
 
     setIsUpdating(true);
     try {
+        const batch = writeBatch(db);
         const messageRef = doc(db, `conversations/${message.conversationId}/messages/${message.id}`);
-
-        await updateDoc(messageRef, {
-            'proposalDetails.status': newStatus
-        });
-        setProposalStatus(newStatus);
+        batch.update(messageRef, { 'proposalDetails.status': newStatus });
         
         if (newStatus === 'accepted') {
              const messagesRef = collection(db, `conversations/${message.conversationId}/messages`);
              const q = query(messagesRef, where('type', '==', 'proposal'), where('proposalDetails.status', '==', 'pending'));
              const otherProposalsSnapshot = await getDocs(q);
-             const batch = [];
              otherProposalsSnapshot.forEach(docSnap => {
                  if (docSnap.id !== message.id) {
-                     batch.push(updateDoc(docSnap.ref, { 'proposalDetails.status': 'rejected' }));
+                     batch.update(docSnap.ref, { 'proposalDetails.status': 'rejected' });
                  }
              });
-             await Promise.all(batch);
         }
+        await batch.commit();
 
+        setProposalStatus(newStatus);
         toast({ title: `Proposta ${newStatus === 'accepted' ? 'aceita' : 'recusada'}!`, description: `O status da proposta foi atualizado.`});
     } catch (error) {
         console.error("Error updating proposal:", error);
@@ -122,6 +125,37 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
       <div className="text-center my-4 text-sm text-gray-500 italic">
         <p>{message.content}</p>
       </div>
+    );
+  }
+
+  if (message.type === 'review_prompt') {
+    return (
+      <>
+        <div className="text-center my-4">
+            <div className="inline-block bg-amber-50 rounded-lg p-4 text-center border border-amber-200 max-w-sm w-full">
+                <h4 className="font-bold mb-2 flex items-center justify-center gap-2"><Star className="text-amber-500"/> Avaliação Pendente</h4>
+                <p className="mb-4 text-sm">O trabalho foi concluído! Por favor, avalie sua experiência para ajudar a comunidade.</p>
+                <div className="space-y-2">
+                    {hasUserReviewed ? (
+                        <p className="text-sm font-medium text-green-600">Você já avaliou {otherParticipant?.name}.</p>
+                    ) : (
+                        <Button onClick={() => setIsReviewModalOpen(true)}>Avaliar {otherParticipant?.name}</Button>
+                    )}
+                    
+                    {hasOtherUserReviewed ? (
+                         <p className="text-sm text-muted-foreground">{otherParticipant?.name} já te avaliou.</p>
+                    ) : (
+                         <p className="text-sm text-muted-foreground">Aguardando avaliação de {otherParticipant?.name}.</p>
+                    )}
+                </div>
+            </div>
+        </div>
+        <ReviewModal
+            isOpen={isReviewModalOpen}
+            onOpenChange={setIsReviewModalOpen}
+            conversation={conversation}
+        />
+      </>
     );
   }
   
