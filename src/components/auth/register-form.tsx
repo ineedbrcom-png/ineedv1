@@ -122,18 +122,22 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
-
+      
       const displayName = `${values.firstName} ${values.lastName}`;
-      await updateProfile(user, {
-        displayName: displayName
-      });
+
+      // Run user profile creation and Firestore document creation in parallel
+      const promises = [];
+
+      promises.push(updateProfile(user, {
+        displayName: displayName,
+      }));
 
       const userDoc = {
         uid: user.uid,
         displayName: displayName,
         email: values.email,
         phone: values.phone || '',
-        cpf: values.cpf || '',
+        cpf: values.cpf,
         address: {
           cep: values.cep || '',
           street: values.street || '',
@@ -145,9 +149,12 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         createdAt: serverTimestamp(),
         rating: 0,
         reviewCount: 0,
-      }
+      };
 
-      await setDoc(doc(db, "users", user.uid), userDoc);
+      promises.push(setDoc(doc(db, "users", user.uid), userDoc));
+
+      await Promise.all(promises);
+
 
       toast({
         title: "Cadastro realizado!",
