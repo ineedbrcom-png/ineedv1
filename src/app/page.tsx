@@ -23,6 +23,9 @@ import {
   Baby,
   Box,
   Scissors,
+  Dumbbell,
+  Sparkles,
+  ShieldAlert,
 } from "lucide-react";
 import {
   Tabs,
@@ -43,6 +46,7 @@ export default function Home() {
     { name: "Alimentos", icon: Utensils },
     { name: "Automóveis", icon: Car },
     { name: "Infantil", icon: Baby },
+    { name: "Procura-se", icon: Search },
   ];
 
   const serviceCategories = [
@@ -53,6 +57,9 @@ export default function Home() {
     { name: "Mecânica", icon: Car },
     { name: "TI", icon: LaptopCode },
     { name: "Aulas", icon: UserGraduate },
+    { name: "Estética", icon: Sparkles },
+    { name: "Fitness", icon: Dumbbell },
+    { name: "Denúncias", icon: ShieldAlert },
   ];
 
   return (
@@ -108,7 +115,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold mb-6 text-gray-800">
                 Categorias de Produtos
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
                 {productCategories.map((cat, index) => {
                    const colors = [
                     "bg-blue-50 text-blue-600 hover:bg-blue-100",
@@ -117,7 +124,8 @@ export default function Home() {
                     "bg-purple-50 text-purple-600 hover:bg-purple-100",
                     "bg-red-50 text-red-600 hover:bg-red-100",
                     "bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
-                    "bg-pink-50 text-pink-600 hover:bg-pink-100"
+                    "bg-pink-50 text-pink-600 hover:bg-pink-100",
+                     "bg-gray-50 text-gray-600 hover:bg-gray-100"
                   ];
                   return (
                   <div
@@ -158,7 +166,7 @@ export default function Home() {
               <h3 className="text-2xl font-bold mb-6 text-gray-800">
                 Categorias de Serviços
               </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-4">
                 {serviceCategories.map((cat, index) => {
                   const colors = [
                     "bg-blue-50 text-blue-600 hover:bg-blue-100",
@@ -167,7 +175,10 @@ export default function Home() {
                     "bg-purple-50 text-purple-600 hover:bg-purple-100",
                     "bg-red-50 text-red-600 hover:bg-red-100",
                     "bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
-                    "bg-pink-50 text-pink-600 hover:bg-pink-100"
+                    "bg-pink-50 text-pink-600 hover:bg-pink-100",
+                    "bg-teal-50 text-teal-600 hover:bg-teal-100",
+                    "bg-orange-50 text-orange-600 hover:bg-orange-100",
+                    "bg-gray-50 text-gray-600 hover:bg-gray-100",
                   ];
                   return (
                   <div
