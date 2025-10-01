@@ -29,7 +29,8 @@ import { refineListingDescription } from "@/ai/flows/listing-description-refinem
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2, Upload, X } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -135,10 +136,18 @@ export function PostRequestForm() {
       return;
     }
     setIsSubmitting(true);
+    
+    let imageUrls: string[] = [];
     try {
-      // NOTE: Firebase Storage upload logic would go here.
-      // For now, we will use placeholder URLs.
-      const imageUrls = [`https://picsum.photos/seed/${Math.random()}/800/400`];
+      if (values.images && values.images.length > 0) {
+        const uploadPromises = values.images.map(async (image) => {
+          const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}_${image.name}`);
+          await uploadBytes(storageRef, image);
+          const downloadURL = await getDownloadURL(storageRef);
+          return downloadURL;
+        });
+        imageUrls = await Promise.all(uploadPromises);
+      }
       
       const docData = {
         title: values.title,
@@ -163,7 +172,7 @@ export function PostRequestForm() {
       toast({
         variant: "destructive",
         title: "Erro ao publicar",
-        description: "Não foi possível salvar seu pedido. Tente novamente.",
+        description: "Não foi possível salvar seu pedido. Verifique sua conexão e as regras de segurança do Firebase Storage.",
       });
     } finally {
       setIsSubmitting(false);
@@ -232,7 +241,7 @@ export function PostRequestForm() {
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
-                            <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. 800x400px)</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. 4MB por imagem)</p>
                         </div>
                         <input id="dropzone-file" type="file" className="hidden" onChange={handleImageChange} multiple accept="image/*" disabled={(form.getValues('images') || []).length >= 4} />
                     </label>

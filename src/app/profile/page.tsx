@@ -31,7 +31,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { useState, useEffect, useRef } from "react";
 import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateProfile } from "firebase/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -72,7 +74,7 @@ export default function ProfilePage() {
       const userDocSnap = await getDoc(userDocRef);
 
       if (userDocSnap.exists()) {
-        const profileData = userDocSnap.data() as UserProfile;
+        const profileData = {uid: user.uid, ...userDocSnap.data()} as UserProfile;
         setProfile(profileData);
         form.reset({
           displayName: profileData.displayName,
@@ -114,19 +116,33 @@ export default function ProfilePage() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    // NOTE: This is where you would upload the file to Firebase Storage
-    // and get the download URL. For now, we'll just show a toast.
-    toast({
-        title: "Funcionalidade em desenvolvimento",
-        description: "O upload da imagem do perfil será implementado em breve."
-    });
-    // Example:
-    // const storageRef = ref(storage, `profile_pictures/${user.uid}`);
-    // await uploadBytes(storageRef, file);
-    // const photoURL = await getDownloadURL(storageRef);
-    // await updateDoc(doc(db, "users", user.uid), { photoURL });
-    // await updateProfile(user, { photoURL });
-    // fetchUserProfile();
+    toast({ title: "Enviando imagem...", description: "Por favor, aguarde." });
+
+    try {
+      const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+      await uploadBytes(storageRef, file);
+      const photoURL = await getDownloadURL(storageRef);
+      
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, { photoURL });
+      
+      if(user) {
+        await updateProfile(user, { photoURL });
+      }
+
+      await fetchUserProfile();
+      toast({
+          title: "Imagem de perfil atualizada!",
+          description: "Sua nova foto de perfil está visível."
+      });
+    } catch (error) {
+        console.error("Error uploading profile image: ", error);
+        toast({
+            variant: "destructive",
+            title: "Erro no upload",
+            description: "Não foi possível enviar sua imagem. Tente novamente."
+        })
+    }
   };
 
   const onSubmit = async (data: ProfileFormValues) => {
@@ -141,6 +157,10 @@ export default function ProfilePage() {
             about: data.about,
             skills: skillsArray,
         });
+
+        if (user.displayName !== data.displayName) {
+          await updateProfile(user, { displayName: data.displayName });
+        }
 
         await fetchUserProfile(); // Re-fetch to update UI
         setIsEditing(false);
@@ -197,7 +217,7 @@ export default function ProfilePage() {
     return name.split(" ").map((n) => n[0]).join("").toUpperCase();
   }
   
-  const joinDate = profile.createdAt ? profile.createdAt.toDate() : new Date();
+  const joinDate = profile.createdAt ? (profile.createdAt as unknown as Timestamp).toDate() : new Date();
 
   return (
     <div className="container mx-auto py-8">
@@ -208,7 +228,7 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             <div className="relative group">
                 <Avatar className="h-24 w-24 border-4 border-background">
-                    <AvatarImage src={profile.photoURL || user.photoURL || undefined} alt={user.displayName || ""} />
+                    <AvatarImage src={profile.photoURL || user.photoURL || undefined} alt={profile.displayName || ""} />
                     <AvatarFallback className="text-3xl">
                     {getInitials(profile.displayName)}
                     </AvatarFallback>
@@ -268,7 +288,7 @@ export default function ProfilePage() {
                     <p className="text-gray-600 mt-2">{profile.about || "Edite seu perfil para adicionar uma descrição."}</p>
                 )}
               <div className="flex flex-wrap items-center justify-center md:justify-start mt-3 text-sm text-muted-foreground gap-x-4 gap-y-1">
-                 {profile.address && (
+                 {profile.address && profile.address.city && (
                   <span className="flex items-center">
                     <MapPin className="mr-1 h-4 w-4" /> {profile.address.city}, {profile.address.state}
                   </span>
@@ -369,7 +389,7 @@ export default function ProfilePage() {
                             <FormItem>
                                <FormControl>
                                     <Input placeholder="Ex: Design Gráfico, Edição de Vídeo" {...field} />
-                                </FormControl>
+                               </FormControl>
                                 <p className="text-xs text-muted-foreground">Separe as habilidades por vírgula.</p>
                                 <FormMessage />
                             </FormItem>
@@ -578,5 +598,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
