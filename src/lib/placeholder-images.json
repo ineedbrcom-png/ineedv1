@@ -1,3 +1,64 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "avatar-1",
+      "description": "User avatar for Emily",
+      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NTkyNzU5NzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "avatar-2",
+      "description": "User avatar for Alice",
+      "imageUrl": "https://images.unsplash.com/photo-1484863137850-59afcfe05386?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc1OTIzNTgwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person smiling"
+    },
+    {
+      "id": "avatar-3",
+      "description": "User avatar for Bob",
+      "imageUrl": "https://images.unsplash.com/photo-1634795776422-5a85c8e0f1ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtYW4lMjBnbGFzc2VzfGVufDB8fHx8MTc1OTIzNDAxOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man glasses"
+    },
+    {
+      "id": "avatar-4",
+      "description": "User avatar for Charlie",
+      "imageUrl": "https://images.unsplash.com/photo-1543118136-67402bc81ff8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBjaXR5fGVufDB8fHx8MTc1OTI3NTE5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person city"
+    },
+    {
+      "id": "avatar-5",
+      "description": "User avatar for Diana",
+      "imageUrl": "https://images.unsplash.com/photo-1484627147104-f5197bcd6651?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3b21hbiUyMG5hdHVyZXxlbnwwfHx8fDE3NTkyMzc0NDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman nature"
+    },
+    {
+      "id": "listing-1",
+      "description": "A person working on a creative design on a tablet.",
+      "imageUrl": "https://images.unsplash.com/photo-1516131206008-dd041a9764fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z3JhcGhpYyUyMGRlc2lnbnxlbnwwfHx8fDE3NTkyMDg3MTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "graphic design"
+    },
+    {
+      "id": "listing-2",
+      "description": "Gardening tools and plants in a sunny backyard.",
+      "imageUrl": "https://images.unsplash.com/photo-1597764983031-60a74afb8692?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnYXJkZW5pbmclMjB0b29sc3xlbnwwfHx8fDE3NTkyOTI3OTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gardening tools"
+    },
+    {
+      "id": "listing-3",
+      "description": "A laptop showing lines of code for a website.",
+      "imageUrl": "https://images.unsplash.com/photo-1555066931-bf19f8fd1085?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxsYXB0b3AlMjBjb2RlfGVufDB8fHx8MTc1OTI3NzA2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "laptop code"
+    },
+    {
+      "id": "listing-4",
+      "description": "A person studying with books and a notebook.",
+      "imageUrl": "https://images.unsplash.com/photo-1541178735493-479c1a27ed24?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXJzb24lMjBzdHVkeWluZ3xlbnwwfHx8fDE3NTkyODI5NTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person studying"
+    },
+    {
+      "id": "map-placeholder",
+      "description": "An abstract, stylized map of a city.",
+      "imageUrl": "https://images.unsplash.com/photo-1717343823307-973d0903d222?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjaXR5JTIwbWFwfGVufDB8fHx8MTc1OTI3ODQ3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "city map"
+    }
+  ]
 }
