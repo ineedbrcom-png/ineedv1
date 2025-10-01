@@ -149,6 +149,7 @@ export const popularTags = [
   "meio-periodo",
 ];
 
+// This is now a mock for a logged out user or as a base for a real user.
 export const currentUser = {
   name: "Emily Carter",
   email: "emily.carter@example.com",

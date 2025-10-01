@@ -1,4 +1,8 @@
+
 import { Button } from "@/components/ui/button";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="mr-2" width="18" height="18" viewBox="0 0 24 24" fill="none" >
@@ -18,13 +22,38 @@ const AppleIcon = () => (
 
 
 export function SocialLogins() {
+  const { toast } = useToast();
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      // The onLoginSuccess callback will be handled by the AuthModal via the useAuth hook
+    } catch (error) {
+      console.error("Google login failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Falha no login com Google",
+        description: "Não foi possível autenticar com o Google. Tente novamente.",
+      });
+    }
+  };
+
+  const handleAppleLogin = () => {
+     toast({
+        title: "Em breve!",
+        description: "O login com a Apple ainda não está disponível.",
+      });
+  }
+
+
   return (
     <div className="space-y-3">
-      <Button variant="outline" className="w-full">
+      <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
         <GoogleIcon />
         <span>Entrar com Google</span>
       </Button>
-      <Button variant="outline" className="w-full">
+      <Button variant="outline" className="w-full" onClick={handleAppleLogin}>
         <AppleIcon />
         <span>Entrar com Apple</span>
       </Button>

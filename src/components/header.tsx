@@ -92,20 +92,24 @@ export function Header() {
       >
         <Home className="h-4 w-4" /> Início
       </Button>
-      <Button
-        variant="link"
-        className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
-        onClick={() => handleLinkClick("/messages")}
-      >
-        <MessageCircle className="h-4 w-4" /> Mensagens
-      </Button>
-      <Button
-        variant="link"
-        className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
-        onClick={() => handleLinkClick("/profile")}
-      >
-        <User className="h-4 w-4" /> Perfil
-      </Button>
+      {isLoggedIn && (
+        <>
+          <Button
+            variant="link"
+            className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
+            onClick={() => handleLinkClick("/messages")}
+          >
+            <MessageCircle className="h-4 w-4" /> Mensagens
+          </Button>
+          <Button
+            variant="link"
+            className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
+            onClick={() => handleLinkClick("/profile")}
+          >
+            <User className="h-4 w-4" /> Perfil
+          </Button>
+        </>
+      )}
     </>
   );
 
@@ -189,6 +193,9 @@ export function Header() {
                 </>
               ) : (
                 <div className="hidden md:flex space-x-4">
+                  <nav className="hidden md:flex space-x-6 items-center">
+                    {navLinks}
+                  </nav>
                   <Button
                     onClick={() => openAuthModal("login")}
                     className="px-4 py-2 text-white hover:bg-blue-700 rounded-lg transition duration-300"
@@ -230,6 +237,7 @@ export function Header() {
                         </>
                       ) : (
                         <>
+                           {navLinks}
                           <Button onClick={() => openAuthModal("login")} className="justify-center" variant="ghost" size="lg">Entrar</Button>
                           <Button onClick={() => openAuthModal("register")} className="justify-center bg-white text-blue-600" size="lg">Cadastrar</Button>
                         </>

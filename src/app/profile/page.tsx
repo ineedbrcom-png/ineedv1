@@ -15,8 +15,6 @@ import {
   Calendar,
   ShieldCheck,
   Plus,
-  Star,
-  StarHalf,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
@@ -32,10 +30,9 @@ import { AuthModal } from "@/components/auth/auth-modal";
 import { useState } from "react";
 
 export default function ProfilePage() {
-  const { isLoggedIn, isAuthLoading } = useAuth();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const { user, isLoggedIn, isAuthLoading } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(!isLoggedIn && !isAuthLoading);
 
-  const userAvatar = findImage(currentUser.avatarId);
   const portfolioImage1 = findImage("listing-3");
   const portfolioImage2 = findImage("listing-4");
   const portfolioImage3 = findImage("listing-2");
@@ -48,7 +45,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn || !user) {
     return (
       <>
         <div className="flex flex-col items-center justify-center text-center py-20">
@@ -71,30 +68,30 @@ export default function ProfilePage() {
     );
   }
 
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return "";
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase();
+  }
+  
+  // Mock data, will be replaced with real user data later
+  const joinDate = user.metadata.creationTime ? new Date(user.metadata.creationTime) : new Date();
+
   return (
     <div className="container mx-auto py-8">
       <Card className="w-full max-w-5xl mx-auto">
         <CardHeader className="bg-muted/30 p-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            {userAvatar && (
               <Avatar className="h-24 w-24 border-4 border-background">
-                <AvatarImage
-                  src={userAvatar.imageUrl}
-                  alt={currentUser.name}
-                />
+                 {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || ""} />}
                 <AvatarFallback className="text-3xl">
-                  {currentUser.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+                  {getInitials(user.displayName)}
                 </AvatarFallback>
               </Avatar>
-            )}
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start">
-                <h1 className="text-2xl font-bold">{currentUser.name}</h1>
+                <h1 className="text-2xl font-bold">{user.displayName || "Usuário"}</h1>
                 <span className="text-gray-500 ml-0 md:ml-2">
-                  @{currentUser.email.split("@")[0]}
+                  @{user.email?.split("@")[0]}
                 </span>
               </div>
               <p className="text-gray-600 mt-2">{currentUser.about}</p>
@@ -104,7 +101,7 @@ export default function ProfilePage() {
                 </span>
                 <span className="flex items-center">
                   <Calendar className="mr-1 h-4 w-4" /> No iNeed desde{" "}
-                  {new Date(currentUser.joinDate).toLocaleDateString("pt-BR", {
+                  {joinDate.toLocaleDateString("pt-BR", {
                     year: "numeric",
                     month: "long",
                   })}
@@ -113,11 +110,11 @@ export default function ProfilePage() {
               <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
                 <Badge
                   variant={
-                    currentUser.isEmailVerified ? "default" : "secondary"
+                    user.emailVerified ? "default" : "secondary"
                   }
-                  className="gap-2 p-2 bg-green-100 text-green-800 border-green-200"
+                  className={`gap-2 p-2 ${user.emailVerified ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
                 >
-                  <CheckCircle className="h-4 w-4" /> Email Verificado
+                  <CheckCircle className="h-4 w-4" /> Email {user.emailVerified ? "Verificado" : "Não Verificado"}
                 </Badge>
                 <Badge
                   variant={

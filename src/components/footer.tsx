@@ -1,21 +1,22 @@
+
 "use client";
 
 import Link from "next/link";
 import { Facebook, Instagram, Linkedin, Mail, Home, Search, PlusCircle, MessageCircle, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AuthModal } from "./auth/auth-modal";
 
 
 export function Footer() {
   const { isLoggedIn } = useAuth();
   const router = useRouter();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
   const handleLinkClick = (path: string) => {
     if (!isLoggedIn) {
-      // In a real app, you'd open the login modal here.
-      // For now, we'll just log a message.
-      console.log('User not logged in, should open auth modal');
-      router.push('/'); // Or redirect to a login page
+      setIsAuthModalOpen(true);
     } else {
       router.push(path);
     }
@@ -116,6 +117,13 @@ export function Footer() {
           <span className="text-xs">Perfil</span>
         </button>
       </div>
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onOpenChange={setIsAuthModalOpen}
+        onLoginSuccess={() => {
+          setIsAuthModalOpen(false)
+        }}
+      />
     </>
   );
 }
