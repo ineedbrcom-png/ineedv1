@@ -4,6 +4,7 @@
     "source": ".",
     "ignore": [
       "firebase.json",
+      ".firebaserc",
       "**/.*",
       "**/node_modules/**"
     ],
