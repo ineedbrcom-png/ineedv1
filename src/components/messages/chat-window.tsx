@@ -49,7 +49,7 @@ export function ChatWindow({ conversation, messages, isLoading }: ChatWindowProp
             ))
         )}
       </div>
-      <MessageInput conversationId={conversation.id} />
+      <MessageInput conversation={conversation} />
     </div>
   );
 }

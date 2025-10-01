@@ -10,20 +10,94 @@ import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Button } from "@/components/ui/button";
 import { Loader2, Inbox } from "lucide-react";
-import { collection, query, where, getDocs, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useSearchParams } from "next/navigation";
+import { allCategories } from "@/lib/categories";
 
 export default function MessagesPage() {
   const { user, isLoggedIn, isAuthLoading } = useAuth();
+  const searchParams = useSearchParams();
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  
+  const targetListingId = searchParams.get('listingId');
+  const targetUserId = searchParams.get('userId');
 
   useEffect(() => {
-    if (!user) return;
+    const createOrFindConversation = async () => {
+      if (!user || !targetListingId || !targetUserId) return;
+
+      const listingRef = doc(db, "listings", targetListingId);
+      const listingSnap = await getDoc(listingRef);
+
+      if (!listingSnap.exists()) return;
+      
+      const listingData = listingSnap.data();
+
+      // Check if a conversation already exists
+      const q = query(
+        collection(db, "conversations"),
+        where("listingId", "==", targetListingId),
+        where("participants", "array-contains", user.uid)
+      );
+
+      const querySnapshot = await getDocs(q);
+      let existingConversation = null;
+
+      querySnapshot.forEach(doc => {
+          const conversation = doc.data() as Conversation;
+          if(conversation.participants.includes(targetUserId)) {
+              existingConversation = { id: doc.id, ...conversation };
+          }
+      });
+
+      if (existingConversation) {
+        setActiveConversation(existingConversation);
+      } else {
+        // Create a new conversation
+        const participants = [user.uid, targetUserId];
+        const user1Doc = await getDoc(doc(db, "users", participants[0]));
+        const user2Doc = await getDoc(doc(db, "users", participants[1]));
+
+        if (!user1Doc.exists() || !user2Doc.exists()) return;
+
+        const newConversationData = {
+          participants: participants,
+          participantsDetails: [
+             { id: user1Doc.id, name: user1Doc.data()?.displayName, avatarId: 'avatar-1' },
+             { id: user2Doc.id, name: user2Doc.data()?.displayName, avatarId: 'avatar-2' },
+          ],
+          listingId: targetListingId,
+          listingAuthorId: listingData.authorId,
+          listingTitle: `Re: ${listingData.title}`,
+          lastMessage: "Nova conversa iniciada!",
+          lastMessageTimestamp: serverTimestamp(),
+          unreadBy: [targetUserId],
+          contractAccepted: false,
+        };
+
+        const docRef = await addDoc(collection(db, "conversations"), newConversationData);
+        setActiveConversation({ id: docRef.id, ...newConversationData } as Conversation);
+      }
+    };
+
+    if(targetListingId && targetUserId && user) {
+        createOrFindConversation();
+    }
+  }, [targetListingId, targetUserId, user]);
+
+
+  useEffect(() => {
+    if (!user) {
+        if (!isAuthLoading) setIsLoadingConversations(false);
+        return;
+    };
 
     setIsLoadingConversations(true);
     const q = query(
@@ -39,13 +113,14 @@ export default function MessagesPage() {
       });
       setConversations(convos);
       setIsLoadingConversations(false);
-      if (!activeConversation && convos.length > 0) {
+      // If there's no active conversation and it's not being set by query params
+      if (!activeConversation && convos.length > 0 && !targetListingId) {
         setActiveConversation(convos[0]);
       }
     });
 
     return () => unsubscribe();
-  }, [user, activeConversation]);
+  }, [user, isAuthLoading, activeConversation, targetListingId]);
 
   useEffect(() => {
     if (!activeConversation) {

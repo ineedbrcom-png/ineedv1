@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import { findImage } from "@/lib/placeholder-images";
 import { getServiceProviderRecommendations, ServiceProviderRecommendationOutput } from "@/ai/flows/service-provider-recommendation";
 import Image from "next/image";
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Handshake, MapPin, Calendar, Tag, Wallet, Bot, Loader2, User, Star } from "lucide-react";
+import { Handshake, MapPin, Calendar, Tag, Wallet, Bot, Loader2, User, Star, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -18,6 +18,7 @@ import { Listing } from "@/lib/data";
 import { allCategories } from "@/lib/categories";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAuth } from "@/hooks/use-auth";
 
 export default function ListingDetailPage({ params }: { params: { id: string } }) {
   const [recommendations, setRecommendations] = useState<ServiceProviderRecommendationOutput | null>(null);
@@ -25,6 +26,8 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
   const [listing, setListing] = useState<Listing | null>(null);
   const [isLoadingListing, setIsLoadingListing] = useState(true);
   const { toast } = useToast();
+  const router = useRouter();
+  const { user, isLoggedIn } = useAuth();
 
   useEffect(() => {
     if (!params.id) return;
@@ -77,6 +80,18 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
 
   if (!listing) {
     notFound();
+  }
+  
+  const handleStartConversation = () => {
+      if (!isLoggedIn) {
+          toast({ variant: "destructive", title: "Faça login para iniciar uma conversa."});
+          return;
+      }
+      if (user?.uid === listing.authorId) {
+          toast({ variant: "destructive", title: "Você não pode iniciar uma conversa com você mesmo."});
+          return;
+      }
+      router.push(`/messages?listingId=${listing.id}&userId=${listing.authorId}`);
   }
 
   const listingImage = findImage(listing.imageId || "listing-1");
@@ -217,6 +232,9 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
               <div>
                 <h4 className="font-bold">{listing.author.name}</h4>
                 <Button variant="link" className="p-0 h-auto">Ver Perfil</Button>
+                 <Button variant="ghost" size="sm" className="flex items-center gap-1" onClick={handleStartConversation}>
+                    <MessageSquare className="h-4 w-4"/> Iniciar Conversa
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -227,7 +245,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
             </CardHeader>
             <CardContent>
                 <p className="mb-4">Se você pode atender a este pedido, envie sua proposta agora mesmo.</p>
-                <Button className="w-full bg-white text-primary hover:bg-gray-100">
+                <Button className="w-full bg-white text-primary hover:bg-gray-100" onClick={handleStartConversation}>
                    <Handshake className="mr-2 h-4 w-4" /> Enviar Proposta
                 </Button>
             </CardContent>
@@ -237,5 +255,3 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
     </div>
   );
 }
-
-    

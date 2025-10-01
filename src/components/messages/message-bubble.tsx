@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { findImage } from "@/lib/placeholder-images";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Check, X, Loader2, FileText } from "lucide-react";
+import { Check, X, Loader2, FileText, User, Phone, Home } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from 'date-fns';
@@ -96,6 +96,15 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
         await updateDoc(messageRef, {
             'contractDetails.status': newStatus
         });
+
+        // If accepted, update the conversation as well
+        if (newStatus === 'accepted') {
+            const conversationRef = doc(db, "conversations", message.conversationId);
+            await updateDoc(conversationRef, {
+                contractAccepted: true
+            });
+        }
+        
         setContractStatus(newStatus);
 
         toast({ title: `Contrato ${newStatus === 'accepted' ? 'aceito' : 'recusado'}!`, description: `O status do contrato foi atualizado.`});
@@ -112,6 +121,22 @@ export function MessageBubble({ message, userAvatarUrl }: MessageBubbleProps) {
     return (
       <div className="text-center my-4 text-sm text-gray-500 italic">
         <p>{message.content}</p>
+      </div>
+    );
+  }
+  
+  if (message.type === 'contact_details' && message.contactDetails) {
+    return (
+      <div className="text-center my-4">
+        <div className="inline-block bg-green-50 rounded-lg p-4 text-left border border-green-200 max-w-sm w-full">
+          <h4 className="font-bold mb-3 text-center">Dados de Contato Compartilhados</h4>
+          <ul className="space-y-2 text-sm">
+            <li className="flex items-center"><User className="h-4 w-4 mr-2 text-green-700" /><strong>Nome:</strong><span className="ml-2">{message.contactDetails.name}</span></li>
+            <li className="flex items-center"><Phone className="h-4 w-4 mr-2 text-green-700" /><strong>Telefone:</strong><span className="ml-2">{message.contactDetails.phone}</span></li>
+            <li className="flex items-center"><Home className="h-4 w-4 mr-2 text-green-700" /><strong>Endereço:</strong><span className="ml-2">{message.contactDetails.address}</span></li>
+            <li className="flex items-center"><User className="h-4 w-4 mr-2 text-green-700" /><strong>Local:</strong><span className="ml-2">{message.contactDetails.location}</span></li>
+          </ul>
+        </div>
       </div>
     );
   }

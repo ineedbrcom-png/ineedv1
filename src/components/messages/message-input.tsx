@@ -3,21 +3,21 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Paperclip, Send, FileSignature, Handshake, X } from "lucide-react";
+import { Paperclip, Send, FileSignature, Handshake, X, Share2, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { ContractModal } from "./contract-modal";
 import { ProposalModal } from "./proposal-modal";
 import { useAuth } from "@/hooks/use-auth";
-import { addDoc, collection, serverTimestamp, doc, updateDoc, getDocs, query, where, orderBy, limit } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp, doc, updateDoc, getDocs, query, where, orderBy, limit, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Proposal } from "@/lib/data";
+import { Proposal, Conversation } from "@/lib/data";
 
 interface MessageInputProps {
-    conversationId: string;
+    conversation: Conversation;
 }
 
-export function MessageInput({ conversationId }: MessageInputProps) {
+export function MessageInput({ conversation }: MessageInputProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [message, setMessage] = useState("");
@@ -28,8 +28,20 @@ export function MessageInput({ conversationId }: MessageInputProps) {
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
   const [acceptedProposal, setAcceptedProposal] = useState<Proposal | null>(null);
   const [canCreateContract, setCanCreateContract] = useState(false);
+  const [isSharingContact, setIsSharingContact] = useState(false);
+
+  // Determine if the current user is the author of the listing
+  const isListingAuthor = user?.uid === conversation.listingAuthorId;
+  
+  useEffect(() => {
+    // This effect runs when the conversation object changes
+    setCanCreateContract(conversation.contractAccepted === false && !!acceptedProposal);
+  }, [conversation.contractAccepted, acceptedProposal]);
+
 
   useEffect(() => {
+    const conversationId = conversation.id;
+    
     const checkAcceptedProposals = async () => {
         const messagesRef = collection(db, "conversations", conversationId, "messages");
         const q = query(
@@ -58,7 +70,7 @@ export function MessageInput({ conversationId }: MessageInputProps) {
         }
     }
     checkAcceptedProposals();
-  }, [conversationId]);
+  }, [conversation.id]);
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,7 +100,7 @@ export function MessageInput({ conversationId }: MessageInputProps) {
 
     setIsSending(true);
     try {
-        const messagesCol = collection(db, "conversations", conversationId, "messages");
+        const messagesCol = collection(db, "conversations", conversation.id, "messages");
         await addDoc(messagesCol, {
             content: message,
             sender: user.uid,
@@ -98,7 +110,7 @@ export function MessageInput({ conversationId }: MessageInputProps) {
             // image upload logic would go here
         });
 
-        const conversationRef = doc(db, "conversations", conversationId);
+        const conversationRef = doc(db, "conversations", conversation.id);
         await updateDoc(conversationRef, {
             lastMessage: message,
             lastMessageTimestamp: serverTimestamp(),
@@ -114,6 +126,51 @@ export function MessageInput({ conversationId }: MessageInputProps) {
         setIsSending(false);
     }
   };
+  
+  const handleShareContactInfo = async () => {
+    if (!user) return;
+    setIsSharingContact(true);
+    try {
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (!userDocSnap.exists()) {
+            throw new Error("User profile not found");
+        }
+        
+        const userData = userDocSnap.data();
+        const address = userData.address;
+        const fullAddress = `${address.street}, ${address.number} - ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.cep}`;
+
+        const messagesCol = collection(db, "conversations", conversation.id, "messages");
+        await addDoc(messagesCol, {
+            content: `${user.displayName} compartilhou suas informações de contato.`,
+            sender: user.uid,
+            timestamp: serverTimestamp(),
+            type: 'contact_details',
+            contactDetails: {
+                name: userData.displayName,
+                phone: userData.phone,
+                address: fullAddress,
+                location: conversation.listingTitle, // Using listing title as placeholder for location context
+            }
+        });
+        
+        const conversationRef = doc(db, "conversations", conversation.id);
+        await updateDoc(conversationRef, {
+            lastMessage: "Informações de contato compartilhadas.",
+            lastMessageTimestamp: serverTimestamp(),
+        });
+
+        toast({ title: "Dados compartilhados!", description: "Suas informações de contato foram enviadas na conversa."});
+
+    } catch (error) {
+        console.error("Error sharing contact info:", error);
+        toast({ variant: "destructive", title: "Erro ao compartilhar dados", description: "Não foi possível enviar suas informações." });
+    } finally {
+        setIsSharingContact(false);
+    }
+  }
 
   return (
     <>
@@ -153,7 +210,7 @@ export function MessageInput({ conversationId }: MessageInputProps) {
             </Button>
           </div>
           <div className="flex justify-between items-center pt-1">
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap space-x-2">
                 <Button type="button" variant="link" className="text-primary p-0 h-auto" onClick={() => setIsProposalModalOpen(true)}>
                     <Handshake className="mr-1 h-4 w-4" /> Enviar Proposta
                 </Button>
@@ -167,6 +224,18 @@ export function MessageInput({ conversationId }: MessageInputProps) {
                 >
                     <FileSignature className="mr-1 h-4 w-4" /> Criar Contrato
                 </Button>
+                 {isListingAuthor && conversation.contractAccepted && (
+                     <Button 
+                        type="button" 
+                        variant="link" 
+                        className="text-green-600 p-0 h-auto font-bold" 
+                        onClick={handleShareContactInfo}
+                        disabled={isSharingContact}
+                    >
+                        {isSharingContact ? <Loader2 className="animate-spin mr-1" /> : <Share2 className="mr-1 h-4 w-4" />}
+                        {isSharingContact ? "Compartilhando..." : "Compartilhar Dados de Contato"}
+                    </Button>
+                 )}
             </div>
             <span className="text-xs text-gray-500">{message.length}/500</span>
           </div>
@@ -175,11 +244,11 @@ export function MessageInput({ conversationId }: MessageInputProps) {
       <ContractModal 
         isOpen={isContractModalOpen} 
         onOpenChange={setIsContractModalOpen} 
-        conversationId={conversationId} 
+        conversationId={conversation.id} 
         acceptedProposal={acceptedProposal}
         onContractSent={() => setCanCreateContract(false)}
       />
-      <ProposalModal isOpen={isProposalModalOpen} onOpenChange={setIsProposalModalOpen} conversationId={conversationId} />
+      <ProposalModal isOpen={isProposalModalOpen} onOpenChange={setIsProposalModalOpen} conversationId={conversation.id} />
     </>
   );
 }

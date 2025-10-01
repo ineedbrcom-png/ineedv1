@@ -43,22 +43,25 @@ export interface Conversation {
   participants: string[];
   participantsDetails: ConversationParticipant[];
   listingId: string;
+  listingAuthorId: string;
   listingTitle: string;
   lastMessage: string;
   lastMessageTimestamp: any;
   unreadBy: string[];
+  contractAccepted: boolean;
 }
 
 export interface Message {
   id: string;
   conversationId: string;
-  type: 'user' | 'system' | 'proposal' | 'contract';
+  type: 'user' | 'system' | 'proposal' | 'contract' | 'contact_details';
   content: string;
   sender: string; // user.uid
   timestamp: any;
   read?: boolean;
   proposalDetails?: Proposal;
   contractDetails?: Contract;
+  contactDetails?: ContactDetails;
   images?: string[];
 }
 
@@ -73,6 +76,13 @@ export interface Contract {
     value: number;
     terms: string;
     status: 'pending' | 'accepted' | 'rejected';
+}
+
+export interface ContactDetails {
+    name: string;
+    phone: string;
+    address: string;
+    location: string;
 }
 
 
