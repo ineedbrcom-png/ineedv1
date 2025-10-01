@@ -21,7 +21,7 @@ export default function ExploreCategoryPage({
 
   const category =
     slug === "all"
-      ? { name: "Todos os Pedidos", slug: "all" }
+      ? { name: "Todos os Pedidos", slug: "all", id: "all" }
       : allCategories.find((c) => c.slug === slug);
 
   useEffect(() => {
@@ -45,11 +45,11 @@ export default function ExploreCategoryPage({
         const listingSnapshot = await getDocs(q);
         const listingList = listingSnapshot.docs.map((doc) => {
           const data = doc.data();
-           const category = allCategories.find(c => c.id === data.categoryId)!;
+           const listingCategory = allCategories.find(c => c.id === data.categoryId)!;
           return {
             id: doc.id,
             ...data,
-            category: category,
+            category: listingCategory,
             author: { name: "Usuário", id: data.authorId, avatarId: 'avatar-1', rating: 0, reviewCount: 0 },
           } as Listing;
         });
@@ -96,3 +96,5 @@ export default function ExploreCategoryPage({
     </div>
   );
 }
+
+    

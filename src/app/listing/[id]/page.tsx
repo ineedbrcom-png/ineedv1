@@ -109,6 +109,11 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
     return 'há um tempo';
   }
 
+  const getInitials = (name: string) => {
+    if (!name) return "";
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase();
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -205,12 +210,10 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
               <CardTitle className="text-xl">Informações do Solicitante</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-4">
-              {authorAvatar && (
-                <Avatar className="h-14 w-14">
-                  <AvatarImage src={authorAvatar.imageUrl} alt={listing.author.name} />
-                  <AvatarFallback>{listing.author.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              )}
+              <Avatar className="h-14 w-14">
+                {authorAvatar && <AvatarImage src={authorAvatar.imageUrl} alt={listing.author.name} />}
+                <AvatarFallback>{getInitials(listing.author.name)}</AvatarFallback>
+              </Avatar>
               <div>
                 <h4 className="font-bold">{listing.author.name}</h4>
                 <Button variant="link" className="p-0 h-auto">Ver Perfil</Button>
@@ -234,3 +237,5 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
     </div>
   );
 }
+
+    
