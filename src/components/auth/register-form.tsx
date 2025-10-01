@@ -18,7 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from 'next/link';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -120,11 +121,34 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: `${values.firstName} ${values.lastName}`
-        });
+      const user = userCredential.user;
+
+      const displayName = `${values.firstName} ${values.lastName}`;
+      await updateProfile(user, {
+        displayName: displayName
+      });
+
+      const userDoc = {
+        uid: user.uid,
+        displayName: displayName,
+        email: values.email,
+        phone: values.phone || '',
+        cpf: values.cpf || '',
+        address: {
+          cep: values.cep || '',
+          street: values.street || '',
+          number: values.number || '',
+          neighborhood: values.neighborhood || '',
+          city: values.city || '',
+          state: values.state || '',
+        },
+        createdAt: serverTimestamp(),
+        rating: 0,
+        reviewCount: 0,
       }
+
+      await setDoc(doc(db, "users", user.uid), userDoc);
+
       toast({
         title: "Cadastro realizado!",
         description: "Sua conta foi criada com sucesso.",

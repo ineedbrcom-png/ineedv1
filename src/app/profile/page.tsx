@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { currentUser } from "@/lib/data";
+import { currentUser as mockCurrentUser } from "@/lib/data";
 import { findImage } from "@/lib/placeholder-images";
 import { StarRating } from "@/components/star-rating";
 import {
@@ -27,25 +27,76 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Loader2 } from "lucide-react";
+
+
+interface UserProfile {
+  displayName: string;
+  email: string;
+  about?: string;
+  address?: {
+    city: string;
+    state: string;
+  };
+  createdAt: Timestamp;
+  rating: number;
+  reviewCount: number;
+  skills?: string[];
+  isPhoneVerified?: boolean;
+  isDocumentVerified?: boolean;
+}
+
 
 export default function ProfilePage() {
-  const { user, isLoggedIn, isAuthLoading } = useAuth();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(!isLoggedIn && !isAuthLoading);
+  const { user, isLoggedIn, isAuthLoading: isAuthContextLoading } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isLoggedIn && !isAuthContextLoading) {
+      setIsAuthModalOpen(true);
+      setIsProfileLoading(false);
+    }
+
+    const fetchUserProfile = async () => {
+      if (user) {
+        setIsProfileLoading(true);
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          setProfile(userDocSnap.data() as UserProfile);
+        } else {
+          // Handle case where user profile doesn't exist in Firestore
+          console.log("No such document!");
+        }
+        setIsProfileLoading(false);
+      }
+    };
+
+    if (!isAuthContextLoading) {
+       fetchUserProfile();
+    }
+  }, [user, isLoggedIn, isAuthContextLoading]);
+
 
   const portfolioImage1 = findImage("listing-3");
   const portfolioImage2 = findImage("listing-4");
   const portfolioImage3 = findImage("listing-2");
 
-  if (isAuthLoading) {
+  if (isAuthContextLoading || isProfileLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p>Carregando...</p>
+      <div className="flex justify-center items-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
-  if (!isLoggedIn || !user) {
+  if (!isLoggedIn || !user || !profile) {
     return (
       <>
         <div className="flex flex-col items-center justify-center text-center py-20">
@@ -73,8 +124,7 @@ export default function ProfilePage() {
     return name.split(" ").map((n) => n[0]).join("").toUpperCase();
   }
   
-  // Mock data, will be replaced with real user data later
-  const joinDate = user.metadata.creationTime ? new Date(user.metadata.creationTime) : new Date();
+  const joinDate = profile.createdAt ? profile.createdAt.toDate() : new Date();
 
   return (
     <div className="container mx-auto py-8">
@@ -84,21 +134,23 @@ export default function ProfilePage() {
               <Avatar className="h-24 w-24 border-4 border-background">
                  {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || ""} />}
                 <AvatarFallback className="text-3xl">
-                  {getInitials(user.displayName)}
+                  {getInitials(profile.displayName)}
                 </AvatarFallback>
               </Avatar>
             <div className="flex-1 text-center md:text-left">
               <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start">
-                <h1 className="text-2xl font-bold">{user.displayName || "Usuário"}</h1>
+                <h1 className="text-2xl font-bold">{profile.displayName || "Usuário"}</h1>
                 <span className="text-gray-500 ml-0 md:ml-2">
-                  @{user.email?.split("@")[0]}
+                  @{profile.email?.split("@")[0]}
                 </span>
               </div>
-              <p className="text-gray-600 mt-2">{currentUser.about}</p>
+              <p className="text-gray-600 mt-2">{profile.about || mockCurrentUser.about}</p>
               <div className="flex flex-wrap items-center justify-center md:justify-start mt-3 text-sm text-muted-foreground gap-x-4 gap-y-1">
-                <span className="flex items-center">
-                  <MapPin className="mr-1 h-4 w-4" /> Santa Maria, RS
-                </span>
+                 {profile.address && (
+                  <span className="flex items-center">
+                    <MapPin className="mr-1 h-4 w-4" /> {profile.address.city}, {profile.address.state}
+                  </span>
+                 )}
                 <span className="flex items-center">
                   <Calendar className="mr-1 h-4 w-4" /> No iNeed desde{" "}
                   {joinDate.toLocaleDateString("pt-BR", {
@@ -118,28 +170,28 @@ export default function ProfilePage() {
                 </Badge>
                 <Badge
                   variant={
-                    currentUser.isPhoneVerified ? "default" : "secondary"
+                    profile.isPhoneVerified ? "default" : "secondary"
                   }
-                  className="gap-2 p-2 bg-green-100 text-green-800 border-green-200"
+                  className={`gap-2 p-2 ${profile.isPhoneVerified ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
                 >
-                  <CheckCircle className="h-4 w-4" /> Telefone Verificado
+                  <CheckCircle className="h-4 w-4" /> Telefone {profile.isPhoneVerified ? "Verificado" : "Não Verificado"}
                 </Badge>
                 <Badge
                   variant={
-                    currentUser.isDocumentVerified ? "default" : "secondary"
+                    profile.isDocumentVerified ? "default" : "secondary"
                   }
-                  className="gap-2 p-2 bg-blue-100 text-blue-800 border-blue-200"
+                   className={`gap-2 p-2 ${profile.isDocumentVerified ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
                 >
-                  <ShieldCheck className="h-4 w-4" /> Documento Verificado
+                  <ShieldCheck className="h-4 w-4" /> Documento {profile.isDocumentVerified ? "Verificado" : "Não Verificado"}
                 </Badge>
               </div>
             </div>
             <div className="mt-6 md:mt-0 md:ml-auto">
               <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
-                <div className="text-3xl font-bold text-blue-600">{currentUser.rating.toFixed(1)}</div>
+                <div className="text-3xl font-bold text-blue-600">{profile.rating.toFixed(1)}</div>
                  <StarRating 
-                  rating={currentUser.rating} 
-                  reviewCount={currentUser.reviewCount}
+                  rating={profile.rating} 
+                  reviewCount={profile.reviewCount}
                   className="justify-center mt-1" 
                  />
               </div>
@@ -173,7 +225,7 @@ export default function ProfilePage() {
               <div className="mb-6 space-y-2">
                 <h3 className="font-medium">Categorias de Serviço</h3>
                 <div className="flex flex-wrap gap-2">
-                  {currentUser.skills.map((skill) => (
+                  {(profile.skills || mockCurrentUser.skills).map((skill) => (
                     <Badge
                       key={skill}
                       variant="secondary"
