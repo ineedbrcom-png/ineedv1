@@ -6,7 +6,7 @@ export function MapPlaceholder() {
   const mapImage = findImage('map-placeholder');
 
   return (
-    <Card className="overflow-hidden relative text-white">
+    <Card className="overflow-hidden relative text-white bg-white rounded-lg shadow-lg">
       {mapImage && (
         <Image
           src={mapImage.imageUrl}
@@ -16,11 +16,11 @@ export function MapPlaceholder() {
           data-ai-hint={mapImage.imageHint}
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/20" />
-      <CardContent className="relative p-8 h-[250px] flex flex-col justify-end">
-        <h3 className="text-3xl font-bold">Coming Soon: Interactive Map</h3>
-        <p className="text-lg text-white/80 max-w-lg">
-          Visualize active requests on an interactive map to discover and engage with local opportunities near you.
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/10" />
+      <CardContent className="relative p-8 h-[400px] flex flex-col justify-center items-center text-center">
+        <h3 className="text-3xl font-bold">Em Breve: Mapa Interativo</h3>
+        <p className="text-lg text-white/90 max-w-lg mt-2">
+          Visualize pedidos ativos em um mapa interativo para descobrir e se engajar com oportunidades locais perto de você.
         </p>
       </CardContent>
     </Card>
