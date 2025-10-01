@@ -39,6 +39,11 @@ export default function ProfilePage() {
   const portfolioImage2 = findImage("listing-4");
   const portfolioImage3 = findImage("listing-2");
 
+  const rating = currentUser.rating;
+  const reviewCount = currentUser.reviewCount;
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating - fullStars >= 0.5;
+
   if (isAuthLoading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -138,16 +143,20 @@ export default function ProfilePage() {
             </div>
             <div className="mt-6 md:mt-0 md:ml-auto">
               <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
-                <div className="text-3xl font-bold text-blue-600">4.8</div>
-                <div className="flex justify-center mt-1 text-yellow-400">
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <Star className="h-4 w-4 fill-current" />
-                  <StarHalf className="h-4 w-4 fill-current" />
+                <div className="text-3xl font-bold text-blue-600">{rating.toFixed(1)}</div>
+                 <div className="flex justify-center mt-1 text-yellow-400">
+                  {[...Array(5)].map((_, i) => {
+                    if (i < fullStars) {
+                      return <Star key={i} className="h-4 w-4 fill-current" />;
+                    }
+                    if (i === fullStars && hasHalfStar) {
+                      return <StarHalf key={i} className="h-4 w-4 fill-current" />;
+                    }
+                    return <Star key={i} className="h-4 w-4 text-gray-300" />;
+                  })}
                 </div>
                 <div className="text-sm text-gray-600 mt-1">
-                  57 Avaliações: 95% Positivas
+                  {reviewCount} Avaliações
                 </div>
               </div>
             </div>

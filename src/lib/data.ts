@@ -1,3 +1,4 @@
+
 import type { LucideIcon } from "lucide-react";
 import { allCategories } from "./categories";
 
@@ -11,6 +12,15 @@ export interface Category {
   subcategories: string[];
 }
 
+export interface User {
+    id: string;
+    name: string;
+    avatarId: string;
+    rating: number;
+    reviewCount: number;
+}
+
+
 export interface Listing {
   id: string;
   title: string;
@@ -18,10 +28,7 @@ export interface Listing {
   budget: number;
   location: string;
   category: Category;
-  author: {
-    name: string;
-    avatarId: string;
-  };
+  author: User;
   imageId: string;
 }
 
@@ -53,6 +60,15 @@ export interface Proposal {
     status: 'pending' | 'accepted' | 'rejected';
 }
 
+const users: User[] = [
+    { id: 'user-1', name: "Alice", avatarId: "avatar-2", rating: 4.8, reviewCount: 15 },
+    { id: 'user-2', name: "Bob", avatarId: "avatar-3", rating: 4.5, reviewCount: 8 },
+    { id: 'user-3', name: "Charlie", avatarId: "avatar-4", rating: 5.0, reviewCount: 22 },
+    { id: 'user-4', name: "Diana", avatarId: "avatar-5", rating: 4.2, reviewCount: 5 },
+    { id: 'user-5', name: "Frank", avatarId: "avatar-2", rating: 4.8, reviewCount: 15 },
+    { id: 'user-6', name: "Grace", avatarId: "avatar-3", rating: 4.5, reviewCount: 8 },
+]
+
 
 export const listings: Listing[] = [
   {
@@ -63,7 +79,7 @@ export const listings: Listing[] = [
     budget: 2500,
     location: "São Paulo, SP",
     category: allCategories.find(c => c.slug === 'tecnologia')!,
-    author: { name: "Alice", avatarId: "avatar-2" },
+    author: users.find(u => u.name === 'Alice')!,
     imageId: "listing-1",
   },
   {
@@ -74,7 +90,7 @@ export const listings: Listing[] = [
     budget: 150,
     location: "Curitiba, PR",
     category: allCategories.find(c => c.slug === 'jardinagem')!,
-    author: { name: "Bob", avatarId: "avatar-3" },
+    author: users.find(u => u.name === 'Bob')!,
     imageId: "listing-2",
   },
   {
@@ -85,7 +101,7 @@ export const listings: Listing[] = [
     budget: 1800,
     location: "Remoto",
     category: allCategories.find(c => c.slug === 'ti')!,
-    author: { name: "Charlie", avatarId: "avatar-4" },
+    author: users.find(u => u.name === 'Charlie')!,
     imageId: "listing-3",
   },
   {
@@ -96,7 +112,7 @@ export const listings: Listing[] = [
     budget: 50,
     location: "Miami, FL",
     category: allCategories.find(c => c.slug === 'aulas')!,
-    author: { name: "Diana", avatarId: "avatar-5" },
+    author: users.find(u => u.name === 'Diana')!,
     imageId: "listing-4",
   },
   {
@@ -107,7 +123,7 @@ export const listings: Listing[] = [
     budget: 700,
     location: "Rio de Janeiro, RJ",
     category: allCategories.find(c => c.slug === 'moveis-e-eletro')!,
-    author: { name: "Frank", avatarId: "avatar-2" },
+    author: users.find(u => u.name === 'Frank')!,
     imageId: "listing-2",
   },
   {
@@ -118,7 +134,7 @@ export const listings: Listing[] = [
     budget: 200,
     location: "Belo Horizonte, MG",
     category: allCategories.find(c => c.slug === 'moda')!,
-    author: { name: "Grace", avatarId: "avatar-3" },
+    author: users.find(u => u.name === 'Grace')!,
     imageId: "listing-1",
   },
 ];
@@ -143,6 +159,8 @@ export const currentUser = {
   isEmailVerified: true,
   isPhoneVerified: true,
   isDocumentVerified: false,
+  rating: 4.8,
+  reviewCount: 57,
 };
 
 export const conversations: Conversation[] = [

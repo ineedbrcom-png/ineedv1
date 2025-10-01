@@ -14,10 +14,12 @@ type ListingCardProps = {
 
 export function ListingCard({ listing }: ListingCardProps) {
   const category = listing.category;
+  const author = listing.author;
 
-  // Simulate rating
-  const rating = (Number(listing.id) % 3) + 3; // 3, 4, 5
-  const hasHalfStar = Number(listing.id) % 2 === 0;
+  const rating = author.rating;
+  const reviewCount = author.reviewCount;
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating - fullStars >= 0.5;
 
   return (
     <Card className="flex flex-col overflow-hidden h-full transition-transform duration-300 card-hover shadow-md">
@@ -37,18 +39,24 @@ export function ListingCard({ listing }: ListingCardProps) {
           {listing.description}
         </p>
         <div className="flex items-center mb-3 text-sm text-yellow-400">
-          <div className="flex">
-            {[...Array(5)].map((_, i) => {
-              if (i < Math.floor(rating)) {
-                return <Star key={i} className="h-4 w-4 fill-current" />;
-              }
-              if (i === Math.floor(rating) && hasHalfStar) {
-                return <StarHalf key={i} className="h-4 w-4 fill-current" />;
-              }
-              return <Star key={i} className="h-4 w-4 text-gray-300" />;
-            })}
-          </div>
-          <span className="ml-2 text-gray-600 dark:text-gray-400">({(rating * 3).toFixed(0)} avaliações)</span>
+          {reviewCount > 0 ? (
+            <>
+              <div className="flex">
+                {[...Array(5)].map((_, i) => {
+                  if (i < fullStars) {
+                    return <Star key={i} className="h-4 w-4 fill-current" />;
+                  }
+                  if (i === fullStars && hasHalfStar) {
+                    return <StarHalf key={i} className="h-4 w-4 fill-current" />;
+                  }
+                  return <Star key={i} className="h-4 w-4 text-gray-300" />;
+                })}
+              </div>
+              <span className="ml-2 text-gray-600 dark:text-gray-400">({reviewCount} avaliações)</span>
+            </>
+          ) : (
+             <span className="text-gray-500">Nenhuma avaliação</span>
+          )}
         </div>
         <div className="flex justify-between items-center mt-auto">
           <div className="flex items-center gap-1 text-sm text-gray-500">
