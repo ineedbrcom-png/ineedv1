@@ -87,13 +87,6 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-4">
-              <Button
-                size="sm"
-                className="bg-white text-blue-600 font-bold rounded-full hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105 h-auto hidden md:flex"
-                onClick={() => handleLinkClick("/post-request")}
-              >
-                <PlusCircle className="mr-2" /> Criar Pedido
-              </Button>
               {(isAuthLoading) ? null : isLoggedIn && currentUser ? (
                 <>
                   <nav className="hidden md:flex space-x-6 items-center">
