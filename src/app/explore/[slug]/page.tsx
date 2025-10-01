@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { allCategories } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
 import { notFound } from "next/navigation";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Listing } from "@/lib/data";
+import { Listing, ListingAuthor } from "@/lib/data";
 import { Loader2 } from "lucide-react";
 
 export default function ExploreCategoryPage({
@@ -43,16 +43,31 @@ export default function ExploreCategoryPage({
         }
 
         const listingSnapshot = await getDocs(q);
-        const listingList = listingSnapshot.docs.map((doc) => {
-          const data = doc.data();
+        const listingList = await Promise.all(listingSnapshot.docs.map(async (docSnapshot) => {
+          const data = docSnapshot.data();
            const listingCategory = allCategories.find(c => c.id === data.categoryId)!;
+
+           let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
+           const userDocRef = doc(db, "users", data.authorId);
+           const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                author = {
+                    id: data.authorId,
+                    name: userData.displayName,
+                    photoURL: userData.photoURL,
+                    rating: userData.rating || 0,
+                    reviewCount: userData.reviewCount || 0,
+                }
+            }
+
           return {
-            id: doc.id,
+            id: docSnapshot.id,
             ...data,
             category: listingCategory,
-            author: { name: "Usuário", id: data.authorId, avatarId: 'avatar-1', rating: 0, reviewCount: 0 },
+            author: author,
           } as Listing;
-        });
+        }));
         setListings(listingList);
       } catch (error) {
         console.error("Error fetching listings:", error);
@@ -96,5 +111,3 @@ export default function ExploreCategoryPage({
     </div>
   );
 }
-
-    

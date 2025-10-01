@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from "react";
 import { notFound, useRouter } from "next/navigation";
-import { findImage } from "@/lib/placeholder-images";
 import { getServiceProviderRecommendations, ServiceProviderRecommendationOutput } from "@/ai/flows/service-provider-recommendation";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,7 +13,7 @@ import { Handshake, MapPin, Calendar, Tag, Wallet, Bot, Loader2, User, Star, Mes
 import { useToast } from "@/hooks/use-toast";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Listing } from "@/lib/data";
+import { Listing, ListingAuthor } from "@/lib/data";
 import { allCategories } from "@/lib/categories";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -48,14 +47,15 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
         const data = docSnap.data();
         const category = allCategories.find(c => c.id === data.categoryId)!;
         
-        let author = { name: "Usuário", id: data.authorId, avatarId: 'avatar-1', rating: 0, reviewCount: 0 };
+        let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
         const userDocRef = doc(db, "users", data.authorId);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
            const userData = userDocSnap.data();
            author = {
-              ...author,
+              id: data.authorId,
               name: userData.displayName,
+              photoURL: userData.photoURL,
               rating: userData.rating || 0,
               reviewCount: userData.reviewCount || 0,
            }
@@ -99,8 +99,6 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
       }
       router.push(`/messages?listingId=${listing.id}&userId=${listing.authorId}`);
   }
-
-  const authorAvatar = findImage(listing.author.avatarId);
 
   const handleGetRecommendations = async () => {
     setIsLoadingRecommendations(true);
@@ -250,7 +248,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
             <CardContent className="flex flex-col items-start gap-4">
               <div className="flex items-center gap-4">
                   <Avatar className="h-14 w-14">
-                    {authorAvatar && <AvatarImage src={authorAvatar.imageUrl} alt={listing.author.name} />}
+                    {listing.author.photoURL && <AvatarImage src={listing.author.photoURL} alt={listing.author.name} />}
                     <AvatarFallback>{getInitials(listing.author.name)}</AvatarFallback>
                   </Avatar>
                   <div>

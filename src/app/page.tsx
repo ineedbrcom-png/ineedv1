@@ -28,8 +28,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { Listing } from "@/lib/data";
-import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
+import { Listing, ListingAuthor } from "@/lib/data";
+import { collection, getDocs, limit, orderBy, query, where, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function Home() {
@@ -46,16 +46,31 @@ export default function Home() {
         const listingsCol = collection(db, "listings");
         const q = query(listingsCol, orderBy("createdAt", "desc"));
         const listingSnapshot = await getDocs(q);
-        const listingList = listingSnapshot.docs.map(doc => {
-          const data = doc.data();
+        const listingList = await Promise.all(listingSnapshot.docs.map(async (docSnapshot) => {
+          const data = docSnapshot.data();
           const category = allCategories.find(c => c.id === data.categoryId);
+          
+          let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
+           const userDocRef = doc(db, "users", data.authorId);
+           const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                const userData = userDocSnap.data();
+                author = {
+                    id: data.authorId,
+                    name: userData.displayName,
+                    photoURL: userData.photoURL,
+                    rating: userData.rating || 0,
+                    reviewCount: userData.reviewCount || 0,
+                }
+            }
+
           return {
-            id: doc.id,
+            id: docSnapshot.id,
             ...data,
             category: category,
-            author: { name: "Usuário", id: data.authorId, avatarId: 'avatar-1', rating: 0, reviewCount: 0 },
+            author: author,
           } as Listing;
-        });
+        }));
         setListings(listingList);
       } catch (error) {
         console.error("Error fetching listings: ", error);

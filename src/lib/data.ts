@@ -1,5 +1,6 @@
 
 import type { LucideIcon } from "lucide-react";
+import type { Timestamp } from "firebase/firestore";
 
 export interface Category {
   id: string;
@@ -11,9 +12,33 @@ export interface Category {
 }
 
 export interface User {
+  uid: string;
+  displayName: string;
+  email: string;
+  photoURL?: string;
+  about?: string;
+  phone?: string;
+  cpf?: string;
+  address?: {
+    cep: string;
+    street: string;
+    number: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+  };
+  skills?: string[];
+  createdAt: Timestamp;
+  rating: number;
+  reviewCount: number;
+  isPhoneVerified?: boolean;
+  isDocumentVerified?: boolean;
+}
+
+export interface ListingAuthor {
     id: string;
     name: string;
-    avatarId: string;
+    photoURL?: string;
     rating: number;
     reviewCount: number;
 }
@@ -25,7 +50,7 @@ export interface Listing {
   budget: number;
   location: string;
   category: Category;
-  author: User;
+  author: ListingAuthor;
   imageUrls: string[];
   authorId: string;
   createdAt: any;
@@ -35,7 +60,7 @@ export interface Listing {
 export interface ConversationParticipant {
     id: string;
     name: string;
-    avatarId: string;
+    avatarId: string; // This is still used in conversation details, can be refactored later
 }
 
 export interface Conversation {
@@ -111,21 +136,6 @@ export const popularTags = [
   "tempo-integral",
   "meio-periodo",
 ];
-
-// This is now a mock for a logged out user or as a base for a real user.
-export const currentUser = {
-  name: "Emily Carter",
-  email: "emily.carter@example.com",
-  avatarId: "avatar-1",
-  joinDate: "2023-05-15",
-  skills: ["Product Management", "UX/UI Design", "Market Research"],
-  about: "I'm a product manager passionate about creating user-centric digital experiences. In my free time, I'm often looking for creative professionals to collaborate on side projects.",
-  isEmailVerified: true,
-  isPhoneVerified: true,
-  isDocumentVerified: false,
-  rating: 4.8,
-  reviewCount: 57,
-};
 
 export const conversations: Conversation[] = [];
 export const messages: Message[] = [];
