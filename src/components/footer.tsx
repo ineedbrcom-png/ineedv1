@@ -66,7 +66,7 @@ export function Footer() {
               <ul className="space-y-2">
                 <li className="flex items-center">
                   <Mail className="mr-2 h-4 w-4 text-gray-400" />
-                  <span className="text-gray-400">contato@ineed.com.br</span>
+                  <span className="text-gray-400">contato@ineedbr.com</span>
                 </li>
               </ul>
             </div>
