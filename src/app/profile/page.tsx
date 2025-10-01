@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { currentUser } from "@/lib/data";
 import { findImage } from "@/lib/placeholder-images";
+import { StarRating } from "@/components/star-rating";
 import {
   CheckCircle,
   MapPin,
@@ -38,11 +39,6 @@ export default function ProfilePage() {
   const portfolioImage1 = findImage("listing-3");
   const portfolioImage2 = findImage("listing-4");
   const portfolioImage3 = findImage("listing-2");
-
-  const rating = currentUser.rating;
-  const reviewCount = currentUser.reviewCount;
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating - fullStars >= 0.5;
 
   if (isAuthLoading) {
     return (
@@ -143,21 +139,12 @@ export default function ProfilePage() {
             </div>
             <div className="mt-6 md:mt-0 md:ml-auto">
               <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
-                <div className="text-3xl font-bold text-blue-600">{rating.toFixed(1)}</div>
-                 <div className="flex justify-center mt-1 text-yellow-400">
-                  {[...Array(5)].map((_, i) => {
-                    if (i < fullStars) {
-                      return <Star key={i} className="h-4 w-4 fill-current" />;
-                    }
-                    if (i === fullStars && hasHalfStar) {
-                      return <StarHalf key={i} className="h-4 w-4 fill-current" />;
-                    }
-                    return <Star key={i} className="h-4 w-4 text-gray-300" />;
-                  })}
-                </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  {reviewCount} Avaliações
-                </div>
+                <div className="text-3xl font-bold text-blue-600">{currentUser.rating.toFixed(1)}</div>
+                 <StarRating 
+                  rating={currentUser.rating} 
+                  reviewCount={currentUser.reviewCount}
+                  className="justify-center mt-1" 
+                 />
               </div>
             </div>
           </div>
