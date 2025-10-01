@@ -58,8 +58,10 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
     } catch (error: any) {
       console.error("Login failed:", error);
       let description = "Ocorreu um erro ao tentar fazer login.";
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+      if (error.code === 'auth/invalid-credential') {
         description = "E-mail ou senha inválidos. Por favor, tente novamente.";
+      } else if (error.code === 'auth/configuration-not-found') {
+        description = "O login por e-mail não está habilitado. Por favor, contate o suporte.";
       }
       toast({
         variant: "destructive",
