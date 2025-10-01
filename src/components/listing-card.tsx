@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import {
   Card,
@@ -28,7 +29,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           <span className="text-gray-500 text-sm">há {Number(listing.id) * 2} horas</span>
         </div>
         <h4 className="text-lg font-bold mb-2 text-gray-800 flex-grow">
-          <Link href="#" className="hover:text-primary transition-colors">
+          <Link href={`/listing/${listing.id}`} className="hover:text-primary transition-colors">
             {listing.title}
           </Link>
         </h4>
@@ -55,7 +56,7 @@ export function ListingCard({ listing }: ListingCardProps) {
             <span>{listing.location}</span>
           </div>
           <Button asChild size="sm" className="rounded-full">
-            <Link href="#">
+            <Link href={`/listing/${listing.id}`}>
               <Handshake className="mr-1 h-4 w-4" /> Oferecer
             </Link>
           </Button>
