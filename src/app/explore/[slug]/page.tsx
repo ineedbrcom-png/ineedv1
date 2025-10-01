@@ -11,21 +11,13 @@ import { Listing, ListingAuthor } from "@/lib/data";
 import { Loader2 } from "lucide-react";
 
 type ExploreCategoryPageProps = {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 };
 
 export default function ExploreCategoryPage({ params }: ExploreCategoryPageProps) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [slug, setSlug] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const resolveParams = async () => {
-      const awaitedParams = await params;
-      setSlug(awaitedParams.slug);
-    };
-    resolveParams();
-  }, [params]);
+  const { slug } = params;
 
   const category =
     slug === "all"
@@ -33,7 +25,7 @@ export default function ExploreCategoryPage({ params }: ExploreCategoryPageProps
       : allCategories.find((c) => c.slug === slug);
 
   useEffect(() => {
-    if (!category || !slug) return;
+    if (!category) return;
 
     const fetchListings = async () => {
       setIsLoading(true);
@@ -87,12 +79,8 @@ export default function ExploreCategoryPage({ params }: ExploreCategoryPageProps
     fetchListings();
   }, [slug, category]);
 
-  if (!category && slug) {
+  if (!category) {
     notFound();
-  }
-
-  if (!slug) {
-    return <div className="flex justify-center items-center py-16"><Loader2 className="h-8 w-8 animate-spin" /></div>
   }
 
   return (
