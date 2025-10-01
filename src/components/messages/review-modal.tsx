@@ -3,9 +3,20 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Star, Loader2 } from "lucide-react";
+import { Star, Loader2, AlertTriangle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,7 +24,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
-import { doc, runTransaction, serverTimestamp, arrayUnion } from "firebase/firestore";
+import { doc, runTransaction, serverTimestamp, arrayUnion, collection } from "firebase/firestore";
 import { type Conversation } from "@/lib/data";
 
 const reviewSchema = z.object({
@@ -44,6 +55,23 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
   });
 
   const otherParticipant = conversation.participantsDetails.find(p => p.id !== user?.uid);
+
+  const handleReportUser = () => {
+    console.log(`--- User Report ---
+    Reported User ID: ${otherParticipant?.id}
+    Reported User Name: ${otherParticipant?.name}
+    Reporter User ID: ${user?.uid}
+    Conversation ID: ${conversation.id}
+    Listing ID: ${conversation.listingId}
+    --- End Report ---
+    Simulating email to ineed@ineedbr.com`);
+
+    toast({
+      title: "Reclamação Enviada",
+      description: "Sua reclamação foi registrada e será analisada pela nossa equipe.",
+    });
+  }
+
 
   const onSubmit = async (data: ReviewFormValues) => {
     if (!user || !otherParticipant) {
@@ -157,14 +185,35 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="animate-spin mr-2" />}
-                {isSubmitting ? "Enviando..." : "Enviar Avaliação"}
-              </Button>
+            <DialogFooter className="justify-between items-center sm:justify-between sm:items-center">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="link" size="sm" className="p-0 text-xs text-muted-foreground h-auto hover:text-destructive">
+                        <AlertTriangle className="h-4 w-4 mr-1"/> Comunicar um problema
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Abrir Reclamação</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Você tem certeza que quer abrir esta reclamação? Os dados do usuário e da conversa serão enviados para nossa equipe de moderação.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Não</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleReportUser} className="bg-destructive hover:bg-destructive/90">Sim</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <div className="flex gap-2">
+                <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                    Cancelar
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="animate-spin mr-2" />}
+                    {isSubmitting ? "Enviando..." : "Enviar Avaliação"}
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </Form>
