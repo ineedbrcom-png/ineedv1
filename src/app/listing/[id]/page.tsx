@@ -212,8 +212,8 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                           </div>
                         </CardHeader>
                         <CardContent>
-                            <Button asChild>
-                                <Link href={`/profile`}>Ver Perfil</Link>
+                            <Button asChild variant="outline" disabled>
+                                <Link href="#">Ver Perfil (demo)</Link>
                             </Button>
                         </CardContent>
                       </Card>
@@ -257,7 +257,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                   <div>
                     <h4 className="font-bold">{listing.author.name}</h4>
                     <Button variant="link" className="p-0 h-auto" asChild>
-                        <Link href={`/profile`}>Ver Perfil</Link>
+                        <Link href={`/profile/${listing.author.id}`}>Ver Perfil</Link>
                     </Button>
                   </div>
               </div>

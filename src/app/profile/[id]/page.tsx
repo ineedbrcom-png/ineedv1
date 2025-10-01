@@ -2,7 +2,7 @@
 "use client";
 
 import { Suspense } from 'react';
-import { ProfileClient } from './profile-client';
+import { ProfileClient } from '../profile-client';
 import { Loader2 } from 'lucide-react';
 
 function ProfileLoading() {
@@ -20,3 +20,4 @@ export default function ProfilePage() {
     </Suspense>
   );
 }
+
