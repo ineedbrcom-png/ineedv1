@@ -5,21 +5,24 @@ import { useState }from "react";
 import { ConversationList } from "@/components/messages/conversation-list";
 import { ChatWindow } from "@/components/messages/chat-window";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
-import { conversations, messages } from "@/lib/data";
+import { conversations as mockConversations, messages as mockMessages, Conversation } from "@/lib/data";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function MessagesPage() {
   const { isLoggedIn, isAuthLoading } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const activeConversation = conversations[0];
-  const activeMessages = messages;
+  const [activeConversation, setActiveConversation] = useState<Conversation | null>(mockConversations[0]);
+  
+  // In a real app, this would be fetched based on activeConversation.id
+  const activeMessages = mockMessages;
 
   if (isAuthLoading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <p>Carregando...</p>
+      <div className="flex justify-center items-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -51,13 +54,21 @@ export default function MessagesPage() {
     <div className="container mx-auto py-6">
       <Card className="flex flex-col lg:flex-row shadow-md overflow-hidden bg-white h-[calc(100vh-140px)]">
         <ConversationList
-          conversations={conversations}
-          activeConversationId={activeConversation.id}
+          conversations={mockConversations}
+          activeConversationId={activeConversation?.id || ''}
+          onConversationSelect={setActiveConversation}
         />
-        <ChatWindow
-          conversation={activeConversation}
-          messages={activeMessages}
-        />
+        {activeConversation ? (
+           <ChatWindow
+            conversation={activeConversation}
+            messages={activeMessages}
+          />
+        ) : (
+          <div className="w-full lg:w-2/3 flex flex-col items-center justify-center text-center p-8">
+            <CardTitle className="text-xl">Selecione uma conversa</CardTitle>
+            <CardDescription className="mt-2">Escolha uma conversa da lista para ver as mensagens.</CardDescription>
+          </div>
+        )}
       </Card>
     </div>
   );

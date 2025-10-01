@@ -3,15 +3,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { findImage } from "@/lib/placeholder-images";
 import { type Conversation } from "@/lib/data";
 import { Inbox, Search } from "lucide-react";
-import Link from 'next/link';
 import { cn } from "@/lib/utils";
 
 interface ConversationListProps {
   conversations: Conversation[];
   activeConversationId: string;
+  onConversationSelect: (conversation: Conversation) => void;
 }
 
-export function ConversationList({ conversations, activeConversationId }: ConversationListProps) {
+export function ConversationList({ conversations, activeConversationId, onConversationSelect }: ConversationListProps) {
   return (
     <div className="w-full lg:w-1/3 border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
@@ -31,11 +31,11 @@ export function ConversationList({ conversations, activeConversationId }: Conver
         {conversations.map((convo) => {
           const userAvatar = findImage(convo.userAvatarId);
           return (
-            <Link
-              href="#"
+            <button
               key={convo.id}
+              onClick={() => onConversationSelect(convo)}
               className={cn(
-                "block p-4 border-b border-gray-200 hover:bg-gray-50 flex items-start relative",
+                "w-full text-left block p-4 border-b border-gray-200 hover:bg-gray-50 flex items-start relative",
                 convo.id === activeConversationId && "bg-blue-50 hover:bg-blue-50"
               )}
             >
@@ -54,7 +54,7 @@ export function ConversationList({ conversations, activeConversationId }: Conver
                 <p className="text-sm text-gray-500 truncate">{convo.lastMessage}</p>
               </div>
               {convo.unread && <div className="w-2 h-2 rounded-full bg-blue-600 absolute right-4 top-1/2 -translate-y-1/2"></div>}
-            </Link>
+            </button>
           );
         })}
       </div>
