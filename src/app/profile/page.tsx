@@ -4,6 +4,7 @@
 import { Suspense } from 'react';
 import { ProfileClient } from './profile-client';
 import { Loader2 } from 'lucide-react';
+import { useParams } from 'next/navigation';
 
 function ProfileLoading() {
   return (
@@ -13,10 +14,18 @@ function ProfileLoading() {
   );
 }
 
+function ProfilePageContent() {
+    const params = useParams();
+    const profileId = params.id as string | undefined;
+    
+    return <ProfileClient key={profileId} />;
+}
+
+
 export default function ProfilePage() {
   return (
     <Suspense fallback={<ProfileLoading />}>
-      <ProfileClient />
+      <ProfilePageContent />
     </Suspense>
   );
 }
