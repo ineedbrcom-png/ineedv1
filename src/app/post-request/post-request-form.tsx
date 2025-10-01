@@ -28,6 +28,10 @@ import { allCategories } from "@/lib/categories";
 import { refineListingDescription } from "@/ai/flows/listing-description-refinement";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2 } from "lucide-react";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   title: z.string().min(10, "O título deve ter pelo menos 10 caracteres."),
@@ -46,7 +50,10 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function PostRequestForm() {
   const [isRefining, setIsRefining] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const router = useRouter();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -90,12 +97,38 @@ export function PostRequestForm() {
     }
   }
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
-    toast({
-      title: "Pedido Enviado!",
-      description: "Seu pedido foi publicado com sucesso.",
-    });
+  async function onSubmit(values: FormValues) {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para publicar um pedido.",
+      });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const docRef = await addDoc(collection(db, "listings"), {
+        ...values,
+        authorId: user.uid,
+        createdAt: serverTimestamp(),
+        imageId: `listing-${Math.ceil(Math.random() * 4)}` // Temporary random image
+      });
+      toast({
+        title: "Pedido Enviado!",
+        description: "Seu pedido foi publicado com sucesso.",
+      });
+      router.push(`/listing/${docRef.id}`);
+    } catch (e) {
+      console.error("Error adding document: ", e);
+      toast({
+        variant: "destructive",
+        title: "Erro ao publicar",
+        description: "Não foi possível salvar seu pedido. Tente novamente.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -126,7 +159,7 @@ export function PostRequestForm() {
                   variant="ghost"
                   size="sm"
                   onClick={handleRefineDescription}
-                  disabled={isRefining}
+                  disabled={isRefining || isSubmitting}
                 >
                   {isRefining ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -207,8 +240,9 @@ export function PostRequestForm() {
           )}
         />
         <div className="flex justify-end pt-4">
-          <Button type="submit" size="lg">
-            Publicar Pedido
+          <Button type="submit" size="lg" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="animate-spin mr-2" />}
+            {isSubmitting ? "Publicando..." : "Publicar Pedido"}
           </Button>
         </div>
       </form>

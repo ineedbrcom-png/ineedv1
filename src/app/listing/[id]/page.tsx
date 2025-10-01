@@ -1,9 +1,8 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { notFound } from "next/navigation";
-import { listings } from "@/lib/data";
 import { findImage } from "@/lib/placeholder-images";
 import { getServiceProviderRecommendations, ServiceProviderRecommendationOutput } from "@/ai/flows/service-provider-recommendation";
 import Image from "next/image";
@@ -13,23 +12,78 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Handshake, MapPin, Calendar, Tag, Wallet, Bot, Loader2, User, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Listing } from "@/lib/data";
+import { allCategories } from "@/lib/categories";
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function ListingDetailPage({ params }: { params: { id: string } }) {
   const [recommendations, setRecommendations] = useState<ServiceProviderRecommendationOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [isLoadingListing, setIsLoadingListing] = useState(true);
   const { toast } = useToast();
 
-  const listing = listings.find((l) => l.id === params.id);
+  useEffect(() => {
+    if (!params.id) return;
+
+    const fetchListing = async () => {
+      setIsLoadingListing(true);
+      const docRef = doc(db, "listings", params.id);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const category = allCategories.find(c => c.id === data.categoryId)!;
+        
+        // Fetch author details
+        let author = { name: "Usuário", id: data.authorId, avatarId: 'avatar-1', rating: 0, reviewCount: 0 };
+        const userDocRef = doc(db, "users", data.authorId);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+           const userData = userDocSnap.data();
+           author = {
+              ...author,
+              name: userData.displayName,
+              rating: userData.rating || 0,
+              reviewCount: userData.reviewCount || 0,
+           }
+        }
+
+        setListing({
+          id: docSnap.id,
+          ...data,
+          category: category,
+          author: author,
+        } as Listing);
+      } else {
+        notFound();
+      }
+      setIsLoadingListing(false);
+    };
+
+    fetchListing();
+  }, [params.id]);
+
+  if (isLoadingListing) {
+    return (
+      <div className="container mx-auto py-8 flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!listing) {
     notFound();
   }
 
-  const listingImage = findImage(listing.imageId);
+  const listingImage = findImage(listing.imageId || "listing-1");
   const authorAvatar = findImage(listing.author.avatarId);
 
   const handleGetRecommendations = async () => {
-    setIsLoading(true);
+    setIsLoadingRecommendations(true);
     setRecommendations(null);
     try {
       const result = await getServiceProviderRecommendations({
@@ -44,9 +98,16 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
         description: "Não foi possível obter sugestões da IA neste momento. Tente novamente mais tarde.",
       });
     } finally {
-      setIsLoading(false);
+      setIsLoadingRecommendations(false);
     }
   };
+  
+  const getPostTime = () => {
+    if (listing.createdAt?.toDate) {
+      return formatDistanceToNow(listing.createdAt.toDate(), { addSuffix: true, locale: ptBR });
+    }
+    return 'há um tempo';
+  }
 
   return (
     <div className="container mx-auto py-8">
@@ -67,7 +128,7 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
               <CardTitle className="text-3xl font-bold">{listing.title}</CardTitle>
               <CardDescription className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base pt-2">
                 <span className="flex items-center"><MapPin className="mr-1 h-4 w-4" /> {listing.location}</span>
-                <span className="flex items-center"><Calendar className="mr-1 h-4 w-4" /> Publicado há {Number(listing.id) * 2} horas</span>
+                <span className="flex items-center"><Calendar className="mr-1 h-4 w-4" /> {getPostTime()}</span>
                 <span className="flex items-center"><Tag className="mr-1 h-4 w-4" /> Categoria: {listing.category.name}</span>
               </CardDescription>
             </CardHeader>
@@ -80,13 +141,13 @@ export default function ListingDetailPage({ params }: { params: { id: string } }
                 <p className="text-gray-600 mb-4">
                   Clique no botão abaixo para que nossa inteligência artificial encontre os melhores fornecedores para o seu pedido.
                 </p>
-                <Button onClick={handleGetRecommendations} disabled={isLoading}>
-                  {isLoading ? (
+                <Button onClick={handleGetRecommendations} disabled={isLoadingRecommendations}>
+                  {isLoadingRecommendations ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Bot className="mr-2 h-4 w-4" />
                   )}
-                  {isLoading ? "Buscando..." : "Encontrar Fornecedores com IA"}
+                  {isLoadingRecommendations ? "Buscando..." : "Encontrar Fornecedores com IA"}
                 </Button>
                 
                 {recommendations && recommendations.recommendations.length > 0 && (

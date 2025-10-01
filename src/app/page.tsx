@@ -2,8 +2,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { listings } from "@/lib/data";
-import { productCategories, serviceCategories } from "@/lib/categories";
+import { productCategories, serviceCategories, allCategories } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
 import { Map } from "@/components/map";
 import {
@@ -15,6 +14,7 @@ import {
   Wrench,
   Edit,
   Handshake,
+  Loader2,
 } from "lucide-react";
 import {
   Tabs,
@@ -26,14 +26,45 @@ import Link from "next/link";
 import { SafetySection } from "@/components/safety-section";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
-
+import { Listing } from "@/lib/data";
+import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function Home() {
   const { isLoggedIn } = useAuth();
   const router = useRouter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      setIsLoading(true);
+      try {
+        const listingsCol = collection(db, "listings");
+        const q = query(listingsCol, orderBy("createdAt", "desc"));
+        const listingSnapshot = await getDocs(q);
+        const listingList = listingSnapshot.docs.map(doc => {
+          const data = doc.data();
+          const category = allCategories.find(c => c.id === data.categoryId);
+          return {
+            id: doc.id,
+            ...data,
+            category: category,
+            author: { name: "Usuário", id: data.authorId, avatarId: 'avatar-1', rating: 0, reviewCount: 0 },
+          } as Listing;
+        });
+        setListings(listingList);
+      } catch (error) {
+        console.error("Error fetching listings: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchListings();
+  }, []);
 
   const handlePostRequestClick = () => {
     if (isLoggedIn) {
@@ -145,11 +176,15 @@ export default function Home() {
                   Ver todos <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {listings.slice(0, 3).map((listing) => (
-                  <ListingCard key={listing.id} listing={listing} />
-                ))}
-              </div>
+               {isLoading ? (
+                <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
+              ) : (
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {listings.filter(l => l.category.type === 'product').slice(0, 3).map((listing) => (
+                    <ListingCard key={listing.id} listing={listing} />
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         </TabsContent>
@@ -207,14 +242,18 @@ export default function Home() {
                   Ver todos <ChevronRight className="h-4 w-4 ml-1" />
                 </Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {listings
-                  .filter((l) => l.category.type === "service")
-                  .slice(0, 3)
-                  .map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} />
-                  ))}
-              </div>
+               {isLoading ? (
+                <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {listings
+                    .filter((l) => l.category.type === "service")
+                    .slice(0, 3)
+                    .map((listing) => (
+                      <ListingCard key={listing.id} listing={listing} />
+                    ))}
+                </div>
+              )}
             </div>
           </section>
         </TabsContent>
