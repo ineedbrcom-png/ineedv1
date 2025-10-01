@@ -10,13 +10,7 @@ import { db } from "@/lib/firebase";
 import { Listing, ListingAuthor } from "@/lib/data";
 import { Loader2 } from "lucide-react";
 
-type ExploreCategoryPageProps = {
-  params: {
-    slug: string;
-  };
-};
-
-export default function ExploreCategoryPage({ params }: ExploreCategoryPageProps) {
+export default function ExploreCategoryPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
