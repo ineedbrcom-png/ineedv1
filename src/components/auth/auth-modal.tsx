@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -7,12 +8,13 @@ import {
 import { LoginForm } from "./login-form";
 import { RegisterForm } from "./register-form";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AuthModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   initialMode?: "login" | "register";
-  onLoginSuccess: () => void;
+  onLoginSuccess?: () => void;
 }
 
 export function AuthModal({
@@ -22,13 +24,17 @@ export function AuthModal({
   onLoginSuccess,
 }: AuthModalProps) {
   const [mode, setMode] = useState(initialMode);
+  const { setIsLoggedIn } = useAuth();
 
   useEffect(() => {
     setMode(initialMode);
   }, [initialMode, isOpen]);
 
   const handleLoginSuccess = () => {
-    onLoginSuccess();
+    setIsLoggedIn(true);
+    if(onLoginSuccess) {
+      onLoginSuccess();
+    }
     onOpenChange(false);
   };
 

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -29,16 +30,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  title: z.string().min(10, "Title must be at least 10 characters long."),
-  categoryId: z.string({ required_error: "Please select a category." }),
+  title: z.string().min(10, "O título deve ter pelo menos 10 caracteres."),
+  categoryId: z.string({ required_error: "Por favor, selecione uma categoria." }),
   description: z
     .string()
-    .min(50, "Description must be at least 50 characters long."),
+    .min(50, "A descrição deve ter pelo menos 50 caracteres."),
   budget: z.coerce
     .number()
-    .positive("Budget must be a positive number.")
-    .min(1, "Budget must be at least $1."),
-  location: z.string().min(2, "Location is required."),
+    .positive("O orçamento deve ser um número positivo.")
+    .min(1, "O orçamento deve ser de pelo menos R$1."),
+  location: z.string().min(2, "A localização é obrigatória."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -61,8 +62,8 @@ export function PostRequestForm() {
     if (!description || description.length < 20) {
       toast({
         variant: "destructive",
-        title: "Description too short",
-        description: "Please enter at least 20 characters to refine with AI.",
+        title: "Descrição muito curta",
+        description: "Por favor, insira pelo menos 20 caracteres para refinar com IA.",
       });
       return;
     }
@@ -74,15 +75,15 @@ export function PostRequestForm() {
         shouldValidate: true,
       });
       toast({
-        title: "Description Refined!",
-        description: "Your description has been enhanced by AI.",
+        title: "Descrição Refinada!",
+        description: "Sua descrição foi melhorada pela IA.",
       });
     } catch (error) {
       console.error("Failed to refine description:", error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Could not refine the description at this time.",
+        title: "Erro",
+        description: "Não foi possível refinar a descrição neste momento.",
       });
     } finally {
       setIsRefining(false);
@@ -92,8 +93,8 @@ export function PostRequestForm() {
   function onSubmit(values: FormValues) {
     console.log(values);
     toast({
-      title: "Request Submitted!",
-      description: "Your request has been posted successfully.",
+      title: "Pedido Enviado!",
+      description: "Seu pedido foi publicado com sucesso.",
     });
   }
 
@@ -105,9 +106,9 @@ export function PostRequestForm() {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Request Title</FormLabel>
+              <FormLabel>Título do Pedido</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., I need a modern logo design" {...field} />
+                <Input placeholder="Ex: Preciso de um logo moderno" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -119,7 +120,7 @@ export function PostRequestForm() {
           render={({ field }) => (
             <FormItem>
               <div className="flex items-center justify-between">
-                <FormLabel>Description</FormLabel>
+                <FormLabel>Descrição</FormLabel>
                 <Button
                   type="button"
                   variant="ghost"
@@ -130,14 +131,14 @@ export function PostRequestForm() {
                   {isRefining ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <Sparkles className="mr-2 h-4 w-4 text-accent" />
+                    <Sparkles className="mr-2 h-4 w-4 text-yellow-400" />
                   )}
-                  Refine with AI
+                  Refinar com IA
                 </Button>
               </div>
               <FormControl>
                 <Textarea
-                  placeholder="Describe what you need in detail..."
+                  placeholder="Descreva o que você precisa em detalhes..."
                   className="min-h-[150px]"
                   {...field}
                 />
@@ -152,14 +153,14 @@ export function PostRequestForm() {
             name="categoryId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
+                <FormLabel>Categoria</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
+                      <SelectValue placeholder="Selecione uma categoria" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -179,9 +180,9 @@ export function PostRequestForm() {
             name="budget"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Budget ($)</FormLabel>
+                <FormLabel>Orçamento (R$)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 500" {...field} />
+                  <Input type="number" placeholder="Ex: 500" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -194,12 +195,12 @@ export function PostRequestForm() {
           name="location"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Location</FormLabel>
+              <FormLabel>Localização</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Brooklyn, NY or 'Remote'" {...field} />
+                <Input placeholder="Ex: Santa Maria, RS ou 'Remoto'" {...field} />
               </FormControl>
               <FormDescription>
-                Enter your city and state, or specify "Remote".
+                Digite sua cidade e estado, ou especifique "Remoto".
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -207,7 +208,7 @@ export function PostRequestForm() {
         />
         <div className="flex justify-end pt-4">
           <Button type="submit" size="lg">
-            Post Request
+            Publicar Pedido
           </Button>
         </div>
       </form>

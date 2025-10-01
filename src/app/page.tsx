@@ -1,3 +1,6 @@
+
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { listings } from "@/lib/data";
 import { productCategories, serviceCategories } from "@/lib/categories";
@@ -21,9 +24,26 @@ import {
 } from "@/components/ui/tabs";
 import Link from "next/link";
 import { SafetySection } from "@/components/safety-section";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { AuthModal } from "@/components/auth/auth-modal";
 
 
 export default function Home() {
+  const { isLoggedIn } = useAuth();
+  const router = useRouter();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const handlePostRequestClick = () => {
+    if (isLoggedIn) {
+      router.push("/post-request");
+    } else {
+      setIsAuthModalOpen(true);
+    }
+  };
+
+
   return (
     <>
       <section className="gradient-bg text-white py-16">
@@ -39,17 +59,18 @@ export default function Home() {
             <Button
               size="lg"
               className="bg-white text-blue-600 font-bold py-4 px-10 rounded-full hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105 h-auto"
-              asChild
+              onClick={handlePostRequestClick}
             >
-              <Link href="/post-request">
-                <PlusCircle className="mr-2" /> Criar Pedido
-              </Link>
+              <PlusCircle className="mr-2" /> Criar Pedido
             </Button>
             <Button
               size="lg"
               className="bg-blue-600 text-white font-bold py-4 px-10 rounded-full hover:bg-blue-700 transition duration-300 shadow-lg transform hover:scale-105 h-auto border-blue-600"
+              asChild
             >
-              <Search className="mr-2" /> Ver Pedidos
+              <Link href="/explore/all">
+                <Search className="mr-2" /> Ver Pedidos
+              </Link>
             </Button>
           </div>
         </div>
@@ -79,7 +100,7 @@ export default function Home() {
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-4">
                 {productCategories.map((cat, index) => {
-                   const colors = [
+                  const colors = [
                     "bg-blue-50 text-blue-600 hover:bg-blue-100",
                     "bg-cyan-50 text-cyan-600 hover:bg-cyan-100",
                     "bg-purple-50 text-purple-600 hover:bg-purple-100",
@@ -92,15 +113,22 @@ export default function Home() {
                     "bg-green-50 text-green-600 hover:bg-green-100",
                   ];
                   return (
-                  <Link href={`/explore/${cat.slug}`} key={cat.name} className="block">
-                    <div
-                      className={`${colors[index % colors.length]} p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
+                    <Link
+                      href={`/explore/${cat.slug}`}
+                      key={cat.name}
+                      className="block"
                     >
-                      <cat.icon className="mx-auto h-6 w-6 mb-2" />
-                      <p className="text-sm font-medium">{cat.name}</p>
-                    </div>
-                  </Link>
-                )})}
+                      <div
+                        className={`${
+                          colors[index % colors.length]
+                        } p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
+                      >
+                        <cat.icon className="mx-auto h-6 w-6 mb-2" />
+                        <p className="text-sm font-medium">{cat.name}</p>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -118,7 +146,7 @@ export default function Home() {
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {listings.slice(0,3).map((listing) => (
+                {listings.slice(0, 3).map((listing) => (
                   <ListingCard key={listing.id} listing={listing} />
                 ))}
               </div>
@@ -126,7 +154,7 @@ export default function Home() {
           </section>
         </TabsContent>
         <TabsContent value="services">
-           <section className="py-8 bg-white">
+          <section className="py-8 bg-white">
             <div className="container mx-auto px-4">
               <h3 className="text-2xl font-bold mb-6 text-gray-800">
                 Categorias de Serviços
@@ -147,19 +175,26 @@ export default function Home() {
                     "bg-rose-50 text-rose-600 hover:bg-rose-100",
                   ];
                   return (
-                  <Link href={`/explore/${cat.slug}`} key={cat.name} className="block">
-                    <div
-                       className={`${colors[index % colors.length]} p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
+                    <Link
+                      href={`/explore/${cat.slug}`}
+                      key={cat.name}
+                      className="block"
                     >
-                      <cat.icon className="mx-auto h-6 w-6 mb-2" />
-                      <p className="text-sm font-medium">{cat.name}</p>
-                    </div>
-                  </Link>
-                )})}
+                      <div
+                        className={`${
+                          colors[index % colors.length]
+                        } p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
+                      >
+                        <cat.icon className="mx-auto h-6 w-6 mb-2" />
+                        <p className="text-sm font-medium">{cat.name}</p>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </section>
-           <section className="py-12 bg-gray-50">
+          <section className="py-12 bg-gray-50">
             <div className="container mx-auto px-4">
               <div className="flex justify-between items-center mb-8">
                 <h3 className="text-2xl font-bold text-gray-800">
@@ -173,18 +208,23 @@ export default function Home() {
                 </Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {listings.filter(l => l.category.type === 'service').slice(0,3).map((listing) => (
-                  <ListingCard key={listing.id} listing={listing} />
-                ))}
+                {listings
+                  .filter((l) => l.category.type === "service")
+                  .slice(0, 3)
+                  .map((listing) => (
+                    <ListingCard key={listing.id} listing={listing} />
+                  ))}
               </div>
             </div>
           </section>
         </TabsContent>
       </Tabs>
-      
+
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
-           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">Pedidos Ativos no Mapa</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+            Pedidos Ativos no Mapa
+          </h2>
           <MapPlaceholder />
         </div>
       </section>
@@ -235,6 +275,12 @@ export default function Home() {
         </div>
       </section>
       <SafetySection />
+       <AuthModal
+        isOpen={isAuthModalOpen}
+        onOpenChange={setIsAuthModalOpen}
+        initialMode={"login"}
+        onLoginSuccess={() => router.push('/post-request')}
+      />
     </>
   );
 }

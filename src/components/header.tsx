@@ -1,7 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Bell,
@@ -11,6 +13,7 @@ import {
   HandHeart,
   MessageCircle,
   Home,
+  PlusCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,17 +29,37 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { currentUser } from "@/lib/data";
 import { findImage } from "@/lib/placeholder-images";
 import { AuthModal } from "@/components/auth/auth-modal";
+import { useAuth } from "@/hooks/use-auth";
 
 export function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, setIsLoggedIn, isAuthLoading } = useAuth();
   const userAvatar = isLoggedIn ? findImage(currentUser.avatarId) : null;
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const router = useRouter();
 
   const openAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
   };
+
+  const handleLinkClick = (path: string) => {
+    if (!isLoggedIn) {
+      openAuthModal("login");
+    } else {
+      router.push(path);
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    router.push("/");
+  };
+  
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    setIsAuthModalOpen(false);
+  }
 
   return (
     <>
@@ -64,7 +87,14 @@ export function Header() {
             </div>
 
             <div className="flex items-center gap-4">
-              {isLoggedIn && currentUser ? (
+              <Button
+                size="sm"
+                className="bg-white text-blue-600 font-bold rounded-full hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105 h-auto hidden md:flex"
+                onClick={() => handleLinkClick("/post-request")}
+              >
+                <PlusCircle className="mr-2" /> Criar Pedido
+              </Button>
+              {(isAuthLoading) ? null : isLoggedIn && currentUser ? (
                 <>
                   <nav className="hidden md:flex space-x-6 items-center">
                     <Link
@@ -73,18 +103,13 @@ export function Header() {
                     >
                       <Home className="h-4 w-4" /> Início
                     </Link>
-                    <Link
-                      href="#"
-                      className="hover:underline font-medium flex items-center gap-1"
-                    >
-                      <Bell className="h-4 w-4" /> Notificações
-                    </Link>
-                    <Link
-                      href="/messages"
-                      className="hover:underline font-medium flex items-center gap-1"
+                    <Button
+                      variant="link"
+                      className="hover:underline font-medium flex items-center gap-1 text-white p-0 h-auto"
+                      onClick={() => handleLinkClick("/messages")}
                     >
                       <MessageCircle className="h-4 w-4" /> Mensagens
-                    </Link>
+                    </Button>
                   </nav>
 
                   <DropdownMenu>
@@ -125,20 +150,37 @@ export function Header() {
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile">
-                          <User className="mr-2 h-4 w-4" />
-                          <span>Ver Meu Perfil</span>
-                        </Link>
+                      <DropdownMenuItem
+                        onClick={() => handleLinkClick("/profile")}
+                        className="cursor-pointer"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Ver Meu Perfil</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                       <DropdownMenuItem
+                        onClick={() => handleLinkClick("/profile")}
+                        className="cursor-pointer"
+                      >
+                        <Bell className="mr-2 h-4 w-4" />
+                        <span>Notificações</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleLinkClick("/profile")}
+                        className="cursor-pointer"
+                      >
                         <span>Meus Pedidos</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleLinkClick("/profile")}
+                        className="cursor-pointer"
+                      >
                         <span>Configurações</span>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setIsLoggedIn(false)}>
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="cursor-pointer"
+                      >
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Sair</span>
                       </DropdownMenuItem>
@@ -170,7 +212,7 @@ export function Header() {
         isOpen={isAuthModalOpen}
         onOpenChange={setIsAuthModalOpen}
         initialMode={authMode}
-        onLoginSuccess={() => setIsLoggedIn(true)}
+        onLoginSuccess={handleLoginSuccess}
       />
     </>
   );
