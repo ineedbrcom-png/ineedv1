@@ -3,10 +3,6 @@ import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ExploreClientPage } from './explore-client-page';
 
-type ExploreCategoryPageProps = {
-  params: Promise<{ slug: string }>;
-};
-
 function ExploreLoading() {
   return (
     <div className="flex h-full w-full items-center justify-center py-20">
@@ -15,7 +11,7 @@ function ExploreLoading() {
   );
 }
 
-export default async function ExploreCategoryPage({ params }: ExploreCategoryPageProps) {
+export default async function ExploreCategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   return (
