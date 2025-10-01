@@ -1,4 +1,3 @@
-
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ExploreClientPage } from './explore-client-page';
@@ -11,8 +10,8 @@ function ExploreLoading() {
   );
 }
 
-export default async function ExploreCategoryPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default function ExploreCategoryPage({ params }: { params: { slug: string } }) {
+  const { slug } = params;
 
   return (
     <Suspense fallback={<ExploreLoading />}>
