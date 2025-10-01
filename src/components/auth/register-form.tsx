@@ -180,6 +180,8 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       recaptchaRef.current?.reset();
     }
   }
+  
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   return (
     <div className="space-y-4">
@@ -404,22 +406,24 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="recaptcha"
-            render={({ field }) => (
-              <FormItem>
-                 <FormControl>
-                    <ReCAPTCHA
-                        ref={recaptchaRef}
-                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-                        onChange={field.onChange}
-                    />
-                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {recaptchaSiteKey && (
+            <FormField
+              control={form.control}
+              name="recaptcha"
+              render={({ field }) => (
+                <FormItem>
+                   <FormControl>
+                      <ReCAPTCHA
+                          ref={recaptchaRef}
+                          sitekey={recaptchaSiteKey}
+                          onChange={field.onChange}
+                      />
+                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
 
           <div className="pt-2">
