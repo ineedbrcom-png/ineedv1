@@ -1,11 +1,17 @@
 import admin from 'firebase-admin';
+import { config } from 'dotenv';
+
+config();
 
 // Esta verificação impede a reinicialização do app em ambientes de desenvolvimento (hot-reloading)
 if (!admin.apps.length) {
   try {
-    const serviceAccount = JSON.parse(
-      process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string
-    );
+    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (!serviceAccountString) {
+      throw new Error('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida.');
+    }
+
+    const serviceAccount = JSON.parse(serviceAccountString);
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
