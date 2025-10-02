@@ -7,8 +7,6 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // This function is the single source of truth for Firebase client services
 function getFirebaseClient() {
-  // Construct the config object inside the function to ensure
-  // process.env values are read on the client-side.
   const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -19,14 +17,10 @@ function getFirebaseClient() {
   };
 
   let app: FirebaseApp;
-  let auth: Auth;
-  let db: Firestore;
-  let storage: Storage;
 
   if (!getApps().length) {
     app = initializeApp(firebaseConfig);
 
-    // Initialize App Check only on the client
     if (typeof window !== 'undefined') {
       const appCheckKey = process.env.NEXT_PUBLIC_FIREBASE_APP_CHECK_KEY;
       if (appCheckKey) {
@@ -45,10 +39,10 @@ function getFirebaseClient() {
   } else {
     app = getApp();
   }
-
-  auth = getAuth(app);
-  db = getFirestore(app);
-  storage = getStorage(app);
+  
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
   
   return { app, auth, db, storage };
 }

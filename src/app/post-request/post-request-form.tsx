@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,9 +28,9 @@ import { allCategories } from "@/lib/categories";
 import { refineListingDescription } from "@/ai/flows/listing-description-refinement";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2, Upload, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, Firestore } from "firebase/firestore";
 import { getFirebaseClient } from "@/lib/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, Storage } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";

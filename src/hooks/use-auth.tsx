@@ -8,13 +8,14 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { onAuthStateChanged, User, getAuth, Auth } from "firebase/auth";
+import { onAuthStateChanged, User, Auth } from "firebase/auth";
 import { getFirebaseClient } from "@/lib/firebase";
 
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
   isAuthLoading: boolean;
+  auth: Auth | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,12 +23,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [auth, setAuth] = useState<Auth | null>(null);
 
   useEffect(() => {
-    // getFirebaseClient will initialize the app if it's not already
-    const { auth } = getFirebaseClient();
-    
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const { auth: firebaseAuth } = getFirebaseClient();
+    setAuth(firebaseAuth);
+
+    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
       setUser(user);
       setIsAuthLoading(false);
     });
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isLoggedIn: !!user,
         isAuthLoading,
+        auth,
       }}
     >
       {children}

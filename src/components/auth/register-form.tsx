@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { getFirebaseClient } from "@/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 

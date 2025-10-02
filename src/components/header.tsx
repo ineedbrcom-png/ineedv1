@@ -34,12 +34,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { useAuth } from "@/hooks/use-auth";
 import { signOut } from "firebase/auth";
-import { getFirebaseClient } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 
 export function Header() {
-  const { user, isLoggedIn, isAuthLoading } = useAuth();
+  const { user, isLoggedIn, isAuthLoading, auth } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -73,8 +72,15 @@ export function Header() {
   }
 
   const handleLogout = async () => {
+    if (!auth) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao sair",
+        description: "Serviço de autenticação não disponível.",
+      });
+      return;
+    }
     try {
-      const { auth } = getFirebaseClient();
       await signOut(auth);
       router.push("/");
       toast({
