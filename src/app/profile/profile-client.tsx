@@ -57,7 +57,7 @@ interface ProfileClientProps {
 }
 
 export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientProps) {
-  const { user, isLoggedIn, isAuthContextLoading } = useAuth();
+  const { user, isLoggedIn, isAuthLoading } = useAuth();
   const profileId = profileIdFromProps || user?.uid;
   const isOwnProfile = profileIdFromProps ? profileIdFromProps === user?.uid : true;
 
@@ -100,11 +100,11 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
     if (profileId) {
        fetchUserProfile(profileId);
     } 
-    else if (!isAuthContextLoading && !user) {
+    else if (!isAuthLoading && !user) {
       setIsAuthModalOpen(true);
       setIsProfileLoading(false);
     }
-  }, [profileId, user, isAuthContextLoading, isOwnProfile, form]);
+  }, [profileId, user, isAuthLoading, isOwnProfile, form]);
 
 
   const handleEditToggle = () => {
@@ -189,7 +189,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
   }
 
 
-  if (isAuthContextLoading || isProfileLoading) {
+  if (isAuthLoading || isProfileLoading) {
     return (
       <div className="flex justify-center items-center py-20">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -623,3 +623,5 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
     </div>
   );
 }
+
+    
