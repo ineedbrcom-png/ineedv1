@@ -6,33 +6,6 @@ backend:
   region: us-central1
 runtime: nodejs20
 
-# Mapeia as variáveis de configuração do Firebase para o ambiente de build do Next.js
-env:
-  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
-    value: '${firebase.web.apiKey}'
-    availability:
-      - BUILD
-  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-    value: '${firebase.web.authDomain}'
-    availability:
-      - BUILD
-  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    value: '${firebase.web.projectId}'
-    availability:
-      - BUILD
-  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    value: '${firebase.web.storageBucket}'
-    availability:
-      - BUILD
-  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-    value: '${firebase.web.messagingSenderId}'
-    availability:
-      - BUILD
-  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
-    value: '${firebase.web.appId}'
-    availability:
-      - BUILD
-
 routes:
   - base_path: /
     type: static
