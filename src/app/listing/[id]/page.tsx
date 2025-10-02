@@ -1,6 +1,5 @@
 
 import { notFound } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
 import { firestoreAdmin } from "@/lib/firebase-admin"; // Use Admin SDK on the server
 import { Listing, ListingAuthor } from "@/lib/data";
 import { allCategories } from "@/lib/categories";
@@ -13,6 +12,11 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   
   if (!id) {
     notFound();
+  }
+
+  if (!firestoreAdmin) {
+      console.error("Firestore Admin não inicializado. Não é possível buscar o pedido.");
+      notFound();
   }
 
   const docRef = firestoreAdmin.collection("listings").doc(id);

@@ -4,6 +4,10 @@ import { firestoreAdmin } from "@/lib/firebase-admin";
 import { HomeClient } from "./home-client";
 
 async function getListings() {
+    if (!firestoreAdmin) {
+        console.log("Firestore Admin não inicializado, retornando lista vazia.");
+        return [];
+    }
     try {
         const listingsCol = firestoreAdmin.collection("listings");
         // Let's simplify the query for now to avoid complexity with indexes

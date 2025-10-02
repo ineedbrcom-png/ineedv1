@@ -6,7 +6,7 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
-  icon: LucideIcon;
+  iconName: string; // Changed from icon: LucideIcon
   type: 'product' | 'service';
   subcategories: string[];
 }

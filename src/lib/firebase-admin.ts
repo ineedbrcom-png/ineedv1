@@ -1,33 +1,43 @@
+
 import admin from 'firebase-admin';
 import { config } from 'dotenv';
 
 config();
 
-// Esta verificação impede a reinicialização do app em ambientes de desenvolvimento (hot-reloading)
-if (!admin.apps.length) {
+let adminApp: admin.App | null = null;
+let firestoreAdmin: admin.firestore.Firestore | null = null;
+let authAdmin: admin.auth.Auth | null = null;
+
+function initializeAdminApp() {
+  if (admin.apps.length > 0) {
+    adminApp = admin.app();
+    firestoreAdmin = admin.firestore();
+    authAdmin = admin.auth();
+    return;
+  }
+
   try {
     const serviceAccountB64 = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
     if (!serviceAccountB64) {
-      throw new Error('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida.');
+      console.warn('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida. O Firebase Admin SDK não será inicializado no servidor.');
+      return;
     }
     
-    // Decodifica a string Base64 para uma string JSON
     const serviceAccountString = Buffer.from(serviceAccountB64, 'base64').toString('utf8');
-
     const serviceAccount = JSON.parse(serviceAccountString);
 
-    admin.initializeApp({
+    adminApp = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      // Adicione a URL do seu banco de dados se estiver usando Realtime Database
-      // databaseURL: `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseio.com`
     });
-     console.log("Firebase Admin SDK initialized successfully.");
+
+    firestoreAdmin = admin.firestore();
+    authAdmin = admin.auth();
+
   } catch (error: any) {
-    console.error('Firebase Admin initialization error', error.stack);
+    console.error('Falha na inicialização do Firebase Admin SDK:', error.message);
   }
 }
 
-const firestoreAdmin = admin.firestore();
-const authAdmin = admin.auth();
+initializeAdminApp();
 
 export { firestoreAdmin, authAdmin, admin };

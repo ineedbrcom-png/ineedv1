@@ -15,6 +15,27 @@ import {
   Edit,
   Handshake,
   Loader2,
+  LucideIcon,
+  Car,
+  Dog,
+  Gamepad,
+  Home as HomeIcon,
+  Laptop,
+  Paintbrush,
+  Shirt,
+  Utensils,
+  Laptop2 as LaptopCode,
+  GraduationCap as UserGraduate,
+  Baby,
+  Scissors,
+  Dumbbell,
+  Sparkles,
+  ShieldAlert,
+  Smartphone,
+  Book,
+  Sofa,
+  KeyRound,
+  Cog,
 } from "lucide-react";
 import {
   Tabs,
@@ -29,6 +50,33 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Listing } from "@/lib/data";
+
+const iconMap: { [key: string]: LucideIcon } = {
+  Car,
+  Dog,
+  Gamepad,
+  HomeIcon,
+  Laptop,
+  Paintbrush,
+  Search,
+  Shirt,
+  Utensils,
+  Wrench,
+  Laptop2: LaptopCode,
+  GraduationCap: UserGraduate,
+  Baby,
+  Box,
+  Scissors,
+  Dumbbell,
+  Sparkles,
+  ShieldAlert,
+  Smartphone,
+  Book,
+  Sofa,
+  KeyRound,
+  Cog,
+};
+
 
 interface HomeClientProps {
     productCategories: Category[];
@@ -121,6 +169,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                     "bg-red-50 text-red-600 hover:bg-red-100",
                     "bg-green-50 text-green-600 hover:bg-green-100",
                   ];
+                  const Icon = iconMap[cat.iconName];
                   return (
                     <Link
                       href={`/explore/${cat.slug}`}
@@ -132,7 +181,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                           colors[index % colors.length]
                         } p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
                       >
-                        <cat.icon className="mx-auto h-6 w-6 mb-2" />
+                        {Icon && <Icon className="mx-auto h-6 w-6 mb-2" />}
                         <p className="text-sm font-medium">{cat.name}</p>
                       </div>
                     </Link>
@@ -187,6 +236,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                     "bg-gray-50 text-gray-600 hover:bg-gray-100",
                     "bg-rose-50 text-rose-600 hover:bg-rose-100",
                   ];
+                   const Icon = iconMap[cat.iconName];
                   return (
                     <Link
                       href={`/explore/${cat.slug}`}
@@ -198,7 +248,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                           colors[index % colors.length]
                         } p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
                       >
-                        <cat.icon className="mx-auto h-6 w-6 mb-2" />
+                         {Icon && <Icon className="mx-auto h-6 w-6 mb-2" />}
                         <p className="text-sm font-medium">{cat.name}</p>
                       </div>
                     </Link>
@@ -301,4 +351,3 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     </>
   );
 }
-
