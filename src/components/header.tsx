@@ -165,7 +165,7 @@ export function Header() {
             </form>
 
             <div className="flex items-center gap-4">
-              {(isAuthLoading) ? null : isLoggedIn && user ? (
+              {isAuthLoading ? null : isLoggedIn ? (
                 <>
                   <nav className="hidden md:flex space-x-6 items-center">
                     {navLinks}
@@ -178,14 +178,14 @@ export function Header() {
                         className="hidden md:flex hover:bg-white/10 p-2 rounded-full h-auto"
                       >
                         <Avatar className="h-8 w-8">
-                          {user.photoURL && (
+                          {user?.photoURL && (
                             <AvatarImage
                               src={user.photoURL}
                               alt={user.displayName || 'User Avatar'}
                             />
                           )}
                           <AvatarFallback className="bg-blue-300 text-blue-800">
-                           {getInitials(user.displayName)}
+                           {getInitials(user?.displayName)}
                           </AvatarFallback>
                         </Avatar>
                       </Button>
@@ -194,10 +194,10 @@ export function Header() {
                       <DropdownMenuLabel>
                         <div className="flex flex-col space-y-1">
                           <p className="text-sm font-medium leading-none">
-                            {user.displayName}
+                            {user?.displayName}
                           </p>
                           <p className="text-xs leading-none text-muted-foreground">
-                            {user.email}
+                            {user?.email}
                           </p>
                         </div>
                       </DropdownMenuLabel>
