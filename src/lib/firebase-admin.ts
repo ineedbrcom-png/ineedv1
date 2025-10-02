@@ -6,10 +6,13 @@ config();
 // Esta verificação impede a reinicialização do app em ambientes de desenvolvimento (hot-reloading)
 if (!admin.apps.length) {
   try {
-    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    if (!serviceAccountString) {
+    const serviceAccountB64 = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (!serviceAccountB64) {
       throw new Error('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida.');
     }
+    
+    // Decodifica a string Base64 para uma string JSON
+    const serviceAccountString = Buffer.from(serviceAccountB64, 'base64').toString('utf8');
 
     const serviceAccount = JSON.parse(serviceAccountString);
 
