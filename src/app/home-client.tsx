@@ -47,7 +47,7 @@ import Link from "next/link";
 import { SafetySection } from "@/components/safety-section";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Listing } from "@/lib/data";
 
@@ -89,7 +89,12 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
   const router = useRouter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [listings] = useState<Listing[]>(initialListings);
-  // isLoading is no longer needed as data is fetched on server
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const isLoading = false; 
 
   const handlePostRequestClick = () => {
@@ -133,168 +138,172 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
         </div>
       </section>
 
-      <Tabs defaultValue="products" className="container mx-auto px-4 mt-10">
-        <TabsList className="border-b border-gray-200 bg-transparent p-0 justify-start h-auto rounded-none">
-          <TabsTrigger
-            value="products"
-            className="py-3 px-6 font-medium data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none rounded-none text-gray-600"
-          >
-            <Box className="mr-2 h-5 w-5" /> Produtos
-          </TabsTrigger>
-          <TabsTrigger
-            value="services"
-            className="py-3 px-6 font-medium data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none rounded-none text-gray-600"
-          >
-            <Wrench className="mr-2 h-5 w-5" /> Serviços
-          </TabsTrigger>
-        </TabsList>
+      {isClient && (
+        <>
+          <Tabs defaultValue="products" className="container mx-auto px-4 mt-10">
+            <TabsList className="border-b border-gray-200 bg-transparent p-0 justify-start h-auto rounded-none">
+              <TabsTrigger
+                value="products"
+                className="py-3 px-6 font-medium data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none rounded-none text-gray-600"
+              >
+                <Box className="mr-2 h-5 w-5" /> Produtos
+              </TabsTrigger>
+              <TabsTrigger
+                value="services"
+                className="py-3 px-6 font-medium data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none rounded-none text-gray-600"
+              >
+                <Wrench className="mr-2 h-5 w-5" /> Serviços
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="products">
-          <section className="py-8 bg-white">
-            <div className="container mx-auto px-4">
-              <h3 className="text-2xl font-bold mb-6 text-gray-800">
-                Categorias de Produtos
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-4">
-                {productCategories.map((cat, index) => {
-                  const colors = [
-                    "bg-blue-50 text-blue-600 hover:bg-blue-100",
-                    "bg-cyan-50 text-cyan-600 hover:bg-cyan-100",
-                    "bg-purple-50 text-purple-600 hover:bg-purple-100",
-                    "bg-gray-50 text-gray-600 hover:bg-gray-100",
-                    "bg-orange-50 text-orange-600 hover:bg-orange-100",
-                    "bg-amber-50 text-amber-600 hover:bg-amber-100",
-                    "bg-pink-50 text-pink-600 hover:bg-pink-100",
-                    "bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
-                    "bg-red-50 text-red-600 hover:bg-red-100",
-                    "bg-green-50 text-green-600 hover:bg-green-100",
-                  ];
-                  const Icon = iconMap[cat.iconName];
-                  return (
-                    <Link
-                      href={`/explore/${cat.slug}`}
-                      key={cat.name}
-                      className="block"
-                    >
-                      <div
-                        className={`${
-                          colors[index % colors.length]
-                        } p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
-                      >
-                        {Icon && <Icon className="mx-auto h-6 w-6 mb-2" />}
-                        <p className="text-sm font-medium">{cat.name}</p>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-          <section className="py-12 bg-gray-50">
-            <div className="container mx-auto px-4">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-800">
-                  Pedidos Recentes de Produtos
-                </h3>
-                <Link
-                  href="/explore/all"
-                  className="text-blue-600 hover:underline font-medium flex items-center"
-                >
-                  Ver todos <ChevronRight className="h-4 w-4 ml-1" />
-                </Link>
-              </div>
-               {isLoading ? (
-                <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
-              ) : (
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {listings.filter(l => l.category.type === 'product').slice(0, 3).map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} />
-                  ))}
+            <TabsContent value="products">
+              <section className="py-8 bg-white">
+                <div className="container mx-auto px-4">
+                  <h3 className="text-2xl font-bold mb-6 text-gray-800">
+                    Categorias de Produtos
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-4">
+                    {productCategories.map((cat, index) => {
+                      const colors = [
+                        "bg-blue-50 text-blue-600 hover:bg-blue-100",
+                        "bg-cyan-50 text-cyan-600 hover:bg-cyan-100",
+                        "bg-purple-50 text-purple-600 hover:bg-purple-100",
+                        "bg-gray-50 text-gray-600 hover:bg-gray-100",
+                        "bg-orange-50 text-orange-600 hover:bg-orange-100",
+                        "bg-amber-50 text-amber-600 hover:bg-amber-100",
+                        "bg-pink-50 text-pink-600 hover:bg-pink-100",
+                        "bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
+                        "bg-red-50 text-red-600 hover:bg-red-100",
+                        "bg-green-50 text-green-600 hover:bg-green-100",
+                      ];
+                      const Icon = iconMap[cat.iconName];
+                      return (
+                        <Link
+                          href={`/explore/${cat.slug}`}
+                          key={cat.name}
+                          className="block"
+                        >
+                          <div
+                            className={`${
+                              colors[index % colors.length]
+                            } p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
+                          >
+                            {Icon && <Icon className="mx-auto h-6 w-6 mb-2" />}
+                            <p className="text-sm font-medium">{cat.name}</p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
-              )}
-            </div>
-          </section>
-        </TabsContent>
-        <TabsContent value="services">
-          <section className="py-8 bg-white">
-            <div className="container mx-auto px-4">
-              <h3 className="text-2xl font-bold mb-6 text-gray-800">
-                Categorias de Serviços
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-11 gap-4">
-                {serviceCategories.map((cat, index) => {
-                  const colors = [
-                    "bg-blue-50 text-blue-600 hover:bg-blue-100",
-                    "bg-green-50 text-green-600 hover:bg-green-100",
-                    "bg-yellow-50 text-yellow-600 hover:bg-yellow-100",
-                    "bg-purple-50 text-purple-600 hover:bg-purple-100",
-                    "bg-red-50 text-red-600 hover:bg-red-100",
-                    "bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
-                    "bg-pink-50 text-pink-600 hover:bg-pink-100",
-                    "bg-teal-50 text-teal-600 hover:bg-teal-100",
-                    "bg-orange-50 text-orange-600 hover:bg-orange-100",
-                    "bg-gray-50 text-gray-600 hover:bg-gray-100",
-                    "bg-rose-50 text-rose-600 hover:bg-rose-100",
-                  ];
-                   const Icon = iconMap[cat.iconName];
-                  return (
+              </section>
+              <section className="py-12 bg-gray-50">
+                <div className="container mx-auto px-4">
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-2xl font-bold text-gray-800">
+                      Pedidos Recentes de Produtos
+                    </h3>
                     <Link
-                      href={`/explore/${cat.slug}`}
-                      key={cat.name}
-                      className="block"
+                      href="/explore/all"
+                      className="text-blue-600 hover:underline font-medium flex items-center"
                     >
-                      <div
-                        className={`${
-                          colors[index % colors.length]
-                        } p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
-                      >
-                         {Icon && <Icon className="mx-auto h-6 w-6 mb-2" />}
-                        <p className="text-sm font-medium">{cat.name}</p>
-                      </div>
+                      Ver todos <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-          <section className="py-12 bg-gray-50">
-            <div className="container mx-auto px-4">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-2xl font-bold text-gray-800">
-                  Pedidos Recentes de Serviços
-                </h3>
-                <Link
-                  href="/explore/all"
-                  className="text-blue-600 hover:underline font-medium flex items-center"
-                >
-                  Ver todos <ChevronRight className="h-4 w-4 ml-1" />
-                </Link>
-              </div>
-               {isLoading ? (
-                <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {listings
-                    .filter((l) => l.category.type === "service")
-                    .slice(0, 3)
-                    .map((listing) => (
-                      <ListingCard key={listing.id} listing={listing} />
-                    ))}
+                  </div>
+                   {isLoading ? (
+                    <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                  ) : (
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {listings.filter(l => l.category.type === 'product').slice(0, 3).map((listing) => (
+                        <ListingCard key={listing.id} listing={listing} />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </section>
-        </TabsContent>
-      </Tabs>
+              </section>
+            </TabsContent>
+            <TabsContent value="services">
+              <section className="py-8 bg-white">
+                <div className="container mx-auto px-4">
+                  <h3 className="text-2xl font-bold mb-6 text-gray-800">
+                    Categorias de Serviços
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-11 gap-4">
+                    {serviceCategories.map((cat, index) => {
+                      const colors = [
+                        "bg-blue-50 text-blue-600 hover:bg-blue-100",
+                        "bg-green-50 text-green-600 hover:bg-green-100",
+                        "bg-yellow-50 text-yellow-600 hover:bg-yellow-100",
+                        "bg-purple-50 text-purple-600 hover:bg-purple-100",
+                        "bg-red-50 text-red-600 hover:bg-red-100",
+                        "bg-indigo-50 text-indigo-600 hover:bg-indigo-100",
+                        "bg-pink-50 text-pink-600 hover:bg-pink-100",
+                        "bg-teal-50 text-teal-600 hover:bg-teal-100",
+                        "bg-orange-50 text-orange-600 hover:bg-orange-100",
+                        "bg-gray-50 text-gray-600 hover:bg-gray-100",
+                        "bg-rose-50 text-rose-600 hover:bg-rose-100",
+                      ];
+                       const Icon = iconMap[cat.iconName];
+                      return (
+                        <Link
+                          href={`/explore/${cat.slug}`}
+                          key={cat.name}
+                          className="block"
+                        >
+                          <div
+                            className={`${
+                              colors[index % colors.length]
+                            } p-4 rounded-lg text-center cursor-pointer transition h-full flex flex-col justify-center items-center`}
+                          >
+                             {Icon && <Icon className="mx-auto h-6 w-6 mb-2" />}
+                            <p className="text-sm font-medium">{cat.name}</p>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </section>
+              <section className="py-12 bg-gray-50">
+                <div className="container mx-auto px-4">
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-2xl font-bold text-gray-800">
+                      Pedidos Recentes de Serviços
+                    </h3>
+                    <Link
+                      href="/explore/all"
+                      className="text-blue-600 hover:underline font-medium flex items-center"
+                    >
+                      Ver todos <ChevronRight className="h-4 w-4 ml-1" />
+                    </Link>
+                  </div>
+                   {isLoading ? (
+                    <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {listings
+                        .filter((l) => l.category.type === "service")
+                        .slice(0, 3)
+                        .map((listing) => (
+                          <ListingCard key={listing.id} listing={listing} />
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </section>
+            </TabsContent>
+          </Tabs>
 
-      <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            Pedidos Ativos no Mapa
-          </h2>
-          <Map listings={listings} />
-        </div>
-      </section>
+          <section className="py-12 bg-white">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+                Pedidos Ativos no Mapa
+              </h2>
+              <Map listings={listings} />
+            </div>
+          </section>
+        </>
+      )}
 
       <section className="py-12 bg-gray-100">
         <div className="container mx-auto px-4">
