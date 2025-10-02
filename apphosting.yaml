@@ -1,19 +1,38 @@
 # apphosting.yaml
 run:
   command: npm run start
-# As configurações a seguir são geradas automaticamente pelo Firebase Studio.
-# Não as modifique manualmente.
 backend:
-  # O ID do seu backend do App Hosting.
   id: studio
-  # A região onde seu backend será implantado.
   region: us-central1
-# A versão mais recente do Node.js 20 é usada.
 runtime: nodejs20
-# As rotas a seguir permitem que o Firebase renderize dinamicamente
-# partes do seu aplicativo no lado do servidor.
-# Para saber mais sobre renderização dinâmica, consulte
-# https://firebase.google.com/docs/hosting/frameworks/nextjs
+
+# Mapeia as variáveis de configuração do Firebase para o ambiente de build do Next.js
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: '${firebase.web.apiKey}'
+    availability:
+      - BUILD
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: '${firebase.web.authDomain}'
+    availability:
+      - BUILD
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: '${firebase.web.projectId}'
+    availability:
+      - BUILD
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: '${firebase.web.storageBucket}'
+    availability:
+      - BUILD
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: '${firebase.web.messagingSenderId}'
+    availability:
+      - BUILD
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: '${firebase.web.appId}'
+    availability:
+      - BUILD
+
 routes:
   - base_path: /
     type: static
@@ -27,7 +46,5 @@ routes:
     type: dynamic
   - base_path: /post-request
     type: dynamic
-# A configuração a seguir manipula todas as outras rotas, como
-# solicitações de API e páginas que não precisam de renderização no lado do servidor.
 all_other_routes:
   type: static
