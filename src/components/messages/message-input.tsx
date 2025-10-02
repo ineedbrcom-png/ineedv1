@@ -31,7 +31,6 @@ export function MessageInput({ conversation }: MessageInputProps) {
   const [canCreateContract, setCanCreateContract] = useState(false);
   const [isSharingContact, setIsSharingContact] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
-  const { db } = getFirebaseClient();
 
 
   // Determine if the current user is the author of the listing
@@ -47,6 +46,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
     const conversationId = conversation.id;
     
     const checkAcceptedProposals = async () => {
+        const { db } = getFirebaseClient();
         const messagesRef = collection(db, "conversations", conversationId, "messages");
         const q = query(
             messagesRef, 
@@ -74,7 +74,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
         }
     }
     checkAcceptedProposals();
-  }, [conversation.id, db]);
+  }, [conversation.id]);
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,6 +104,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
 
     setIsSending(true);
     try {
+        const { db } = getFirebaseClient();
         const messagesCol = collection(db, "conversations", conversation.id, "messages");
         await addDoc(messagesCol, {
             content: message,
@@ -135,6 +136,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
     if (!user) return;
     setIsSharingContact(true);
     try {
+        const { db } = getFirebaseClient();
         const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
         
@@ -180,6 +182,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
     if (!user) return;
     setIsCompleting(true);
     try {
+        const { db } = getFirebaseClient();
         const conversationRef = doc(db, "conversations", conversation.id);
         await updateDoc(conversationRef, {
             status: "completed",

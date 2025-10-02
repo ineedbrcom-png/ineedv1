@@ -29,7 +29,6 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
   const [contractStatus, setContractStatus] = useState(message.contractDetails?.status);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const { db } = getFirebaseClient();
 
   const isMe = message.sender === user?.uid;
   const otherParticipant = conversation.participantsDetails.find(p => p.id !== user?.uid);
@@ -56,6 +55,7 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
 
     setIsUpdating(true);
     try {
+        const { db } = getFirebaseClient();
         const batch = writeBatch(db);
         const messageRef = doc(db, `conversations/${message.conversationId}/messages/${message.id}`);
         batch.update(messageRef, { 'proposalDetails.status': newStatus });
@@ -93,6 +93,7 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
 
     setIsUpdating(true);
     try {
+        const { db } = getFirebaseClient();
         const messageRef = doc(db, `conversations/${message.conversationId}/messages/${message.id}`);
 
         await updateDoc(messageRef, {

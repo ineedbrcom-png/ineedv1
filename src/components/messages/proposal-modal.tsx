@@ -35,7 +35,6 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { db } = getFirebaseClient();
     
     const form = useForm<ProposalFormValues>({
         resolver: zodResolver(proposalSchema),
@@ -51,6 +50,7 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
         }
         setIsSubmitting(true);
         try {
+            const { db } = getFirebaseClient();
             const messagesCol = collection(db, "conversations", conversationId, "messages");
             await addDoc(messagesCol, {
                 content: `Proposta enviada no valor de R$ ${data.value.toFixed(2)}`,

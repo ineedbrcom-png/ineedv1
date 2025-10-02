@@ -18,7 +18,6 @@ import { allCategories } from "@/lib/categories";
 export function MessagesClient() {
   const { user, isLoggedIn, isAuthLoading } = useAuth();
   const searchParams = useSearchParams();
-  const { db } = getFirebaseClient();
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -34,6 +33,7 @@ export function MessagesClient() {
     const createOrFindConversation = async () => {
       if (!user || !targetListingId || !targetUserId) return;
 
+      const { db } = getFirebaseClient();
       const listingRef = doc(db, "listings", targetListingId);
       const listingSnap = await getDoc(listingRef);
 
@@ -96,7 +96,7 @@ export function MessagesClient() {
     if(targetListingId && targetUserId && user) {
         createOrFindConversation();
     }
-  }, [targetListingId, targetUserId, user, db]);
+  }, [targetListingId, targetUserId, user]);
 
 
   useEffect(() => {
@@ -104,7 +104,8 @@ export function MessagesClient() {
         if (!isAuthLoading) setIsLoadingConversations(false);
         return;
     };
-
+    
+    const { db } = getFirebaseClient();
     setIsLoadingConversations(true);
     const q = query(
       collection(db, "conversations"),
@@ -131,7 +132,7 @@ export function MessagesClient() {
     });
 
     return () => unsubscribe();
-  }, [user, isAuthLoading, activeConversation, targetListingId, db]);
+  }, [user, isAuthLoading, activeConversation, targetListingId]);
 
   useEffect(() => {
     if (!activeConversation || !user) {
@@ -139,6 +140,7 @@ export function MessagesClient() {
         return;
     };
 
+    const { db } = getFirebaseClient();
     // Mark messages as read
     if (activeConversation.unreadBy.includes(user.uid)) {
         const conversationRef = doc(db, 'conversations', activeConversation.id);
@@ -166,7 +168,7 @@ export function MessagesClient() {
     });
 
     return () => unsubscribe();
-  }, [activeConversation, user, db]);
+  }, [activeConversation, user]);
 
 
   if (isAuthLoading) {

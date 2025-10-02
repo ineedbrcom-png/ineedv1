@@ -50,7 +50,6 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
   const [isLoading, setIsLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
-  const { auth } = getFirebaseClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -63,6 +62,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
     try {
+      const { auth } = getFirebaseClient();
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
         title: "Login bem-sucedido!",
@@ -94,6 +94,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
     }
     setIsResettingPassword(true);
     try {
+        const { auth } = getFirebaseClient();
         await sendPasswordResetEmail(auth, resetEmail);
         toast({title: "E-mail de redefinição enviado", description: "Verifique sua caixa de entrada para criar uma nova senha."});
     } catch (error: any) {

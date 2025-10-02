@@ -17,7 +17,6 @@ type ExploreClientPageProps = {
 export function ExploreClientPage({ slug }: ExploreClientPageProps) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { db } = getFirebaseClient();
 
   const category =
     slug === "all"
@@ -30,6 +29,7 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
     const fetchListings = async () => {
       setIsLoading(true);
       try {
+        const { db } = getFirebaseClient();
         const listingsCol = collection(db, "listings");
         let q;
         if (slug === "all") {
@@ -77,7 +77,7 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
     };
 
     fetchListings();
-  }, [slug, category, db]);
+  }, [slug, category]);
 
   if (!category) {
     notFound();

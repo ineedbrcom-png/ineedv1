@@ -11,10 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Handshake, MapPin, Calendar, Tag, Wallet, Bot, Loader2, User, Star, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { doc, getDoc } from "firebase/firestore";
-import { getFirebaseClient } from "@/lib/firebase";
-import { Listing, ListingAuthor } from "@/lib/data";
-import { allCategories } from "@/lib/categories";
+import { Listing } from "@/lib/data";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
@@ -30,10 +27,24 @@ import Link from "next/link";
 export default function ListingDetailPage({ listing: initialListing }: { listing: Listing }) {
   const [recommendations, setRecommendations] = useState<ServiceProviderRecommendationOutput | null>(null);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
-  const [listing, setListing] = useState<Listing | null>(initialListing);
   const { toast } = useToast();
   const router = useRouter();
   const { user, isLoggedIn } = useAuth();
+  
+  // The listing data is now passed as a prop from the server component.
+  const [listing, setListing] = useState<Listing | null>(initialListing);
+
+  useEffect(() => {
+    // If the listing data is passed, we need to convert the ISO string date back to a Date object
+    // to make it compatible with `formatDistanceToNow`.
+    if (initialListing && typeof initialListing.createdAt === 'string') {
+        setListing({
+            ...initialListing,
+            createdAt: new Date(initialListing.createdAt)
+        });
+    }
+  }, [initialListing]);
+
 
   if (!listing) {
     notFound();
@@ -72,8 +83,8 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
   };
   
   const getPostTime = () => {
-    if (listing.createdAt?.toDate) {
-      return formatDistanceToNow(listing.createdAt.toDate(), { addSuffix: true, locale: ptBR });
+    if (listing.createdAt instanceof Date) {
+      return formatDistanceToNow(listing.createdAt, { addSuffix: true, locale: ptBR });
     }
     return 'há um tempo';
   }

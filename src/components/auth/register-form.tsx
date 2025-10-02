@@ -74,8 +74,6 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
-  const { auth, db } = getFirebaseClient();
-
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -143,6 +141,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
     try {
+      const { auth, db } = getFirebaseClient();
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
       

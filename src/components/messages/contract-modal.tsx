@@ -43,7 +43,6 @@ export function ContractModal({
     const { toast } = useToast();
     const { user } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { db } = getFirebaseClient();
     
     const form = useForm<ContractFormValues>({
         resolver: zodResolver(contractSchema),
@@ -73,6 +72,7 @@ export function ContractModal({
 
         setIsSubmitting(true);
         try {
+            const { db } = getFirebaseClient();
             const messagesCol = collection(db, "conversations", conversationId, "messages");
             await addDoc(messagesCol, {
                 content: `Contrato gerado com base na proposta.`,

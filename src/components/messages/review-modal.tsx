@@ -45,7 +45,6 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
-  const { db } = getFirebaseClient();
 
   const form = useForm<ReviewFormValues>({
     resolver: zodResolver(reviewSchema),
@@ -81,6 +80,7 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
     }
     setIsSubmitting(true);
     try {
+      const { db } = getFirebaseClient();
       await runTransaction(db, async (transaction) => {
         const reviewedUserRef = doc(db, "users", otherParticipant.id);
         const conversationRef = doc(db, "conversations", conversation.id);

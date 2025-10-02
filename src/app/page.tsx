@@ -38,12 +38,12 @@ export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { db } = getFirebaseClient();
 
   useEffect(() => {
     const fetchListings = async () => {
       setIsLoading(true);
       try {
+        const { db } = getFirebaseClient();
         const listingsCol = collection(db, "listings");
         const q = query(listingsCol, orderBy("createdAt", "desc"));
         const listingSnapshot = await getDocs(q);
@@ -80,7 +80,7 @@ export default function Home() {
       }
     };
     fetchListings();
-  }, [db]);
+  }, []);
 
   const handlePostRequestClick = () => {
     if (isLoggedIn) {
@@ -339,5 +339,3 @@ export default function Home() {
     </>
   );
 }
-
-    

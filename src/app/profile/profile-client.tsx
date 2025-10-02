@@ -58,7 +58,6 @@ interface ProfileClientProps {
 
 export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientProps) {
   const { user, isLoggedIn, isAuthLoading } = useAuth();
-  const { db, storage } = getFirebaseClient();
   const profileId = profileIdFromProps || user?.uid;
   const isOwnProfile = profileIdFromProps ? profileIdFromProps === user?.uid : true;
 
@@ -79,6 +78,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
     const fetchUserProfile = async (id: string) => {
         if (!id) return;
         setIsProfileLoading(true);
+        const { db } = getFirebaseClient();
         const userDocRef = doc(db, "users", id);
         const userDocSnap = await getDoc(userDocRef);
   
@@ -105,7 +105,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
       setIsAuthModalOpen(true);
       setIsProfileLoading(false);
     }
-  }, [profileId, user, isAuthLoading, isOwnProfile, form, db]);
+  }, [profileId, user, isAuthLoading, isOwnProfile, form]);
 
 
   const handleEditToggle = () => {
@@ -126,6 +126,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
     toast({ title: "Enviando imagem...", description: "Por favor, aguarde." });
 
     try {
+      const { db, storage } = getFirebaseClient();
       const storageRef = ref(storage, `profile_pictures/${user.uid}`);
       await uploadBytes(storageRef, file);
       const photoURL = await getDownloadURL(storageRef);
@@ -156,6 +157,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
     if (!user || !isOwnProfile) return;
     setIsSaving(true);
     try {
+        const { db } = getFirebaseClient();
         const userDocRef = doc(db, "users", user.uid);
         const skillsArray = data.skills ? data.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
         

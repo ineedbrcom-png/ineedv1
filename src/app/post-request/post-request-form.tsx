@@ -58,7 +58,6 @@ export function PostRequestForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
-  const { db, storage } = getFirebaseClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -140,6 +139,7 @@ export function PostRequestForm() {
     
     let imageUrls: string[] = [];
     try {
+      const { db, storage } = getFirebaseClient();
       if (values.images && values.images.length > 0) {
         const uploadPromises = values.images.map(async (image) => {
           const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}_${image.name}`);

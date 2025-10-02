@@ -23,9 +23,9 @@ const AppleIcon = () => (
 
 export function SocialLogins() {
   const { toast } = useToast();
-  const { auth } = getFirebaseClient();
 
   const handleGoogleLogin = async () => {
+    const { auth } = getFirebaseClient();
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);

@@ -46,8 +46,7 @@ export function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
   const { toast } = useToast();
-  const { auth } = getFirebaseClient();
-
+  
   const openAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
@@ -75,6 +74,7 @@ export function Header() {
 
   const handleLogout = async () => {
     try {
+      const { auth } = getFirebaseClient();
       await signOut(auth);
       router.push("/");
       toast({
