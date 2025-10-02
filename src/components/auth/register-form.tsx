@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -30,23 +29,22 @@ const formSchema = z.object({
   firstName: z.string().min(1, "O nome é obrigatório."),
   lastName: z.string().min(1, "O sobrenome é obrigatório."),
   email: z.string().email("Por favor, insira um e-mail válido."),
-  cpf: z.string().length(14, "O CPF deve ter 11 dígitos."),
-  phone: z.string().min(14, "O telefone é obrigatório.").optional(),
+  cpf: z.string().length(14, "O CPF deve ter o formato 000.000.000-00."),
+  phone: z.string().min(14, "O telefone deve ter o formato (00) 00000-0000.").optional(),
   password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres."),
   confirmPassword: z.string(),
-  cep: z.string().min(9, "O CEP é obrigatório.").optional(),
-  street: z.string().min(1, "O endereço é obrigatório.").optional(),
-  number: z.string().min(1, "O número é obrigatório.").optional(),
-  neighborhood: z.string().min(1, "O bairro é obrigatório.").optional(),
-  city: z.string().min(1, "A cidade é obrigatória.").optional(),
-  state: z.string().min(2, "O estado é obrigatório.").optional(),
-  terms: z.boolean().refine(val => val === true, "Você deve aceitar os termos."),
+  cep: z.string().optional(),
+  street: z.string().optional(),
+  number: z.string().optional(),
+  neighborhood: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  terms: z.boolean().refine(val => val === true, "Você deve aceitar os termos de uso."),
   recaptcha: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
   message: "As senhas não coincidem.",
   path: ["confirmPassword"],
 }).refine(data => {
-    // Only require recaptcha if the site key is provided
     if (recaptchaSiteKey) {
         return !!data.recaptcha;
     }
@@ -54,6 +52,14 @@ const formSchema = z.object({
 }, {
   message: "Por favor, complete o reCAPTCHA.",
   path: ["recaptcha"],
+}).superRefine((data, ctx) => {
+    if (data.cep && data.cep.length > 0) {
+        if (!data.street) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A rua é obrigatória.", path: ["street"] });
+        if (!data.number) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "O número é obrigatório.", path: ["number"] });
+        if (!data.neighborhood) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "O bairro é obrigatório.", path: ["neighborhood"] });
+        if (!data.city) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A cidade é obrigatória.", path: ["city"] });
+        if (!data.state) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "O estado é obrigatório.", path: ["state"] });
+    }
 });
 
 
@@ -96,10 +102,10 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       const response = await fetch(`https://viacep.com.br/ws/${cep.replace('-', '')}/json/`);
       const data = await response.json();
       if (!data.erro) {
-        form.setValue("street", data.logradouro);
-        form.setValue("neighborhood", data.bairro);
-        form.setValue("city", data.localidade);
-        form.setValue("state", data.uf);
+        form.setValue("street", data.logradouro, { shouldValidate: true });
+        form.setValue("neighborhood", data.bairro, { shouldValidate: true });
+        form.setValue("city", data.localidade, { shouldValidate: true });
+        form.setValue("state", data.uf, { shouldValidate: true });
         form.setFocus("number");
       }
     } catch (error) {
@@ -140,11 +146,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       
       const displayName = `${values.firstName} ${values.lastName}`;
 
-      const promises = [];
-
-      promises.push(updateProfile(user, {
+      await updateProfile(user, {
         displayName: displayName,
-      }));
+      });
 
       const userDoc = {
         uid: user.uid,
@@ -163,12 +167,11 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         createdAt: serverTimestamp(),
         rating: 0,
         reviewCount: 0,
+        isPhoneVerified: false,
+        isDocumentVerified: false,
       };
 
-      promises.push(setDoc(doc(db, "users", user.uid), userDoc));
-
-      await Promise.all(promises);
-
+      await setDoc(doc(db, "users", user.uid), userDoc);
 
       toast({
         title: "Cadastro realizado!",
