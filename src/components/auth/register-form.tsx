@@ -24,6 +24,8 @@ import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 
+const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
 const formSchema = z.object({
   firstName: z.string().min(1, "O nome é obrigatório."),
   lastName: z.string().min(1, "O sobrenome é obrigatório."),
@@ -39,10 +41,19 @@ const formSchema = z.object({
   city: z.string().min(1, "A cidade é obrigatória.").optional(),
   state: z.string().min(2, "O estado é obrigatório.").optional(),
   terms: z.boolean().refine(val => val === true, "Você deve aceitar os termos."),
-  recaptcha: z.string().min(1, "Por favor, complete o reCAPTCHA."),
+  recaptcha: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
   message: "As senhas não coincidem.",
   path: ["confirmPassword"],
+}).refine(data => {
+    // Only require recaptcha if the site key is provided
+    if (recaptchaSiteKey) {
+        return !!data.recaptcha;
+    }
+    return true;
+}, {
+  message: "Por favor, complete o reCAPTCHA.",
+  path: ["recaptcha"],
 });
 
 
@@ -181,8 +192,6 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     }
   }
   
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-
   return (
     <div className="space-y-4">
       <Form {...form}>
