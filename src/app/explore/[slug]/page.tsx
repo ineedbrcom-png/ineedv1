@@ -1,4 +1,3 @@
-
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { ExploreClientPage } from './explore-client-page';
@@ -11,10 +10,7 @@ function ExploreLoading() {
   );
 }
 
-// ✅ CORREÇÃO 1: Removido o "Promise" da tipagem de params.
-// A função da página pode ser "async", mas os parâmetros que ela recebe não são uma Promise.
 export default function ExploreCategoryPage({ params }: { params: { slug: string } }) {
-  // ✅ CORREÇÃO 2: Removido o "await" daqui.
   const { slug } = params;
 
   return (
