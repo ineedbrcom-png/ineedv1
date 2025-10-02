@@ -48,7 +48,7 @@ export default function Home() {
         const listingSnapshot = await getDocs(q);
         const listingList = await Promise.all(listingSnapshot.docs.map(async (docSnapshot) => {
           const data = docSnapshot.data();
-          const category = allCategories.find(c => c.id === data.categoryId);
+          const category = allCategories.find(c => c.id === data.categoryId)!;
           
           let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
            const userDocRef = doc(db, "users", data.authorId);
