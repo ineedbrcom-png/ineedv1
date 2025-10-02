@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 const GoogleIcon = () => (
@@ -23,6 +23,7 @@ const AppleIcon = () => (
 
 export function SocialLogins() {
   const { toast } = useToast();
+  const { auth } = getFirebaseClient();
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();

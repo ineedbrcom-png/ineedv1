@@ -5,7 +5,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { AuthProvider } from "@/hooks/use-auth";
+import { ClientProviders } from "./client-providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -23,12 +23,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${inter.variable} font-sans antialiased bg-gray-50`}>
-        <AuthProvider>
+        <ClientProviders>
           <Header />
           <main className="pb-20 md:pb-0">{children}</main>
           <Footer />
           <Toaster />
-        </AuthProvider>
+        </ClientProviders>
       </body>
     </html>
   );

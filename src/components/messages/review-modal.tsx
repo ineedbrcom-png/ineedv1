@@ -23,7 +23,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { doc, runTransaction, serverTimestamp, arrayUnion, collection } from "firebase/firestore";
 import { type Conversation } from "@/lib/data";
 
@@ -45,6 +45,7 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
+  const { db } = getFirebaseClient();
 
   const form = useForm<ReviewFormValues>({
     resolver: zodResolver(reviewSchema),

@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -34,6 +35,7 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { db } = getFirebaseClient();
     
     const form = useForm<ProposalFormValues>({
         resolver: zodResolver(proposalSchema),

@@ -31,7 +31,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { useState, useEffect, useRef } from "react";
 import { doc, getDoc, Timestamp, updateDoc } from "firebase/firestore";
-import { db, storage } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
 import { useForm } from "react-hook-form";
@@ -58,6 +58,7 @@ interface ProfileClientProps {
 
 export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientProps) {
   const { user, isLoggedIn, isAuthLoading } = useAuth();
+  const { db, storage } = getFirebaseClient();
   const profileId = profileIdFromProps || user?.uid;
   const isOwnProfile = profileIdFromProps ? profileIdFromProps === user?.uid : true;
 
@@ -104,7 +105,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
       setIsAuthModalOpen(true);
       setIsProfileLoading(false);
     }
-  }, [profileId, user, isAuthLoading, isOwnProfile, form]);
+  }, [profileId, user, isAuthLoading, isOwnProfile, form, db]);
 
 
   const handleEditToggle = () => {
@@ -623,5 +624,3 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
     </div>
   );
 }
-
-    

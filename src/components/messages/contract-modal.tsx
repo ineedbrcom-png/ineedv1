@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { useState, useEffect } from "react";
 import { type Proposal, type Contract } from "@/lib/data";
 
@@ -43,6 +43,7 @@ export function ContractModal({
     const { toast } = useToast();
     const { user } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { db } = getFirebaseClient();
     
     const form = useForm<ContractFormValues>({
         resolver: zodResolver(contractSchema),
@@ -209,4 +210,3 @@ export function ContractModal({
     </Dialog>
   );
 }
-

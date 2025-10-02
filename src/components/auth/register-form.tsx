@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -17,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from 'next/link';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
@@ -73,6 +74,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const { auth, db } = getFirebaseClient();
 
 
   const form = useForm<FormValues>({
@@ -183,6 +185,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       let description = "Ocorreu um erro ao tentar se cadastrar.";
       if(error.code === 'auth/email-already-in-use') {
         description = "Este e-mail já está em uso por outra conta.";
+      }
+      if (error.code === 'auth/firebase-app-check-token-is-invalid') {
+        description = "A verificação do App Check falhou. Por favor, recarregue a página e tente novamente."
       }
       toast({
         variant: "destructive",
@@ -460,5 +465,3 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     </div>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -28,7 +29,7 @@ import { refineListingDescription } from "@/ai/flows/listing-description-refinem
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2, Upload, X } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db, storage } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
@@ -57,6 +58,7 @@ export function PostRequestForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
+  const { db, storage } = getFirebaseClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

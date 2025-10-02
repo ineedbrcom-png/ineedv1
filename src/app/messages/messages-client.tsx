@@ -11,13 +11,14 @@ import { AuthModal } from "@/components/auth/auth-modal";
 import { Button } from "@/components/ui/button";
 import { Loader2, Inbox } from "lucide-react";
 import { collection, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { useSearchParams } from "next/navigation";
 import { allCategories } from "@/lib/categories";
 
 export function MessagesClient() {
   const { user, isLoggedIn, isAuthLoading } = useAuth();
   const searchParams = useSearchParams();
+  const { db } = getFirebaseClient();
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -95,7 +96,7 @@ export function MessagesClient() {
     if(targetListingId && targetUserId && user) {
         createOrFindConversation();
     }
-  }, [targetListingId, targetUserId, user]);
+  }, [targetListingId, targetUserId, user, db]);
 
 
   useEffect(() => {
@@ -130,7 +131,7 @@ export function MessagesClient() {
     });
 
     return () => unsubscribe();
-  }, [user, isAuthLoading, activeConversation, targetListingId]);
+  }, [user, isAuthLoading, activeConversation, targetListingId, db]);
 
   useEffect(() => {
     if (!activeConversation || !user) {
@@ -165,7 +166,7 @@ export function MessagesClient() {
     });
 
     return () => unsubscribe();
-  }, [activeConversation, user]);
+  }, [activeConversation, user, db]);
 
 
   if (isAuthLoading) {

@@ -9,7 +9,7 @@ import { Check, X, Loader2, FileText, User, Phone, Home, Star } from "lucide-rea
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from 'date-fns';
-import { db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { doc, updateDoc, collection, getDocs, query, where, writeBatch } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from "react";
@@ -29,6 +29,7 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
   const [contractStatus, setContractStatus] = useState(message.contractDetails?.status);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const { db } = getFirebaseClient();
 
   const isMe = message.sender === user?.uid;
   const otherParticipant = conversation.participantsDetails.find(p => p.id !== user?.uid);
@@ -280,5 +281,3 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
     </div>
   );
 }
-
-    

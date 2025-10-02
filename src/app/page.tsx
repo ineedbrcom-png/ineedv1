@@ -30,7 +30,7 @@ import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Listing, ListingAuthor } from "@/lib/data";
 import { collection, getDocs, limit, orderBy, query, where, doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 
 export default function Home() {
   const { isLoggedIn } = useAuth();
@@ -38,6 +38,7 @@ export default function Home() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { db } = getFirebaseClient();
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -79,7 +80,7 @@ export default function Home() {
       }
     };
     fetchListings();
-  }, []);
+  }, [db]);
 
   const handlePostRequestClick = () => {
     if (isLoggedIn) {

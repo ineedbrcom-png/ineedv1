@@ -8,8 +8,8 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, User, getAuth, Auth } from "firebase/auth";
+import { getFirebaseClient } from "@/lib/firebase";
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +24,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
+    // getFirebaseClient will initialize the app if it's not already
+    const { auth } = getFirebaseClient();
+    
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setIsAuthLoading(false);

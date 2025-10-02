@@ -34,7 +34,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { useAuth } from "@/hooks/use-auth";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -46,6 +46,7 @@ export function Header() {
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
   const { toast } = useToast();
+  const { auth } = getFirebaseClient();
 
   const openAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
@@ -273,5 +274,3 @@ export function Header() {
     </>
   );
 }
-
-    

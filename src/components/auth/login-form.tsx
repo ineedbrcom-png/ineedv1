@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SocialLogins } from "./social-logins";
 import { Separator } from "@/components/ui/separator";
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
@@ -50,6 +50,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
   const [isLoading, setIsLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const { auth } = getFirebaseClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

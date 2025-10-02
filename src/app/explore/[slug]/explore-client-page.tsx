@@ -6,7 +6,7 @@ import { allCategories } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
 import { notFound } from "next/navigation";
 import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { Listing, ListingAuthor } from "@/lib/data";
 import { Loader2 } from "lucide-react";
 
@@ -17,6 +17,7 @@ type ExploreClientPageProps = {
 export function ExploreClientPage({ slug }: ExploreClientPageProps) {
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { db } = getFirebaseClient();
 
   const category =
     slug === "all"
@@ -76,7 +77,7 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
     };
 
     fetchListings();
-  }, [slug, category]);
+  }, [slug, category, db]);
 
   if (!category) {
     notFound();

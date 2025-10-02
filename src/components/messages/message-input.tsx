@@ -1,3 +1,4 @@
+
  "use client";
 
 import { useState, useEffect } from "react";
@@ -9,7 +10,7 @@ import { ContractModal } from "./contract-modal";
 import { ProposalModal } from "./proposal-modal";
 import { useAuth } from "@/hooks/use-auth";
 import { addDoc, collection, serverTimestamp, doc, updateDoc, getDocs, query, where, orderBy, limit, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseClient } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Proposal, Conversation } from "@/lib/data";
 
@@ -30,6 +31,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
   const [canCreateContract, setCanCreateContract] = useState(false);
   const [isSharingContact, setIsSharingContact] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+  const { db } = getFirebaseClient();
 
 
   // Determine if the current user is the author of the listing
@@ -72,7 +74,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
         }
     }
     checkAcceptedProposals();
-  }, [conversation.id]);
+  }, [conversation.id, db]);
 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
