@@ -1,3 +1,4 @@
+
 import { notFound } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -5,8 +6,9 @@ import { Listing, ListingAuthor } from "@/lib/data";
 import { allCategories } from "@/lib/categories";
 import ListingDetailPage from "./listing-client-page";
 
-export default async function ListingPage({ params }: { params: { id: string } }) {
-  const docRef = doc(db, "listings", params.id);
+export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const docRef = doc(db, "listings", id);
   const docSnap = await getDoc(docRef);
 
   if (!docSnap.exists()) {

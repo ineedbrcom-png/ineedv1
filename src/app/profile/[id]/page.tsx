@@ -11,10 +11,11 @@ function ProfileLoading() {
   );
 }
 
-export default function UserProfilePage({ params }: { params: { id: string } }) {
+export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <Suspense fallback={<ProfileLoading />}>
-      <ProfileClient profileId={params.id} />
+      <ProfileClient profileId={id} />
     </Suspense>
   );
 }
