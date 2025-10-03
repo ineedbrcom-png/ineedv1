@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 
 config();
 
-let adminApp: admin.App | null = null;
+let adminApp: admin.app.App | null = null;
 let firestoreAdmin: admin.firestore.Firestore | null = null;
 let authAdmin: admin.auth.Auth | null = null;
 

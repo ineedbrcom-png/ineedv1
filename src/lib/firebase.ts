@@ -1,7 +1,7 @@
 import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, type Firestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getStorage, type Storage, connectStorageEmulator } from "firebase/storage";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Your web app's Firebase configuration

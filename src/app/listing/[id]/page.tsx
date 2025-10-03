@@ -48,10 +48,10 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   }
 
 
-  // We need to serialize the `createdAt` timestamp
+  // We need to serialize the `createdAt` timestamp safely
   const listingData = {
     ...data,
-    createdAt: data.createdAt.toDate().toISOString(),
+    createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
   };
 
 
