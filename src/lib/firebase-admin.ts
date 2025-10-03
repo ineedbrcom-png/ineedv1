@@ -15,11 +15,22 @@ function initializeAdminApp() {
     authAdmin = admin.auth();
     return;
   }
+  
+  const isDev = process.env.NODE_ENV === 'development';
+  if (isDev) {
+      process.env['FIRESTORE_EMULATOR_HOST'] = '127.0.0.1:8080';
+      process.env['FIREBASE_AUTH_EMULATOR_HOST'] = '127.0.0.1:9099';
+      process.env['FIREBASE_STORAGE_EMULATOR_HOST'] = '127.0.0.1:9199';
+      console.log("Development mode: Firebase Admin SDK connecting to emulators.");
+  }
+
 
   try {
     const serviceAccountB64 = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
     if (!serviceAccountB64) {
-      console.warn('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida. O Firebase Admin SDK não será inicializado no servidor.');
+      if (!isDev) {
+        console.warn('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida. O Firebase Admin SDK não será inicializado no servidor.');
+      }
       return;
     }
     
@@ -28,6 +39,7 @@ function initializeAdminApp() {
 
     adminApp = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
+      storageBucket: 'studio-9893157227-94cea.appspot.com',
     });
 
     firestoreAdmin = admin.firestore();
