@@ -35,13 +35,26 @@ const getLocation = (id: string, baseLat: number, baseLng: number) => {
 };
 
 export function Map({ listings }: { listings: Listing[] }) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+  // Using the same key as firebase.ts for consistency in this environment
+  const apiKey = "AIzaSyCLHY7SLWTBVZkIEsqWG-g64rcc0TLwZtI";
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
 
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
   });
+
+  if (loadError) {
+    return (
+       <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erro ao Carregar o Mapa</AlertTitle>
+        <AlertDescription>
+          Não foi possível carregar o Google Maps. Verifique a chave da API e a conexão com a internet.
+        </AlertDescription>
+      </Alert>
+    )
+  }
 
   if (!apiKey) {
     return (
@@ -49,7 +62,7 @@ export function Map({ listings }: { listings: Listing[] }) {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Google Maps API Key Faltando</AlertTitle>
         <AlertDescription>
-          A chave da API do Google Maps não foi configurada. Por favor, adicione sua chave ao arquivo .env como NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.
+          A chave da API do Google Maps não foi configurada.
         </AlertDescription>
       </Alert>
     );
