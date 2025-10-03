@@ -37,6 +37,10 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
       ? { name: "Todos os Pedidos", slug: "all", id: "all" }
       : allCategories.find((c) => c.slug === slug);
 
+  if (!category) {
+    notFound();
+  }
+
   useEffect(() => {
     if (!category) return;
 
@@ -136,11 +140,6 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
     setSearchTerm("");
     setLocationFilter("");
     setBudgetFilter([maxBudget]);
-  }
-
-
-  if (!category) {
-    notFound();
   }
 
   return (
