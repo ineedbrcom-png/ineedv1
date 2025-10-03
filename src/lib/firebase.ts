@@ -1,8 +1,8 @@
 
 import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth, connectAuthEmulator } from "firebase/auth";
-import { getFirestore, type Firestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Your web app's Firebase configuration
@@ -25,20 +25,6 @@ function getFirebaseClient() {
     app = initializeApp(firebaseConfig);
 
     if (typeof window !== 'undefined') {
-       const isDev = process.env.NODE_ENV === 'development';
-       if(isDev) {
-            console.log("Development mode: Connecting to Firebase Emulators");
-            const auth = getAuth(app);
-            connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-
-            const db = getFirestore(app);
-            connectFirestoreEmulator(db, "127.0.0.1", 8080);
-            
-            const storage = getStorage(app);
-            connectStorageEmulator(storage, "127.0.0.1", 9199);
-       }
-
-
       // The key is now exposed via next.config.js
       const appCheckKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
       if (appCheckKey) {
