@@ -38,7 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 
 
 export function Header() {
-  const { user, isLoggedIn, isAuthLoading, auth } = useAuth();
+  const { user: authUser, isLoggedIn: authIsLoggedIn, isAuthLoading, auth } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -46,6 +46,15 @@ export function Header() {
   const router = useRouter();
   const { toast } = useToast();
   
+  // SIMULATE LOGGED IN STATE
+  const isLoggedIn = true;
+  const user = authUser || { 
+      displayName: 'Usuário Convidado', 
+      email: 'guest@example.com', 
+      photoURL: 'https://i.pravatar.cc/150?u=guest' 
+  };
+
+
   const openAuthModal = (mode: "login" | "register") => {
     setAuthMode(mode);
     setIsAuthModalOpen(true);
