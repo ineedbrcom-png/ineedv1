@@ -1,11 +1,11 @@
 
 import admin from 'firebase-admin';
-import type { app } from 'firebase-admin';
+import type { App } from 'firebase-admin/app';
 import { config } from 'dotenv';
 
 config();
 
-let adminApp: app.App | null = null;
+let adminApp: App | null = null;
 let firestoreAdmin: admin.firestore.Firestore | null = null;
 let authAdmin: admin.auth.Auth | null = null;
 
