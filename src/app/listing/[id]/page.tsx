@@ -35,7 +35,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
       const userDocRef = firestoreAdmin.collection("users").doc(data.authorId);
       const userDocSnap = await userDocRef.get();
       
-      if (userDocSnap.exists()) {
+      if (userDocSnap.exists) {
           const userData = userDocSnap.data()!;
           author = {
               id: data.authorId,
