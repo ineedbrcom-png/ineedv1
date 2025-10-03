@@ -10,8 +10,7 @@ import { AuthModal } from "./auth/auth-modal";
 
 
 export function Footer() {
-  // SIMULATE LOGGED IN STATE
-  const isLoggedIn = true;
+  const { isLoggedIn } = useAuth();
   const router = useRouter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
