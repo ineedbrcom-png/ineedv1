@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,6 +86,9 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Enviar Proposta Formal</DialogTitle>
+          <DialogDescription>
+            A proposta será enviada na conversa para que a outra parte possa aceitar ou recusar.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

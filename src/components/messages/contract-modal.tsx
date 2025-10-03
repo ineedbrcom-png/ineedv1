@@ -161,7 +161,7 @@ export function ContractModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><FileText /> Gerar Contrato</DialogTitle>
           <DialogDescription>
-            Revise e envie o contrato com base na proposta aceita.
+            Revise e envie o contrato com base na proposta aceita. Este contrato será enviado na conversa para aceite da outra parte.
           </DialogDescription>
         </DialogHeader>
         {acceptedProposal ? (

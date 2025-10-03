@@ -139,7 +139,7 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
         <DialogHeader>
           <DialogTitle>Avaliar {otherParticipant?.name}</DialogTitle>
           <DialogDescription>
-            Sua avaliação ajuda a construir uma comunidade mais segura.
+            Sua avaliação ajuda a construir uma comunidade mais segura e confiável.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

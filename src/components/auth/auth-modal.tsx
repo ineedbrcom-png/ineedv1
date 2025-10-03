@@ -2,6 +2,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -43,6 +44,9 @@ export function AuthModal({
           <DialogTitle className="text-2xl font-bold text-gray-800 text-center">
             {mode === "login" ? "Entrar na sua conta" : "Criar nova conta"}
           </DialogTitle>
+          <DialogDescription className="text-center">
+            {mode === 'login' ? 'Bem-vindo de volta! Faça login para continuar.' : 'Complete os campos para se registrar.'}
+          </DialogDescription>
         </DialogHeader>
         {mode === "login" ? (
           <LoginForm
