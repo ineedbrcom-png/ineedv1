@@ -52,10 +52,13 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
           queries.push(where("categoryId", "==", category.id));
         }
 
+        // Firestore limitation: You can't have inequality filters on multiple fields.
+        // We will do the budget filtering on the client side.
+        // The orderBy('createdAt') was also removed to avoid needing a composite index for every category.
         const q = query(
             listingsCol,
             ...queries,
-            orderBy("createdAt", "desc")
+             orderBy("createdAt", "desc")
         );
 
 
@@ -96,35 +99,30 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
     fetchListings();
   }, [slug, category]);
 
-  const applyFilters = () => {
-     let listings = [...allListings];
-
-      // Search term filter (title and description)
-      if (searchTerm) {
-        listings = listings.filter(l => 
-            l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            l.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-
-      // Location filter
-      if (locationFilter) {
-          listings = listings.filter(l => 
-              l.location.toLowerCase().includes(locationFilter.toLowerCase())
-          );
-      }
-
-      // Budget filter
-      listings = listings.filter(l => l.budget <= budgetFilter[0]);
-      
-      setFilteredListings(listings);
-  }
   
   useEffect(() => {
-    // This effect runs once on load to apply initial filters (like from URL param)
-    // and whenever the base list of listings changes.
-    applyFilters();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // This effect runs whenever the base list of listings or any filter changes.
+    let listings = [...allListings];
+
+    // Search term filter (title and description)
+    if (searchTerm) {
+      listings = listings.filter(l => 
+          l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          l.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Location filter
+    if (locationFilter) {
+        listings = listings.filter(l => 
+            l.location.toLowerCase().includes(locationFilter.toLowerCase())
+        );
+    }
+
+    // Budget filter
+    listings = listings.filter(l => l.budget <= budgetFilter[0]);
+    
+    setFilteredListings(listings);
   }, [allListings, searchTerm, locationFilter, budgetFilter]);
 
 
