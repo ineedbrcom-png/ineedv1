@@ -20,10 +20,23 @@ export function ListingCard({ listing }: ListingCardProps) {
   const author = listing.author;
   
   const getPostTime = () => {
-    if (listing.createdAt?.toDate) {
-      return formatDistanceToNow(listing.createdAt.toDate(), { addSuffix: true, locale: ptBR });
+    if (!listing.createdAt) return 'há um tempo';
+    
+    let date: Date;
+    if (typeof listing.createdAt === 'string') {
+      date = new Date(listing.createdAt);
+    } else if (listing.createdAt?.toDate) {
+      date = listing.createdAt.toDate();
+    } else {
+      return 'há um tempo';
     }
-    return 'há um tempo';
+
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return 'há um tempo';
+    }
+
+    return formatDistanceToNow(date, { addSuffix: true, locale: ptBR });
   }
 
 
