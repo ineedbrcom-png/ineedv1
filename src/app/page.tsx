@@ -23,7 +23,8 @@ async function getListings() {
           
           let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
           
-          if (firestoreAdmin && data.authorId) {
+          // firestoreAdmin is already checked above, so we can use it safely here.
+          if (data.authorId) {
             const userDocRef = firestoreAdmin.collection("users").doc(data.authorId);
             const userDocSnap = await userDocRef.get();
             if (userDocSnap.exists) {
