@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,9 +26,10 @@ import {
 } from "@/components/ui/select";
 import { allCategories } from "@/lib/categories";
 import { refineListingDescription } from "@/ai/flows/listing-description-refinement";
+import { moderateListingContent } from "@/ai/flows/content-moderation";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2, Upload, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
 import { getFirebaseClient } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
@@ -138,8 +139,9 @@ export function PostRequestForm() {
     setIsSubmitting(true);
     
     let imageUrls: string[] = [];
+    const { db, storage } = getFirebaseClient();
+
     try {
-      const { db, storage } = getFirebaseClient();
       if (values.images && values.images.length > 0) {
         const uploadPromises = values.images.map(async (image) => {
           const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}_${image.name}`);
@@ -159,21 +161,50 @@ export function PostRequestForm() {
         authorId: user.uid,
         createdAt: serverTimestamp(),
         imageUrls: imageUrls,
+        status: 'pending_review' as const,
       };
 
       const docRef = await addDoc(collection(db, "listings"), docData);
 
       toast({
-        title: "Pedido Enviado!",
-        description: "Seu pedido foi publicado com sucesso.",
+        title: "Pedido Enviado para Análise!",
+        description: "Seu pedido foi recebido e está sendo analisado. Ele aparecerá publicamente em breve.",
       });
+
+      // Navigate away immediately for better user experience
       router.push(`/listing/${docRef.id}`);
+      
+      // Perform moderation in the background
+      try {
+        const moderationResult = await moderateListingContent({
+          title: values.title,
+          description: values.description,
+        });
+
+        let finalStatus = 'pending_review';
+        if (moderationResult.classification === 'SEGURO') {
+            finalStatus = 'approved';
+        } else if (moderationResult.classification === 'VIOLACAO') {
+            finalStatus = 'rejected';
+        }
+        
+        await updateDoc(doc(db, "listings", docRef.id), { status: finalStatus });
+
+        if (finalStatus === 'rejected') {
+            console.warn(`Listing ${docRef.id} was automatically rejected by AI moderation.`);
+        }
+
+      } catch (moderationError) {
+          console.error("Error during content moderation:", moderationError);
+          // Keep status as pending_review for manual check
+      }
+
     } catch (e) {
       console.error("Error adding document: ", e);
       toast({
         variant: "destructive",
         title: "Erro ao publicar",
-        description: "Não foi possível salvar seu pedido. Verifique sua conexão e as regras de segurança do Firebase Storage.",
+        description: "Não foi possível salvar seu pedido. Verifique sua conexão e tente novamente.",
       });
     } finally {
       setIsSubmitting(false);

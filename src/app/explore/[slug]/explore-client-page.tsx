@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { allCategories } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
 import { notFound, useSearchParams } from "next/navigation";
@@ -12,7 +12,7 @@ import { Loader2, Search, MapPin, Wallet, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 type ExploreClientPageProps = {
   slug: string;
@@ -45,16 +45,19 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
       try {
         const { db } = getFirebaseClient();
         const listingsCol = collection(db, "listings");
-        let q;
-        if (slug === "all") {
-          q = query(listingsCol, orderBy("createdAt", "desc"));
-        } else {
-          q = query(
-            listingsCol,
-            where("categoryId", "==", category.id),
-            orderBy("createdAt", "desc")
-          );
+        
+        let queries = [where("status", "==", "approved")];
+
+        if (slug !== "all" && category?.id) {
+          queries.push(where("categoryId", "==", category.id));
         }
+
+        const q = query(
+            listingsCol,
+            ...queries,
+            orderBy("createdAt", "desc")
+        );
+
 
         const listingSnapshot = await getDocs(q);
         const listingList = await Promise.all(listingSnapshot.docs.map(async (docSnapshot) => {
@@ -122,19 +125,19 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
     // and whenever the base list of listings changes.
     applyFilters();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allListings]);
+  }, [allListings, searchTerm, locationFilter, budgetFilter]);
 
 
   const handleFilterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    applyFilters();
+    // Filters are now applied automatically via useEffect, so this can be empty
+    // or used for other purposes if needed.
   }
   
   const clearFilters = () => {
     setSearchTerm("");
     setLocationFilter("");
     setBudgetFilter([maxBudget]);
-    setFilteredListings(allListings);
   }
 
 
@@ -203,10 +206,7 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
                     <X className="mr-2 h-4 w-4"/>
                     Limpar Filtros
                 </Button>
-                <Button type="submit">
-                    <Search className="mr-2 h-4 w-4" />
-                    Aplicar Filtros
-                </Button>
+                {/* The Apply button is no longer strictly necessary as filters apply on change */}
             </div>
         </form>
       </Card>

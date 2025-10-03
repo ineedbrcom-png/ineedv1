@@ -10,8 +10,10 @@ async function getListings() {
     }
     try {
         const listingsCol = firestoreAdmin.collection("listings");
-        // Let's simplify the query for now to avoid complexity with indexes
-        const q = listingsCol.orderBy("createdAt", "desc").limit(6);
+        const q = listingsCol
+            .where("status", "==", "approved")
+            .orderBy("createdAt", "desc")
+            .limit(6);
         const listingSnapshot = await q.get();
 
         const listingList = await Promise.all(listingSnapshot.docs.map(async (docSnapshot) => {

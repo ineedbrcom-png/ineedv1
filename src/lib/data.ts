@@ -55,6 +55,7 @@ export interface Listing {
   authorId: string;
   createdAt: any;
   categoryId: string;
+  status: 'pending_review' | 'approved' | 'rejected';
 }
 
 export interface ConversationParticipant {
