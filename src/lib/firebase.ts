@@ -39,8 +39,8 @@ function getFirebaseClient() {
        }
 
 
-      // Don't have a key for this, so just warn.
-      const appCheckKey = process.env.NEXT_PUBLIC_FIREBASE_APP_CHECK_KEY;
+      // The key is now exposed via next.config.js
+      const appCheckKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
       if (appCheckKey) {
         try {
           initializeAppCheck(app, {
@@ -50,6 +50,8 @@ function getFirebaseClient() {
         } catch (e) {
           console.error("Error initializing App Check", e);
         }
+      } else {
+        console.warn("NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be initialized.");
       }
     }
   } else {
