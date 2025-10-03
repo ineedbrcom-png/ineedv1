@@ -4,6 +4,11 @@ run:
 backend:
   id: studio
   region: us-central1
+  secrets:
+    GEMINI_API_KEY: projects/studio-9893157227-94cea/secrets/GEMINI_API_KEY
+    FIREBASE_SERVICE_ACCOUNT_KEY: projects/studio-9893157227-94cea/secrets/FIREBASE_SERVICE_ACCOUNT_KEY
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: projects/studio-9893157227-94cea/secrets/NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    NEXT_PUBLIC_RECAPTCHA_SITE_KEY: projects/studio-9893157227-94cea/secrets/NEXT_PUBLIC_RECAPTCHA_SITE_KEY
 runtime: nodejs20
 
 routes:
