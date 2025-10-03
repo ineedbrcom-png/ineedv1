@@ -1,22 +1,10 @@
 
-import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 import { ExploreClientPage } from './explore-client-page';
-
-function ExploreLoading() {
-  return (
-    <div className="flex h-full w-full items-center justify-center py-20">
-      <Loader2 className="h-8 w-8 animate-spin" />
-    </div>
-  );
-}
 
 export default async function ExploreCategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  return (
-    <Suspense fallback={<ExploreLoading />}>
-      <ExploreClientPage slug={slug} />
-    </Suspense>
-  );
+  // A lógica de Suspense foi removida pois o ExploreClientPage já gerencia seu próprio estado de carregamento.
+  // Isso resolve um erro de hidratação.
+  return <ExploreClientPage slug={slug} />;
 }
