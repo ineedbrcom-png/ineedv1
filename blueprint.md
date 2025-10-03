@@ -41,6 +41,27 @@ To facilitate interaction between clients and service providers, a formal propos
     *   (Future Scope) Once a contract is accepted, a secure payment flow can be initiated.
     *   After the work is delivered and approved by the client, the project is marked as "Completed", and both parties are prompted to leave a review.
 
+## Fluxo de Verificação de Documentos
+
+Para aumentar a segurança e a confiança na plataforma, será implementado um fluxo de verificação de documentos.
+
+1.  **Segurança no Upload e Armazenamento**:
+    *   **Upload**: O usuário fará o upload de seu documento (ex: RG, CNH) através de uma interface segura no seu perfil. O upload será feito diretamente para um bucket privado no Google Cloud Storage.
+    *   **Armazenamento**: Os arquivos serão armazenados no Cloud Storage com regras de segurança estritas, permitindo o acesso apenas à função de back-end (Cloud Function) responsável pela verificação e a um número limitado de administradores autorizados. Os documentos não serão publicamente acessíveis.
+    *   **Retenção**: Após a verificação (bem-sucedida ou não), o arquivo de imagem do documento será excluído permanentemente para minimizar a retenção de dados sensíveis. Apenas o resultado (verificado: sim/não) será armazenado no perfil do usuário no Firestore.
+
+2.  **Privacidade e Conformidade com a LGPD**:
+    *   **Consentimento**: O usuário deverá consentir explicitamente com o uso de seu documento para fins de verificação de identidade antes de fazer o upload.
+    *   **Finalidade**: O uso do documento será estritamente para a finalidade de verificação de identidade e não será compartilhado com terceiros ou outros usuários.
+    *   **Direito de Exclusão**: Em conformidade com a LGPD, os usuários terão o direito de solicitar a exclusão de seus dados. Como o documento original será excluído após a verificação, o processo focará na exclusão dos dados de perfil.
+
+3.  **Processo de Verificação (Fase Inicial - Manual)**:
+    *   **Upload e Notificação**: Após o upload, uma tarefa será adicionada a uma fila de verificação manual.
+    *   **Interface de Admin**: Uma interface de administração interna e segura será desenvolvida para que a equipe do iNeed possa revisar os documentos pendentes.
+    *   **Aprovação/Rejeição**: O administrador revisará o documento, comparando-o com os dados do perfil (nome, CPF), e aprovará ou rejeitará a verificação.
+    *   **Atualização do Status**: Após a decisão, o status `isDocumentVerified` no perfil do usuário no Firestore será atualizado para `true` ou `false`, e o usuário será notificado.
+    *   **(Futuro)**: Em uma fase posterior, pode-se avaliar a integração com um serviço de verificação de identidade automatizado (ex: usando a API Vision do Google para OCR e validação) para escalar o processo.
+
 ## Style Guidelines:
 
 -   **Primary color**: `#29ABE2` (Vibrant Blue)
