@@ -6,7 +6,7 @@ import { HomeClient } from "./home-client";
 
 async function getListings() {
     if (!firestoreAdmin) {
-        console.log("Firestore Admin não inicializado, retornando lista vazia.");
+        console.error("Firestore Admin não inicializado, retornando lista vazia de pedidos.");
         return [];
     }
     try {
@@ -22,7 +22,8 @@ async function getListings() {
           const category = allCategories.find(c => c.id === data.categoryId);
           
           let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
-          if(data.authorId) {
+          
+          if (firestoreAdmin && data.authorId) {
             const userDocRef = firestoreAdmin.collection("users").doc(data.authorId);
             const userDocSnap = await userDocRef.get();
             if (userDocSnap.exists) {

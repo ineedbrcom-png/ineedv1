@@ -16,7 +16,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     notFound();
   }
 
-  if (!firestoreAdmin || !admin.apps.length) {
+  if (!firestoreAdmin) {
       console.error("Firestore Admin não inicializado. Não é possível buscar o pedido.");
       notFound();
   }
@@ -48,7 +48,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   
   let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
   
-  if (data.authorId) {
+  if (firestoreAdmin && data.authorId) {
       const userDocRef = firestoreAdmin.collection("users").doc(data.authorId);
       const userDocSnap = await userDocRef.get();
       
