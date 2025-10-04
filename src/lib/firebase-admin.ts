@@ -9,7 +9,7 @@ let adminApp: app.App | null = null;
 let firestoreAdmin: admin.firestore.Firestore | null = null;
 let authAdmin: admin.auth.Auth | null = null;
 
-function initializeAdminApp() {
+export function initializeAdminApp() {
   if (admin.apps.length > 0) {
     adminApp = admin.app();
     firestoreAdmin = admin.firestore();
@@ -37,7 +37,6 @@ function initializeAdminApp() {
 
   } catch (error: any) {
     console.error('Falha na inicialização do Firebase Admin SDK:', error.message);
-    // Set variables to null to ensure checks in other files handle this case
     adminApp = null;
     firestoreAdmin = null;
     authAdmin = null;
@@ -45,5 +44,12 @@ function initializeAdminApp() {
 }
 
 initializeAdminApp();
+
+export function getAdminApp() {
+  if (!adminApp) {
+    initializeAdminApp();
+  }
+  return adminApp;
+}
 
 export { firestoreAdmin, authAdmin, admin };
