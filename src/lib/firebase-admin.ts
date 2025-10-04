@@ -1,55 +1,55 @@
 
 import admin from 'firebase-admin';
 import type { app } from 'firebase-admin';
-import { config } from 'dotenv';
-
-config();
 
 let adminApp: app.App | null = null;
 let firestoreAdmin: admin.firestore.Firestore | null = null;
 let authAdmin: admin.auth.Auth | null = null;
 
 export function initializeAdminApp() {
-  if (admin.apps.length > 0) {
-    adminApp = admin.app();
-    firestoreAdmin = admin.firestore();
-    authAdmin = admin.auth();
+  if (adminApp) {
     return;
   }
-  
-  try {
-    const serviceAccountB64 = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    if (!serviceAccountB64) {
-      console.warn('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida. O Firebase Admin SDK não será inicializado no servidor.');
-      return;
+
+  if (admin.apps.length > 0) {
+    adminApp = admin.app();
+  } else {
+    try {
+      const serviceAccountB64 = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+      if (!serviceAccountB64) {
+        console.warn('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida. O Firebase Admin SDK não será inicializado no servidor.');
+        return;
+      }
+      
+      const serviceAccountString = Buffer.from(serviceAccountB64, 'base64').toString('utf8');
+      const serviceAccount = JSON.parse(serviceAccountString);
+
+      adminApp = admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket: 'studio-9893157227-94cea.appspot.com',
+      });
+
+    } catch (error: any) {
+      console.error('Falha na inicialização do Firebase Admin SDK:', error.message);
+      adminApp = null;
     }
-    
-    const serviceAccountString = Buffer.from(serviceAccountB64, 'base64').toString('utf8');
-    const serviceAccount = JSON.parse(serviceAccountString);
-
-    adminApp = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      storageBucket: 'studio-9893157227-94cea.appspot.com',
-    });
-
+  }
+  
+  if (adminApp) {
     firestoreAdmin = admin.firestore();
     authAdmin = admin.auth();
-
-  } catch (error: any) {
-    console.error('Falha na inicialização do Firebase Admin SDK:', error.message);
-    adminApp = null;
-    firestoreAdmin = null;
-    authAdmin = null;
   }
 }
 
-initializeAdminApp();
-
+// Esta função é a que o middleware vai usar
 export function getAdminApp() {
   if (!adminApp) {
     initializeAdminApp();
   }
   return adminApp;
 }
+
+// Inicializa na primeira importação
+initializeAdminApp();
 
 export { firestoreAdmin, authAdmin, admin };
