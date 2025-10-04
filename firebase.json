@@ -1,37 +1,16 @@
 {
   "hosting": {
-    "public": "public",
+    "source": "y",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-<<<<<<< HEAD
-    ],
-    "frameworksBackend": {
-      "region": "us-central1"
-    }
+    ]
   },
   "firestore": {
-    "database": "ineeddados",
-    "location": "southamerica-east1",
-    "rules": "y",
-    "indexes": "y"
-  },
-  "apphosting": {
-    "backendId": "studio",
-    "rootDir": "/",
-    "ignore": [
-      "node_modules",
-      ".git",
-      "firebase-debug.log",
-      "firebase-debug.*.log",
-      "functions"
-    ]
-  },
-  "storage": {
-    "rules": "y"
-=======
-    ]
->>>>>>> aed24be7095aac1e959747196e4f3d1f87a9b372
+    "database": "(default)",
+    "location": "us-central1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   }
 }
