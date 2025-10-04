@@ -7,7 +7,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCLHY7SLWTBVZkIEsqWG-g64rcc0TLwZtI",
+  apiKey: "AIzaSyCsnjI2bO4OorGwsGgBSsjW4rY_pLmuKB8",
   authDomain: "studio-9893157227-94cea.firebaseapp.com",
   databaseURL: "https://studio-9893157227-94cea-default-rtdb.firebaseio.com",
   projectId: "studio-9893157227-94cea",

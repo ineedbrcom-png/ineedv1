@@ -36,7 +36,7 @@ const getLocation = (id: string, baseLat: number, baseLng: number) => {
 
 export function Map({ listings }: { listings: Listing[] }) {
   // Using the same key as firebase.ts for consistency in this environment
-  const apiKey = "AIzaSyCLHY7SLWTBVZkIEsqWG-g64rcc0TLwZtI";
+  const apiKey = "AIzaSyCsnjI2bO4OorGwsGgBSsjW4rY_pLmuKB8";
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
