@@ -8,15 +8,15 @@ import { ai } from '@/ai/genkit';
 import { NextRequest } from 'next/server';
 import { initializeAdminApp, getAdminApp } from '@/lib/firebase-admin';
 
-// Initialize the Firebase Admin SDK when this module is loaded.
-initializeAdminApp();
-
 // This is the actual handler that will process Genkit requests.
 // We get it from the standard Genkit Next.js plugin.
 const genkitHandler = ai.getHttpRequestHandler();
 
 // We create a new POST function that wraps the Genkit handler with our security check.
 export async function POST(req: NextRequest) {
+  // Initialize the Firebase Admin SDK when the API route is called.
+  initializeAdminApp();
+
   // --- START OF APP CHECK VERIFICATION ---
   const appCheckToken = req.headers.get('X-Firebase-AppCheck');
 
