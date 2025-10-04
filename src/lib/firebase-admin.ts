@@ -1,3 +1,4 @@
+
 import admin from 'firebase-admin';
 import type { app } from 'firebase-admin';
 
@@ -49,5 +50,5 @@ export function getAdminApp() {
 
 // Inicializa na primeira importação
 initializeAdminApp();
-initializeAdminApp()
+
 export { firestoreAdmin, authAdmin, admin };
