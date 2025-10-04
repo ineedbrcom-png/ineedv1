@@ -152,7 +152,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button
               size="lg"
-              className="bg-white text-primary-DEFAULT font-bold py-4 px-10 rounded-full hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105 h-auto"
+              className="bg-white text-primary font-bold py-4 px-10 rounded-full hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105 h-auto"
               onClick={handlePostRequestClick}
             >
               <PlusCircle className="mr-2" /> Criar Pedido
@@ -373,5 +373,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     </>
   );
 }
+
+    
 
     
