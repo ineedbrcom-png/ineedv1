@@ -1,4 +1,3 @@
-
 {
   "hosting": {
     "site": "ineed-app-2dcbd",
@@ -12,6 +11,25 @@
     "frameworksBackend": {
       "region": "us-central1"
     }
+  },
+  "firestore": {
+    "database": "ineeddados",
+    "location": "southamerica-east1",
+    "rules": "y",
+    "indexes": "y"
+  },
+  "apphosting": {
+    "backendId": "studio",
+    "rootDir": "/",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "functions"
+    ]
+  },
+  "storage": {
+    "rules": "y"
   }
 }
-

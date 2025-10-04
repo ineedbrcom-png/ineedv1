@@ -1,26 +1,16 @@
-# apphosting.yaml
-run:
-  command: npm run start
+# Settings for Backend (on Cloud Run).
+# See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 backend:
   id: studio
   region: us-central1
   secrets:
-    GEMINI_API_KEY: projects/studio-9893157227-94cea/secrets/GEMINI_API_KEY
-    FIREBASE_SERVICE_ACCOUNT_KEY: projects/studio-9893157227-94cea/secrets/FIREBASE_SERVICE_ACCOUNT_KEY
-runtime: nodejs20
+    - GEMINI_API_KEY
+    - FIREBASE_SERVICE_ACCOUNT_KEY
+    - NEXT_PUBLIC_RECAPTCHA_SITE_KEY
 
-routes:
-  - base_path: /
-    type: static
-  - base_path: /explore/
-    type: dynamic
-  - base_path: /listing/
-    type: dynamic
-  - base_path: /profile/
-    type: dynamic
-  - base_path: /messages
-    type: dynamic
-  - base_path: /post-request
-    type: dynamic
-all_other_routes:
-  type: static
+runConfig:
+  minInstances: 0
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+  # memoryMiB: 512
