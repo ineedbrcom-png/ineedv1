@@ -97,8 +97,6 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     setIsClient(true);
   }, []);
 
-  const isLoading = isAuthLoading; 
-
   const handlePostRequestClick = () => {
     if (isLoggedIn) {
       router.push("/post-request");
@@ -111,7 +109,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
   const serviceListings = listings.filter(l => l.category.type === 'service');
 
   const renderListingGrid = (list: Listing[], type: 'product' | 'service') => {
-    if (isLoading) {
+    if (isAuthLoading) {
       return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
 
@@ -159,7 +157,8 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
             </Button>
             <Button
               size="lg"
-              className="bg-primary text-white font-bold py-4 px-10 rounded-full hover:bg-primary/90 transition duration-300 shadow-lg transform hover:scale-105 h-auto border-primary"
+              variant="outline"
+              className="bg-transparent text-white font-bold py-4 px-10 rounded-full hover:bg-white hover:text-primary transition duration-300 shadow-lg transform hover:scale-105 h-auto border-white"
               asChild
             >
               <Link href="/explore/all">
@@ -373,7 +372,3 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     </>
   );
 }
-
-    
-
-    

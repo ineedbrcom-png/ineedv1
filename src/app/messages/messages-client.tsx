@@ -1,19 +1,88 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ConversationList } from "@/components/messages/conversation-list";
 import { ChatWindow } from "@/components/messages/chat-window";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
-import { Conversation, Message } from "@/lib/data";
+import { Conversation, Message, User } from "@/lib/data";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Button } from "@/components/ui/button";
 import { Loader2, Inbox } from "lucide-react";
-import { collection, query, where, getDocs, onSnapshot, orderBy, doc, getDoc, addDoc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { 
+  collection, query, where, getDocs, onSnapshot, 
+  orderBy, doc, getDoc, addDoc, serverTimestamp, 
+  updateDoc, DocumentReference, Firestore
+} from "firebase/firestore";
 import { getFirebaseClient } from "@/lib/firebase";
 import { useSearchParams } from "next/navigation";
-import { allCategories } from "@/lib/categories";
+
+
+async function getOrCreateConversation(db: Firestore, currentUser: User, targetUserId: string, targetListingId: string): Promise<Conversation | null> {
+    const listingRef = doc(db, "listings", targetListingId);
+    const listingSnap = await getDoc(listingRef);
+
+    if (!listingSnap.exists()) {
+        console.error("Listing not found");
+        return null;
+    }
+    const listingData = listingSnap.data();
+
+    // Check if a conversation already exists
+    const q = query(
+        collection(db, "conversations"),
+        where("listingId", "==", targetListingId),
+        where("participants", "array-contains", currentUser.uid)
+    );
+
+    const querySnapshot = await getDocs(q);
+    let existingConversation: Conversation | null = null;
+
+    querySnapshot.forEach(doc => {
+        const conversation = doc.data() as Omit<Conversation, 'id'>;
+        if(conversation.participants.includes(targetUserId)) {
+            existingConversation = { id: doc.id, ...conversation } as Conversation;
+        }
+    });
+
+    if (existingConversation) {
+        return existingConversation;
+    }
+
+    // Create a new conversation if none exists
+    const participants = [currentUser.uid, targetUserId];
+    const user2Doc = await getDoc(doc(db, "users", targetUserId));
+
+    if (!user2Doc.exists()) {
+        console.error("Target user not found");
+        return null;
+    }
+    
+    const user1Data = currentUser;
+    const user2Data = user2Doc.data();
+
+    const newConversationData = {
+        participants: participants,
+        participantsDetails: [
+            { id: user1Data.uid, name: user1Data.displayName, photoURL: user1Data.photoURL || "" },
+            { id: user2Doc.id, name: user2Data?.displayName, photoURL: user2Data?.photoURL || "" },
+        ],
+        listingId: targetListingId,
+        listingAuthorId: listingData.authorId,
+        listingTitle: `Re: ${listingData.title}`,
+        lastMessage: "Nova conversa iniciada!",
+        lastMessageTimestamp: serverTimestamp(),
+        unreadBy: [targetUserId],
+        contractAccepted: false,
+        status: 'open' as 'open' | 'completed',
+        reviewedBy: [],
+    };
+
+    const docRef = await addDoc(collection(db, "conversations"), newConversationData);
+    return { id: docRef.id, ...newConversationData } as Conversation;
+}
+
 
 export function MessagesClient() {
   const { user, isLoggedIn, isAuthLoading } = useAuth();
@@ -29,72 +98,26 @@ export function MessagesClient() {
   const targetListingId = searchParams.get('listingId');
   const targetUserId = searchParams.get('userId');
 
+  const handleConversationSelect = useCallback((conversation: Conversation) => {
+    setActiveConversation(conversation);
+    // Mark as read
+    if (user && conversation.unreadBy.includes(user.uid)) {
+        const { db } = getFirebaseClient();
+        const conversationRef = doc(db, 'conversations', conversation.id);
+        updateDoc(conversationRef, {
+            unreadBy: conversation.unreadBy.filter(id => id !== user.uid)
+        });
+    }
+  }, [user]);
+
   useEffect(() => {
-    const createOrFindConversation = async () => {
-      if (!user || !targetListingId || !targetUserId) return;
-
-      const { db } = getFirebaseClient();
-      const listingRef = doc(db, "listings", targetListingId);
-      const listingSnap = await getDoc(listingRef);
-
-      if (!listingSnap.exists()) return;
-      
-      const listingData = listingSnap.data();
-
-      // Check if a conversation already exists
-      const q = query(
-        collection(db, "conversations"),
-        where("listingId", "==", targetListingId),
-        where("participants", "array-contains", user.uid)
-      );
-
-      const querySnapshot = await getDocs(q);
-      let existingConversation: Conversation | null = null;
-
-      querySnapshot.forEach(doc => {
-          const conversation = doc.data() as Omit<Conversation, 'id'>;
-          if(conversation.participants.includes(targetUserId)) {
-              existingConversation = { id: doc.id, ...conversation } as Conversation;
-          }
-      });
-
-      if (existingConversation) {
-        setActiveConversation(existingConversation);
-      } else {
-        // Create a new conversation
-        const participants = [user.uid, targetUserId];
-        const user1Doc = await getDoc(doc(db, "users", participants[0]));
-        const user2Doc = await getDoc(doc(db, "users", participants[1]));
-
-        if (!user1Doc.exists() || !user2Doc.exists()) return;
-        
-        const user1Data = user1Doc.data();
-        const user2Data = user2Doc.data();
-
-        const newConversationData = {
-          participants: participants,
-          participantsDetails: [
-             { id: user1Doc.id, name: user1Data?.displayName, photoURL: user1Data?.photoURL },
-             { id: user2Doc.id, name: user2Data?.displayName, photoURL: user2Data?.photoURL },
-          ],
-          listingId: targetListingId,
-          listingAuthorId: listingData.authorId,
-          listingTitle: `Re: ${listingData.title}`,
-          lastMessage: "Nova conversa iniciada!",
-          lastMessageTimestamp: serverTimestamp(),
-          unreadBy: [targetUserId],
-          contractAccepted: false,
-          status: 'open' as 'open' | 'completed',
-          reviewedBy: [],
-        };
-
-        const docRef = await addDoc(collection(db, "conversations"), newConversationData);
-        setActiveConversation({ id: docRef.id, ...newConversationData } as Conversation);
-      }
-    };
-
-    if(targetListingId && targetUserId && user) {
-        createOrFindConversation();
+    if (user && targetListingId && targetUserId) {
+        const { db } = getFirebaseClient();
+        getOrCreateConversation(db, user, targetUserId, targetListingId).then(convo => {
+            if (convo) {
+                setActiveConversation(convo);
+            }
+        });
     }
   }, [targetListingId, targetUserId, user]);
 
@@ -105,8 +128,8 @@ export function MessagesClient() {
         return;
     };
     
-    const { db } = getFirebaseClient();
     setIsLoadingConversations(true);
+    const { db } = getFirebaseClient();
     const q = query(
       collection(db, "conversations"),
       where("participants", "array-contains", user.uid),
@@ -127,29 +150,22 @@ export function MessagesClient() {
           setActiveConversation(updatedActiveConvo);
         }
       } else if (convos.length > 0 && !targetListingId) {
-        setActiveConversation(convos[0]);
+        // Set first conversation as active if none is selected and not coming from a listing
+        handleConversationSelect(convos[0]);
       }
     });
 
     return () => unsubscribe();
-  }, [user, isAuthLoading, activeConversation, targetListingId]);
+  }, [user, isAuthLoading, activeConversation, targetListingId, handleConversationSelect]);
 
   useEffect(() => {
-    if (!activeConversation || !user) {
+    if (!activeConversation) {
         setMessages([]);
         return;
     };
 
-    const { db } = getFirebaseClient();
-    // Mark messages as read
-    if (activeConversation.unreadBy.includes(user.uid)) {
-        const conversationRef = doc(db, 'conversations', activeConversation.id);
-        updateDoc(conversationRef, {
-            unreadBy: activeConversation.unreadBy.filter(id => id !== user.uid)
-        });
-    }
-
     setIsLoadingMessages(true);
+    const { db } = getFirebaseClient();
     const messagesCol = collection(
       db,
       "conversations",
@@ -168,7 +184,7 @@ export function MessagesClient() {
     });
 
     return () => unsubscribe();
-  }, [activeConversation, user]);
+  }, [activeConversation]);
 
 
   if (isAuthLoading) {
@@ -208,10 +224,10 @@ export function MessagesClient() {
         <ConversationList
           conversations={conversations}
           activeConversationId={activeConversation?.id || ''}
-          onConversationSelect={setActiveConversation}
+          onConversationSelect={handleConversationSelect}
           isLoading={isLoadingConversations}
         />
-        {isLoadingConversations ? (
+        {isLoadingConversations && !activeConversation ? (
           <div className="w-full lg:w-2/3 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>

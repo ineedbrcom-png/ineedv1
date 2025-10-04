@@ -10,7 +10,7 @@ import {
 } from "@react-google-maps/api";
 import { type Listing } from "@/lib/data";
 import { Card } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
 import { Button } from "./ui/button";
@@ -34,6 +34,8 @@ const getLocation = (id: string, baseLat: number, baseLng: number) => {
   return { lat: baseLat + latOffset, lng: baseLng + lngOffset };
 };
 
+const libraries: ("places")[] = ["places"];
+
 export function Map({ listings }: { listings: Listing[] }) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
@@ -41,7 +43,7 @@ export function Map({ listings }: { listings: Listing[] }) {
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
-    libraries: ["places"],
+    libraries: libraries,
   });
 
   if (loadError) {
@@ -62,18 +64,32 @@ export function Map({ listings }: { listings: Listing[] }) {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Google Maps API Key Faltando</AlertTitle>
         <AlertDescription>
-          A chave da API do Google Maps não foi configurada.
+          A chave da API do Google Maps não foi configurada. O mapa não pode ser exibido.
         </AlertDescription>
       </Alert>
     );
   }
+  
+  if (!isLoaded) {
+    return (
+      <Card className="h-[400px] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <p className="ml-2">Carregando mapa...</p>
+      </Card>
+    );
+  }
 
-  return isLoaded ? (
+  return (
     <Card className="overflow-hidden">
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={defaultCenter}
         zoom={12}
+        options={{
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        }}
         onClick={() => setSelectedListing(null)}
       >
         {listings.map((listing) => (
@@ -89,10 +105,13 @@ export function Map({ listings }: { listings: Listing[] }) {
           <InfoWindowF
             position={getLocation(selectedListing.id, defaultCenter.lat, defaultCenter.lng)}
             onCloseClick={() => setSelectedListing(null)}
+            options={{
+              pixelOffset: new window.google.maps.Size(0, -30)
+            }}
           >
-            <div className="p-2 max-w-xs">
-              <h4 className="font-bold text-base mb-2">{selectedListing.title}</h4>
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{selectedListing.description}</p>
+            <div className="p-1 max-w-xs">
+              <h4 className="font-bold text-base mb-1">{selectedListing.title}</h4>
+              <p className="text-sm text-gray-600 mb-2 line-clamp-2">{selectedListing.description}</p>
               <Button asChild size="sm">
                 <Link href={`/listing/${selectedListing.id}`}>Ver Pedido</Link>
               </Button>
@@ -100,10 +119,6 @@ export function Map({ listings }: { listings: Listing[] }) {
           </InfoWindowF>
         )}
       </GoogleMap>
-    </Card>
-  ) : (
-    <Card className="h-[400px] flex items-center justify-center">
-      <p>Carregando mapa...</p>
     </Card>
   );
 }

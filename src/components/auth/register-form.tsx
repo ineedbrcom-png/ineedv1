@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { getFirebaseClient } from "@/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -30,8 +30,8 @@ const formSchema = z.object({
   firstName: z.string().min(1, "O nome é obrigatório."),
   lastName: z.string().min(1, "O sobrenome é obrigatório."),
   email: z.string().email("Por favor, insira um e-mail válido."),
-  cpf: z.string().length(14, "O CPF deve ter o formato 000.000.000-00."),
-  phone: z.string().min(14, "O telefone deve ter o formato (00) 00000-0000.").optional(),
+  cpf: z.string().refine((cpf) => /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf), "O CPF deve ter o formato 000.000.000-00."),
+  phone: z.string().optional().refine(phone => !phone || phone.length === 0 || /^\(\d{2}\) \d{5}-\d{4}$/.test(phone), "O telefone deve ter o formato (00) 00000-0000."),
   password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres."),
   confirmPassword: z.string(),
   cep: z.string().optional(),
@@ -47,7 +47,7 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 }).refine(data => {
     if (recaptchaSiteKey) {
-        return !!data.recaptcha;
+        return !!data.recaptcha && data.recaptcha.length > 0;
     }
     return true;
 }, {
@@ -97,9 +97,12 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
   });
 
   const handleCepBlur = async (cep: string) => {
-    if (cep.length !== 9) return;
+    if (cep?.length !== 9) return; // CEP has format 00000-000
+    const formattedCep = cep.replace('-', '');
+    if (formattedCep.length !== 8) return;
+
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cep.replace('-', '')}/json/`);
+      const response = await fetch(`https://viacep.com.br/ws/${formattedCep}/json/`);
       const data = await response.json();
       if (!data.erro) {
         form.setValue("street", data.logradouro, { shouldValidate: true });
@@ -113,15 +116,15 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
     }
   };
 
-  function formatCPF(cpf: string) {
+  const formatCPF = (cpf: string) => {
     cpf = cpf.replace(/\D/g, '');
     cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
     cpf = cpf.replace(/(\d{3})(\d)/, '$1.$2');
     cpf = cpf.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     return cpf;
-  }
+  };
 
-  function formatPhone(phone: string) {
+  const formatPhone = (phone: string) => {
       phone = phone.replace(/\D/g, '');
       if (phone.length > 10) {
           phone = phone.replace(/^(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
@@ -129,14 +132,13 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           phone = phone.replace(/^(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
       }
       return phone;
-  }
+  };
 
-  function formatCEP(cep: string) {
+  const formatCEP = (cep: string) => {
     cep = cep.replace(/\D/g, '');
     cep = cep.replace(/^(\d{5})(\d)/, '$1-$2');
     return cep;
-  }
-
+  };
 
   async function onSubmit(values: FormValues) {
     setIsLoading(true);
@@ -170,6 +172,8 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         reviewCount: 0,
         isPhoneVerified: false,
         isDocumentVerified: false,
+        skills: [],
+        about: ""
       };
 
       await setDoc(doc(db, "users", user.uid), userDoc);
@@ -440,7 +444,6 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               )}
             />
           )}
-
 
           <div className="pt-2">
             <Button type="submit" className="w-full" disabled={isLoading}>

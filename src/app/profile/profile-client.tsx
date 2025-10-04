@@ -1,32 +1,16 @@
 
 "use client";
 
-import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/star-rating";
 import {
-  CheckCircle,
-  MapPin,
-  Calendar,
-  ShieldCheck,
-  Plus,
-  Pencil,
-  Loader2,
-  X,
-  Camera,
+  CheckCircle, MapPin, Calendar, ShieldCheck, Pencil, 
+  Loader2, X, Camera
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { useState, useEffect, useRef } from "react";
@@ -43,6 +27,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { User as UserProfile } from "@/lib/data";
 import { notFound } from "next/navigation";
+import { SupplierTab } from "@/components/profile/supplier-tab";
+import { ActivityTab } from "@/components/profile/activity-tab";
+import { SettingsTab } from "@/components/profile/settings-tab";
 
 const profileFormSchema = z.object({
   displayName: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
@@ -68,7 +55,6 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -209,13 +195,15 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
       <>
         <div className="flex flex-col items-center justify-center text-center py-20">
           <Card className="w-full max-w-lg p-8">
-            <CardTitle className="text-2xl mb-2">Acesso Negado</CardTitle>
-            <CardDescription className="mb-6">
-              Você precisa estar logado para ver este perfil.
-            </CardDescription>
-            <Button onClick={() => setIsAuthModalOpen(true)}>
-              Fazer Login ou Cadastrar
-            </Button>
+            <CardHeader>
+              <CardTitle className="text-2xl mb-2">Acesso Negado</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-6">Você precisa estar logado para ver este perfil.</p>
+              <Button onClick={() => setIsAuthModalOpen(true)}>
+                Fazer Login ou Cadastrar
+              </Button>
+            </CardContent>
           </Card>
         </div>
         <AuthModal
@@ -229,8 +217,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
 
   if(!profile) return null;
 
-
-  const getInitials = (name: string | null | undefined) => {
+  const getInitials = (name: string | null | undefined): string => {
     if (!name) return "";
     return name.split(" ").map((n) => n[0]).join("").toUpperCase();
   }
@@ -242,385 +229,180 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
       <Card className="w-full max-w-5xl mx-auto">
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-        <CardHeader className="bg-muted/30 p-6">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <div className="relative group">
-                <Avatar className="h-24 w-24 border-4 border-background">
-                    <AvatarImage src={profile.photoURL || undefined} alt={profile.displayName || ""} />
-                    <AvatarFallback className="text-3xl">
-                    {getInitials(profile.displayName)}
-                    </AvatarFallback>
-                </Avatar>
-                {isOwnProfile && (
-                    <>
-                        <Button 
-                            type="button"
-                            size="icon"
-                            className="absolute bottom-0 right-0 rounded-full h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            <Camera className="h-4 w-4" />
-                        </Button>
-                        <input 
-                            type="file" 
-                            ref={fileInputRef} 
-                            className="hidden" 
-                            accept="image/*"
-                            onChange={handleProfileImageUpload}
-                        />
-                    </>
-                )}
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start">
-                 {isEditing && isOwnProfile ? (
-                    <FormField
-                        control={form.control}
-                        name="displayName"
-                        render={({ field }) => (
-                            <FormItem>
-                               <FormControl>
-                                    <Input className="text-2xl font-bold" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+                <CardHeader className="bg-muted/30 p-6">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+                    <div className="relative group">
+                        <Avatar className="h-24 w-24 border-4 border-background">
+                            <AvatarImage src={profile.photoURL || undefined} alt={profile.displayName || ""} />
+                            <AvatarFallback className="text-3xl">
+                            {getInitials(profile.displayName)}
+                            </AvatarFallback>
+                        </Avatar>
+                        {isOwnProfile && (
+                            <>
+                                <Button 
+                                    type="button"
+                                    size="icon"
+                                    className="absolute bottom-0 right-0 rounded-full h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <Camera className="h-4 w-4" />
+                                </Button>
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={handleProfileImageUpload}
+                                />
+                            </>
                         )}
-                    />
-                ) : (
-                    <h1 className="text-2xl font-bold">{profile.displayName || "Usuário"}</h1>
-                )}
-                <span className="text-gray-500 ml-0 md:ml-2">
-                  @{profile.email?.split("@")[0]}
-                </span>
-              </div>
-                {isEditing && isOwnProfile ? (
-                     <FormField
-                        control={form.control}
-                        name="about"
-                        render={({ field }) => (
-                            <FormItem className="mt-2">
-                               <FormControl>
-                                    <Textarea placeholder="Fale um pouco sobre você..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                ) : (
-                    <p className="text-gray-600 mt-2">{profile.about || (isOwnProfile ? "Edite seu perfil para adicionar uma descrição." : "Nenhuma descrição fornecida.")}</p>
-                )}
-              <div className="flex flex-wrap items-center justify-center md:justify-start mt-3 text-sm text-muted-foreground gap-x-4 gap-y-1">
-                 {profile.address && profile.address.city && (
-                  <span className="flex items-center">
-                    <MapPin className="mr-1 h-4 w-4" /> {profile.address.city}, {profile.address.state}
-                  </span>
-                 )}
-                <span className="flex items-center">
-                  <Calendar className="mr-1 h-4 w-4" /> No iNeed desde{" "}
-                  {joinDate.toLocaleDateString("pt-BR", {
-                    year: "numeric",
-                    month: "long",
-                  })}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
-                {profile.email && (
-                    <Badge
-                    variant={"default"}
-                    className={`gap-2 p-2 bg-green-100 text-green-800 border-green-200`}
-                    >
-                    <CheckCircle className="h-4 w-4" /> Email Verificado
-                    </Badge>
-                )}
-                <Badge
-                  variant={
-                    profile.isPhoneVerified ? "default" : "secondary"
-                  }
-                  className={`gap-2 p-2 ${profile.isPhoneVerified ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
-                >
-                  <CheckCircle className="h-4 w-4" /> Telefone {profile.isPhoneVerified ? "Verificado" : "Não Verificado"}
-                </Badge>
-                <Badge
-                  variant={
-                    profile.isDocumentVerified ? "default" : "secondary"
-                  }
-                   className={`gap-2 p-2 ${profile.isDocumentVerified ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
-                >
-                  <ShieldCheck className="h-4 w-4" /> Documento {profile.isDocumentVerified ? "Verificado" : "Não Verificado"}
-                </Badge>
-              </div>
-            </div>
-             <div className="mt-6 md:mt-0 md:ml-auto flex flex-col items-center gap-2">
-                {isOwnProfile && (isEditing ? (
-                    <div className="flex gap-2">
-                        <Button type="submit" disabled={isSaving}>
-                            {isSaving ? <Loader2 className="animate-spin" /> : "Salvar"}
-                        </Button>
-                        <Button variant="ghost" onClick={handleEditToggle} type="button">
-                            <X />
-                        </Button>
                     </div>
-                ) : (
-                     <Button onClick={handleEditToggle} type="button">
-                        <Pencil className="mr-2 h-4 w-4" /> Editar Perfil
-                    </Button>
-                ))}
-                
-              <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200 mt-4">
-                <div className="text-3xl font-bold text-blue-600">{profile.rating.toFixed(1)}</div>
-                 <StarRating 
-                  rating={profile.rating} 
-                  reviewCount={profile.reviewCount}
-                  className="justify-center mt-1" 
-                 />
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Tabs defaultValue="supplier" className="w-full">
-            <TabsList className="px-6 border-b rounded-none bg-transparent w-full justify-start">
-              <TabsTrigger
-                value="supplier"
-                className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none data-[state=active]:shadow-none"
-              >
-                Fornecedor
-              </TabsTrigger>
-              <TabsTrigger
-                value="activity"
-                className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none data-[state=active]:shadow-none"
-              >
-                Atividade
-              </TabsTrigger>
-              {isOwnProfile && (
-                <TabsTrigger
-                    value="settings"
-                    className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none data-[state=active]:shadow-none"
-                >
-                    Configurações
-                </TabsTrigger>
-              )}
-            </TabsList>
-            <TabsContent value="supplier" className="p-6">
-              <h2 className="text-xl font-bold mb-4">O que {isOwnProfile ? "eu ofereço" : `${profile.displayName} oferece`}</h2>
-              <div className="mb-6 space-y-2">
-                <h3 className="font-medium">Habilidades / Categorias de Serviço</h3>
-                 {isEditing && isOwnProfile ? (
-                     <FormField
-                        control={form.control}
-                        name="skills"
-                        render={({ field }) => (
-                            <FormItem>
-                               <FormControl>
-                                    <Input placeholder="Ex: Design Gráfico, Edição de Vídeo" {...field} />
-                               </FormControl>
-                                <p className="text-xs text-muted-foreground">Separe as habilidades por vírgula.</p>
-                                <FormMessage />
-                            </FormItem>
+                    <div className="flex-1 text-center md:text-left">
+                    <div className="flex flex-col md:flex-row md:items-center justify-center md:justify-start">
+                        {isEditing && isOwnProfile ? (
+                            <FormField
+                                control={form.control}
+                                name="displayName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormControl>
+                                            <Input className="text-2xl font-bold" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        ) : (
+                            <h1 className="text-2xl font-bold">{profile.displayName || "Usuário"}</h1>
                         )}
-                    />
-                 ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {profile.skills && profile.skills.length > 0 ? profile.skills.map((skill) => (
-                        <Badge
-                          key={skill}
-                          variant="secondary"
-                          className="bg-blue-100 text-blue-800 px-3 py-1 text-sm"
-                        >
-                          {skill}
-                        </Badge>
-                      )) : (
-                          <p className="text-sm text-muted-foreground">{isOwnProfile ? "Você ainda não adicionou nenhuma habilidade. Edite seu perfil para adicioná-las." : "Nenhuma habilidade informada."}</p>
-                      )}
+                        <span className="text-gray-500 ml-0 md:ml-2">
+                        @{profile.email?.split("@")[0]}
+                        </span>
                     </div>
-                 )}
-              </div>
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-medium">Portfólio</h3>
-                  {isOwnProfile && (
-                    <Button variant="link" className="text-primary p-0 h-auto">
-                        <Plus className="mr-1 h-4 w-4" /> Adicionar item
-                    </Button>
-                  )}
-                </div>
-                 <Card className="flex items-center justify-center h-40 text-muted-foreground bg-muted/50 border-dashed">
-                    <p>Nenhum item no portfólio ainda.</p>
-                </Card>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-medium mb-2">Preços</h3>
-                  <p className="text-muted-foreground">
-                    Configure sua faixa de preço.
-                  </p>
-                </div>
-                <div>
-                  <h3 className="font-medium mb-2">Área de Atendimento</h3>
-                   <div className="bg-muted border rounded-lg h-48 flex items-center justify-center text-muted-foreground">
-                    <p>Funcionalidade em desenvolvimento.</p>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="activity" className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                  <Card>
-                    <CardHeader>
-                      <h2 className="text-xl font-bold">
-                        Histórico de Pedidos
-                      </h2>
-                    </CardHeader>
-                     <CardContent className="flex items-center justify-center h-40 text-muted-foreground">
-                        <p>Nenhum pedido concluído ainda.</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <h2 className="text-xl font-bold">Depoimentos</h2>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-center h-24 text-muted-foreground">
-                       <p>Nenhum depoimento recebido.</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </TabsContent>
-            {isOwnProfile && (
-                <TabsContent value="settings" className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 space-y-6">
-                    <Card>
-                        <CardHeader>
-                        <h2 className="text-xl font-bold">
-                            Gerenciamento de Notificações
-                        </h2>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <div>
-                            <p className="font-medium">
-                                Notificações de novas ofertas
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                                Receba alertas para seus pedidos
-                            </p>
-                            </div>
-                            <Switch defaultChecked />
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <div>
-                            <p className="font-medium">Mensagens diretas</p>
-                            <p className="text-sm text-muted-foreground">
-                                Receba notificações de novas mensagens
-                            </p>
-                            </div>
-                            <Switch defaultChecked />
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <div>
-                            <p className="font-medium">Atualizações de pedidos</p>
-                            <p className="text-sm text-muted-foreground">
-                                Saiba quando o status dos pedidos mudar
-                            </p>
-                            </div>
-                            <Switch />
-                        </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                        <h2 className="text-xl font-bold">Segurança da Conta</h2>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                        <div>
-                            <p className="font-medium mb-2">Alterar senha</p>
-                            <Button>Alterar senha</Button>
-                        </div>
-                        <div>
-                            <p className="font-medium mb-2">
-                            Autenticação de dois fatores
-                            </p>
-                            <div className="flex items-center gap-2">
-                            <span className="text-green-600 font-medium">
-                                Ativado
-                            </span>
-                            <Button
-                                variant="link"
-                                className="p-0 h-auto text-primary"
+                        {isEditing && isOwnProfile ? (
+                            <FormField
+                                control={form.control}
+                                name="about"
+                                render={({ field }) => (
+                                    <FormItem className="mt-2">
+                                    <FormControl>
+                                            <Textarea placeholder="Fale um pouco sobre você..." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        ) : (
+                            <p className="text-gray-600 mt-2">{profile.about || (isOwnProfile ? "Edite seu perfil para adicionar uma descrição." : "Nenhuma descrição fornecida.")}</p>
+                        )}
+                    <div className="flex flex-wrap items-center justify-center md:justify-start mt-3 text-sm text-muted-foreground gap-x-4 gap-y-1">
+                        {profile.address && profile.address.city && (
+                        <span className="flex items-center">
+                            <MapPin className="mr-1 h-4 w-4" /> {profile.address.city}, {profile.address.state}
+                        </span>
+                        )}
+                        <span className="flex items-center">
+                        <Calendar className="mr-1 h-4 w-4" /> No iNeed desde{" "}
+                        {joinDate.toLocaleDateString("pt-BR", {
+                            year: "numeric",
+                            month: "long",
+                        })}
+                        </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
+                        {profile.email && (
+                            <Badge
+                            variant={"default"}
+                            className={`gap-2 p-2 bg-green-100 text-green-800 border-green-200`}
                             >
-                                Desativar
-                            </Button>
-                            </div>
-                        </div>
-                        </CardContent>
-                    </Card>
+                            <CheckCircle className="h-4 w-4" /> Email Verificado
+                            </Badge>
+                        )}
+                        <Badge
+                        variant={
+                            profile.isPhoneVerified ? "default" : "secondary"
+                        }
+                        className={`gap-2 p-2 ${profile.isPhoneVerified ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
+                        >
+                        <CheckCircle className="h-4 w-4" /> Telefone {profile.isPhoneVerified ? "Verificado" : "Não Verificado"}
+                        </Badge>
+                        <Badge
+                        variant={
+                            profile.isDocumentVerified ? "default" : "secondary"
+                        }
+                        className={`gap-2 p-2 ${profile.isDocumentVerified ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
+                        >
+                        <ShieldCheck className="h-4 w-4" /> Documento {profile.isDocumentVerified ? "Verificado" : "Não Verificado"}
+                        </Badge>
                     </div>
-                    <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                        <h2 className="text-xl font-bold">Privacidade</h2>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                        <div>
-                            <p className="font-medium mb-2">
-                            Visibilidade do perfil
-                            </p>
-                            <Select defaultValue="public">
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="public">Público</SelectItem>
-                                <SelectItem value="connections">
-                                Apenas conexões
-                                </SelectItem>
-                                <SelectItem value="private">Privado</SelectItem>
-                            </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <p className="font-medium mb-2">
-                            Histórico de pedidos
-                            </p>
-                            <Select defaultValue="public">
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="public">Público</SelectItem>
-                                <SelectItem value="connections">
-                                Apenas conexões
-                                </SelectItem>
-                                <SelectItem value="private">Privado</SelectItem>
-                            </SelectContent>
-                            </Select>
-                        </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                        <h2 className="text-xl font-bold">Dados da Conta</h2>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                        <Button variant="outline" className="w-full">
-                            Baixar meus dados
-                        </Button>
-                        <Button variant="destructive" className="w-full">
-                            Excluir conta
-                        </Button>
-                        </CardContent>
-                    </Card>
+                    </div>
+                    <div className="mt-6 md:mt-0 md:ml-auto flex flex-col items-center gap-2">
+                        {isOwnProfile && (isEditing ? (
+                            <div className="flex gap-2">
+                                <Button type="submit" disabled={isSaving}>
+                                    {isSaving ? <Loader2 className="animate-spin" /> : "Salvar"}
+                                </Button>
+                                <Button variant="ghost" onClick={handleEditToggle} type="button">
+                                    <X />
+                                </Button>
+                            </div>
+                        ) : (
+                            <Button onClick={handleEditToggle} type="button">
+                                <Pencil className="mr-2 h-4 w-4" /> Editar Perfil
+                            </Button>
+                        ))}
+                        
+                    <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200 mt-4">
+                        <div className="text-3xl font-bold text-blue-600">{profile.rating.toFixed(1)}</div>
+                        <StarRating 
+                        rating={profile.rating} 
+                        reviewCount={profile.reviewCount}
+                        className="justify-center mt-1" 
+                        />
+                    </div>
                     </div>
                 </div>
-                </TabsContent>
-            )}
-          </Tabs>
-        </CardContent>
-        </form>
+                </CardHeader>
+                <CardContent className="p-0">
+                <Tabs defaultValue="supplier" className="w-full">
+                    <TabsList className="px-6 border-b rounded-none bg-transparent w-full justify-start">
+                    <TabsTrigger
+                        value="supplier"
+                        className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none"
+                    >
+                        Fornecedor
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="activity"
+                        className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none"
+                    >
+                        Atividade
+                    </TabsTrigger>
+                    {isOwnProfile && (
+                        <TabsTrigger
+                            value="settings"
+                            className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none"
+                        >
+                            Configurações
+                        </TabsTrigger>
+                    )}
+                    </TabsList>
+                    
+                    <SupplierTab 
+                        profile={profile}
+                        isOwnProfile={isOwnProfile}
+                        isEditing={isEditing}
+                        form={form}
+                    />
+                    
+                    <ActivityTab />
+
+                    {isOwnProfile && <SettingsTab />}
+
+                </Tabs>
+                </CardContent>
+            </form>
         </Form>
       </Card>
     </div>
