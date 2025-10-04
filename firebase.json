@@ -1,17 +1,10 @@
-
 {
   "hosting": {
-    "site": "ineed-app-2dcbd",
-    "source": ".",
+    "public": "public",
     "ignore": [
       "firebase.json",
-      ".firebaserc",
       "**/.*",
       "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "us-central1"
-    }
+    ]
   }
 }
-
