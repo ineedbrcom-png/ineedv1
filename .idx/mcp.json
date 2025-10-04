@@ -10,9 +10,4 @@
         "auth,firestore"
       ]
     },
-    "ineedbr.com": {
-      "command": "",
-      "args": []
-    }
-  }
 }
