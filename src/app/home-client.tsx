@@ -36,6 +36,7 @@ import {
   Sofa,
   KeyRound,
   Cog,
+  Inbox,
 } from "lucide-react";
 import {
   Tabs,
@@ -50,6 +51,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Listing } from "@/lib/data";
+import { Card } from "@/components/ui/card";
 
 const iconMap: { [key: string]: LucideIcon } = {
   Car,
@@ -85,7 +87,7 @@ interface HomeClientProps {
 }
 
 export function HomeClient({ productCategories, serviceCategories, initialListings }: HomeClientProps) {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isAuthLoading } = useAuth();
   const router = useRouter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [listings] = useState<Listing[]>(initialListings);
@@ -95,7 +97,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     setIsClient(true);
   }, []);
 
-  const isLoading = false; 
+  const isLoading = isAuthLoading; 
 
   const handlePostRequestClick = () => {
     if (isLoggedIn) {
@@ -103,6 +105,36 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     } else {
       setIsAuthModalOpen(true);
     }
+  };
+
+  const productListings = listings.filter(l => l.category.type === 'product');
+  const serviceListings = listings.filter(l => l.category.type === 'service');
+
+  const renderListingGrid = (list: Listing[], type: 'product' | 'service') => {
+    if (isLoading) {
+      return <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
+
+    if (list.length === 0) {
+      return (
+        <Card className="col-span-1 md:col-span-2 lg:col-span-3 mt-4 flex flex-col items-center justify-center text-center p-8 border-dashed">
+            <Inbox className="h-12 w-12 text-gray-400 mb-4" />
+            <h4 className="text-xl font-semibold text-gray-700">Nenhum pedido de {type === 'product' ? 'produto' : 'serviço'} ainda.</h4>
+            <p className="text-gray-500 mt-2 mb-4">Seja o primeiro a criar um pedido e movimentar a comunidade!</p>
+            <Button onClick={handlePostRequestClick}>
+                <PlusCircle className="mr-2" /> Criar um Pedido
+            </Button>
+        </Card>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {list.slice(0, 3).map((listing) => (
+          <ListingCard key={listing.id} listing={listing} />
+        ))}
+      </div>
+    );
   };
 
 
@@ -120,14 +152,14 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button
               size="lg"
-              className="bg-white text-blue-600 font-bold py-4 px-10 rounded-full hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105 h-auto"
+              className="bg-white text-primary-DEFAULT font-bold py-4 px-10 rounded-full hover:bg-gray-100 transition duration-300 shadow-lg transform hover:scale-105 h-auto"
               onClick={handlePostRequestClick}
             >
               <PlusCircle className="mr-2" /> Criar Pedido
             </Button>
             <Button
               size="lg"
-              className="bg-blue-600 text-white font-bold py-4 px-10 rounded-full hover:bg-blue-700 transition duration-300 shadow-lg transform hover:scale-105 h-auto border-blue-600"
+              className="bg-primary text-white font-bold py-4 px-10 rounded-full hover:bg-primary/90 transition duration-300 shadow-lg transform hover:scale-105 h-auto border-primary"
               asChild
             >
               <Link href="/explore/all">
@@ -144,20 +176,20 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
             <TabsList className="border-b border-gray-200 bg-transparent p-0 justify-start h-auto rounded-none">
               <TabsTrigger
                 value="products"
-                className="py-3 px-6 font-medium data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none rounded-none text-gray-600"
+                className="py-3 px-6 font-medium data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none text-gray-600"
               >
                 <Box className="mr-2 h-5 w-5" /> Produtos
               </TabsTrigger>
               <TabsTrigger
                 value="services"
-                className="py-3 px-6 font-medium data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 data-[state=active]:shadow-none rounded-none text-gray-600"
+                className="py-3 px-6 font-medium data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none text-gray-600"
               >
                 <Wrench className="mr-2 h-5 w-5" /> Serviços
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="products">
-              <section className="py-8 bg-white">
+              <section className="py-8 bg-background">
                 <div className="container mx-auto px-4">
                   <h3 className="text-2xl font-bold mb-6 text-gray-800">
                     Categorias de Produtos
@@ -197,7 +229,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                   </div>
                 </div>
               </section>
-              <section className="py-12 bg-gray-50">
+              <section className="py-12 bg-muted/50">
                 <div className="container mx-auto px-4">
                   <div className="flex justify-between items-center mb-8">
                     <h3 className="text-2xl font-bold text-gray-800">
@@ -205,25 +237,17 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                     </h3>
                     <Link
                       href="/explore/all"
-                      className="text-blue-600 hover:underline font-medium flex items-center"
+                      className="text-primary hover:underline font-medium flex items-center"
                     >
                       Ver todos <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
                   </div>
-                   {isLoading ? (
-                    <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
-                  ) : (
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {listings.filter(l => l.category.type === 'product').slice(0, 3).map((listing) => (
-                        <ListingCard key={listing.id} listing={listing} />
-                      ))}
-                    </div>
-                  )}
+                   {renderListingGrid(productListings, 'product')}
                 </div>
               </section>
             </TabsContent>
             <TabsContent value="services">
-              <section className="py-8 bg-white">
+              <section className="py-8 bg-background">
                 <div className="container mx-auto px-4">
                   <h3 className="text-2xl font-bold mb-6 text-gray-800">
                     Categorias de Serviços
@@ -264,7 +288,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                   </div>
                 </div>
               </section>
-              <section className="py-12 bg-gray-50">
+              <section className="py-12 bg-muted/50">
                 <div className="container mx-auto px-4">
                   <div className="flex justify-between items-center mb-8">
                     <h3 className="text-2xl font-bold text-gray-800">
@@ -272,29 +296,18 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                     </h3>
                     <Link
                       href="/explore/all"
-                      className="text-blue-600 hover:underline font-medium flex items-center"
+                      className="text-primary hover:underline font-medium flex items-center"
                     >
                       Ver todos <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
                   </div>
-                   {isLoading ? (
-                    <div className="flex justify-center items-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {listings
-                        .filter((l) => l.category.type === "service")
-                        .slice(0, 3)
-                        .map((listing) => (
-                          <ListingCard key={listing.id} listing={listing} />
-                        ))}
-                    </div>
-                  )}
+                   {renderListingGrid(serviceListings, 'service')}
                 </div>
               </section>
             </TabsContent>
           </Tabs>
 
-          <section className="py-12 bg-white">
+          <section className="py-12 bg-background">
             <div className="container mx-auto px-4">
               <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
                 Pedidos Ativos no Mapa
@@ -305,7 +318,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
         </>
       )}
 
-      <section className="py-12 bg-gray-100">
+      <section className="py-12 bg-muted/50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Como funciona o iNeed?
@@ -313,7 +326,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-blue-100 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Edit className="text-2xl" />
+                <Edit className="h-6 w-6" />
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-800">
                 1. Crie seu pedido
@@ -325,7 +338,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
             </div>
             <div className="text-center">
               <div className="bg-green-100 text-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Handshake className="text-2xl" />
+                <Handshake className="h-6 w-6" />
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-800">
                 2. Receba ofertas
@@ -337,7 +350,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
             </div>
             <div className="text-center">
               <div className="bg-yellow-100 text-yellow-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="text-2xl" />
+                <CheckCircle className="h-6 w-6" />
               </div>
               <h3 className="text-xl font-bold mb-2 text-gray-800">
                 3. Feche o acordo
@@ -360,3 +373,5 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     </>
   );
 }
+
+    

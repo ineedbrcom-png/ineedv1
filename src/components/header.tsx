@@ -106,7 +106,7 @@ export function Header() {
     <>
       <Button
         variant="link"
-        className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
+        className="text-foreground hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
         onClick={() => { router.push('/'); setIsSheetOpen(false); }}
       >
         <Home className="h-4 w-4" /> Início
@@ -115,14 +115,14 @@ export function Header() {
         <>
           <Button
             variant="link"
-            className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
+            className="text-foreground hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
             onClick={() => handleLinkClick("/messages")}
           >
             <MessageCircle className="h-4 w-4" /> Mensagens
           </Button>
           <Button
             variant="link"
-            className="text-white hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
+            className="text-foreground hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
             onClick={() => handleLinkClick("/profile")}
           >
             <User className="h-4 w-4" /> Perfil
@@ -139,10 +139,10 @@ export function Header() {
 
   return (
     <>
-      <header className="gradient-bg text-white shadow-md sticky top-0 z-40">
+      <header className="bg-background/80 backdrop-blur-md text-foreground shadow-md sticky top-0 z-40">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2 text-primary">
               <HandHeart className="text-2xl" />
               <h1 className="text-2xl font-bold">iNeed</h1>
             </Link>
@@ -151,7 +151,7 @@ export function Header() {
               <Input
                 type="text"
                 placeholder="Buscar pedidos..."
-                className="w-full py-2 px-4 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 h-9"
+                className="w-full py-2 px-4 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary h-9"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -176,7 +176,7 @@ export function Header() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="hidden md:flex hover:bg-white/10 p-2 rounded-full h-auto"
+                        className="hidden md:flex hover:bg-accent/50 p-2 rounded-full h-auto"
                       >
                         <Avatar className="h-8 w-8">
                           {user?.photoURL && (
@@ -185,7 +185,7 @@ export function Header() {
                               alt={user.displayName || 'User Avatar'}
                             />
                           )}
-                          <AvatarFallback className="bg-blue-300 text-blue-800">
+                          <AvatarFallback className="bg-primary/20 text-primary">
                            {getInitials(user?.displayName)}
                           </AvatarFallback>
                         </Avatar>
@@ -220,14 +220,14 @@ export function Header() {
                   </nav>
                   <Button
                     onClick={() => openAuthModal("login")}
-                    className="px-4 py-2 text-white hover:bg-blue-700 rounded-lg transition duration-300"
+                    className="px-4 py-2 text-foreground hover:bg-accent/50 rounded-lg transition duration-300"
                     variant="ghost"
                   >
                     Entrar
                   </Button>
                   <Button
                     onClick={() => openAuthModal("register")}
-                    className="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-100 transition duration-300"
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition duration-300"
                   >
                     Cadastrar
                   </Button>
@@ -240,18 +240,18 @@ export function Header() {
                       <Menu />
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="gradient-bg text-white border-l-0">
+                  <SheetContent side="right" className="bg-background text-foreground border-l">
                      <nav className="flex flex-col gap-6 mt-10">
                       {isLoggedIn && user ? (
                         <>
-                          <div className="flex items-center gap-3 border-b border-white/20 pb-6">
+                          <div className="flex items-center gap-3 border-b border-border pb-6">
                             <Avatar className="h-12 w-12">
                               {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User Avatar'} />}
-                              <AvatarFallback className="bg-blue-300 text-blue-800 text-xl">{getInitials(user.displayName)}</AvatarFallback>
+                              <AvatarFallback className="bg-primary/20 text-primary text-xl">{getInitials(user.displayName)}</AvatarFallback>
                             </Avatar>
                             <div>
                                <p className="text-lg font-medium leading-none">{user.displayName}</p>
-                               <p className="text-sm leading-none text-white/80">{user.email}</p>
+                               <p className="text-sm leading-none text-muted-foreground">{user.email}</p>
                             </div>
                           </div>
                           {navLinks}
@@ -261,7 +261,7 @@ export function Header() {
                         <>
                            {navLinks}
                           <Button onClick={() => openAuthModal("login")} className="justify-center" variant="ghost" size="lg">Entrar</Button>
-                          <Button onClick={() => openAuthModal("register")} className="justify-center bg-white text-blue-600" size="lg">Cadastrar</Button>
+                          <Button onClick={() => openAuthModal("register")} className="justify-center bg-primary text-primary-foreground" size="lg">Cadastrar</Button>
                         </>
                       )}
                      </nav>
@@ -281,3 +281,5 @@ export function Header() {
     </>
   );
 }
+
+    

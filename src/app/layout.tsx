@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.variable} font-sans antialiased bg-gray-50`}>
+      <body className={`${inter.variable} font-sans antialiased bg-background`}>
         <ClientProviders>
           <Header />
           <main className="pb-20 md:pb-0">{children}</main>
@@ -33,3 +33,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    
