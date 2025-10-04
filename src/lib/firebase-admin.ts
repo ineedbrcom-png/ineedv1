@@ -1,4 +1,3 @@
-
 import admin from 'firebase-admin';
 import type { app } from 'firebase-admin';
 
@@ -15,14 +14,13 @@ export function initializeAdminApp() {
     adminApp = admin.app();
   } else {
     try {
-      const serviceAccountB64 = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-      if (!serviceAccountB64) {
+      const serviceAccountJSON = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+      if (!serviceAccountJSON) {
         console.warn('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida. O Firebase Admin SDK não será inicializado no servidor.');
         return;
       }
       
-      const serviceAccountString = Buffer.from(serviceAccountB64, 'base64').toString('utf8');
-      const serviceAccount = JSON.parse(serviceAccountString);
+      const serviceAccount = JSON.parse(serviceAccountJSON);
 
       adminApp = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
@@ -41,7 +39,7 @@ export function initializeAdminApp() {
   }
 }
 
-// Esta função é a que o middleware vai usar
+// Esta função é a que o middleware (ou outras partes do app) vai usar
 export function getAdminApp() {
   if (!adminApp) {
     initializeAdminApp();
