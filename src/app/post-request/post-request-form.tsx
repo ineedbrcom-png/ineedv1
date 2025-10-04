@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,6 +35,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
 
 const formSchema = z.object({
   title: z.string().min(10, "O título deve ter pelo menos 10 caracteres."),
@@ -59,6 +60,12 @@ export function PostRequestForm() {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+    libraries: ["places"],
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,6 +76,15 @@ export function PostRequestForm() {
       images: [],
     },
   });
+  
+  const handlePlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (place && place.formatted_address) {
+        form.setValue("location", place.formatted_address, { shouldValidate: true });
+      }
+    }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -209,6 +225,10 @@ export function PostRequestForm() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (!isLoaded) {
+    return <div className="flex justify-center py-4"><Loader2 className="animate-spin" /></div>
   }
 
   return (
@@ -353,7 +373,18 @@ export function PostRequestForm() {
             <FormItem>
               <FormLabel>Localização</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Santa Maria, RS ou 'Remoto'" {...field} />
+                <Autocomplete
+                  onLoad={(autocomplete) => {
+                    autocompleteRef.current = autocomplete;
+                  }}
+                  onPlaceChanged={handlePlaceChanged}
+                  options={{
+                    types: ["(regions)"],
+                    componentRestrictions: { country: "br" },
+                  }}
+                >
+                  <Input placeholder="Ex: Santa Maria, RS ou 'Remoto'" {...field} />
+                </Autocomplete>
               </FormControl>
               <FormDescription>
                 Digite sua cidade e estado, ou especifique "Remoto".

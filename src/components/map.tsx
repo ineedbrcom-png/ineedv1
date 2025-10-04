@@ -35,13 +35,13 @@ const getLocation = (id: string, baseLat: number, baseLng: number) => {
 };
 
 export function Map({ listings }: { listings: Listing[] }) {
-  // Using the same key as firebase.ts for consistency in this environment
-  const apiKey = "AIzaSyCsnjI2bO4OorGwsGgBSsjW4rY_pLmuKB8";
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
+    libraries: ["places"],
   });
 
   if (loadError) {
