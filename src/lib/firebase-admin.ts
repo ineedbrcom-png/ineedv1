@@ -1,8 +1,13 @@
 
 import * as admin from 'firebase-admin';
 
-// Função auxiliar para analisar a chave privada do ambiente
-function getServiceAccount(): admin.ServiceAccount | null {
+// Função para garantir que o App Admin seja inicializado apenas uma vez.
+function initializeAdminApp() {
+  // Evita reinicializações em ambientes de hot-reload (desenvolvimento)
+  if (admin.apps.length > 0) {
+    return admin.app();
+  }
+
   // 1. Segurança: Garantir que estamos no servidor
   if (typeof window !== 'undefined') {
     return null;
@@ -16,44 +21,56 @@ function getServiceAccount(): admin.ServiceAccount | null {
     return null;
   }
 
+  let serviceAccount: admin.ServiceAccount;
   try {
-    // NOVO: Tenta decodificar de Base64 primeiro. Isso é mais robusto para produção.
+    // Tenta decodificar de Base64, que é o formato ideal para produção.
     const decodedKey = Buffer.from(serviceAccountKey, 'base64').toString('utf-8');
-    return JSON.parse(decodedKey) as admin.ServiceAccount;
+    serviceAccount = JSON.parse(decodedKey);
   } catch (e) {
-    // Se a decodificação Base64 falhar, tenta analisar o JSON diretamente (para desenvolvimento).
     console.warn("A decodificação Base64 da chave de serviço falhou. Tentando analisar o JSON diretamente. Para produção, use Base64.");
     try {
-        return JSON.parse(serviceAccountKey) as admin.ServiceAccount;
+        // Se falhar, tenta analisar como JSON direto (útil para desenvolvimento local).
+        serviceAccount = JSON.parse(serviceAccountKey);
     } catch (error) {
-        console.error("ERRO CRÍTICO: Falha ao analisar FIREBASE_SERVICE_ACCOUNT_KEY como JSON direto. Verifique se a variável está correta e considere usar Base64.", error);
+        console.error("ERRO CRÍTICO: Falha ao analisar FIREBASE_SERVICE_ACCOUNT_KEY. Verifique se a variável está correta e considere usar Base64.", error);
         return null;
     }
   }
-}
 
-// O restante do arquivo permanece o mesmo...
-
-export function initializeFirebaseAdmin() {
-  if (admin.apps.length > 0) {
-    return admin.app();
-  }
-
-  const serviceAccount = getServiceAccount();
-
-  if (!serviceAccount) {
+  // Inicializa o app com as credenciais
+  try {
+    return admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  } catch (error) {
+    console.error("Erro ao inicializar o Firebase Admin App:", error);
     return null;
   }
-
-  return admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
 }
 
+// Inicializa o app no momento em que o módulo é carregado.
+initializeAdminApp();
+
+/**
+ * Retorna a instância do app Admin do Firebase inicializado.
+ * Retorna null se a inicialização falhar.
+ */
+export function getAdminApp(): admin.app.App | null {
+    if (admin.apps.length === 0) {
+        return initializeAdminApp();
+    }
+    return admin.app();
+}
+
+
+/**
+ * Retorna uma instância do Firestore Admin.
+ * Retorna null se o app não puder ser inicializado.
+ */
 export function getAdminFirestore() {
-  const app = initializeFirebaseAdmin();
+  const app = getAdminApp();
   if (!app) {
-    console.error("Firestore Admin não inicializado.");
+    console.error("Firestore Admin não inicializado porque o App Admin falhou ao inicializar.");
     return null;
   }
   return admin.firestore(app);
