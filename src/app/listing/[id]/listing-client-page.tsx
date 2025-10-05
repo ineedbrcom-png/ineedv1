@@ -47,6 +47,8 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
 
 
   if (!listing) {
+    // This case should ideally be handled by the server component returning notFound(),
+    // but as a fallback, we can do it here too.
     notFound();
   }
   
@@ -59,6 +61,7 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
           toast({ variant: "destructive", title: "Você não pode iniciar uma conversa com você mesmo."});
           return;
       }
+      // Redirect to messages page, creating a new conversation if needed.
       router.push(`/messages?listingId=${listing.id}&userId=${listing.authorId}`);
   }
 
@@ -86,6 +89,7 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
     if (listing.createdAt instanceof Date) {
       return formatDistanceToNow(listing.createdAt, { addSuffix: true, locale: ptBR });
     }
+    // Fallback for when date is not yet processed
     return 'há um tempo';
   }
 
@@ -132,7 +136,7 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
               <CardDescription className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base pt-2">
                 <span className="flex items-center"><MapPin className="mr-1 h-4 w-4" /> {listing.location}</span>
                 <span className="flex items-center"><Calendar className="mr-1 h-4 w-4" /> {getPostTime()}</span>
-                <span className="flex items-center"><Tag className="mr-1 h-4 w-4" /> Categoria: {listing.category.name}</span>
+                <span className="flex items-center"><Tag className="mr-1 h-4 w-4" /> Categoria: {listing.category?.name || 'Não informada'}</span>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -212,7 +216,7 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
             <CardContent className="flex flex-col items-start gap-4">
               <div className="flex items-center gap-4">
                   <Avatar className="h-14 w-14">
-                    {listing.author.photoURL && <AvatarImage src={listing.author.photoURL} alt={listing.author.name} />}
+                    {listing.author?.photoURL && <AvatarImage src={listing.author.photoURL} alt={listing.author.name} />}
                     <AvatarFallback>{getInitials(listing.author.name)}</AvatarFallback>
                   </Avatar>
                   <div>

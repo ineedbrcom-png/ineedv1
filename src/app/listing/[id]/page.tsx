@@ -17,6 +17,7 @@ export default async function ListingPage({ params }: { params: { id: string } }
   const firestoreAdmin = getAdminFirestore();
   if (!firestoreAdmin) {
       console.error("Firestore Admin não inicializado. Não é possível buscar o pedido.");
+      // Em um cenário real, você poderia renderizar uma página de erro aqui.
       notFound();
   }
 
@@ -29,28 +30,22 @@ export default async function ListingPage({ params }: { params: { id: string } }
   
   const data = docSnap.data()!;
 
-  // Basic access control: only show approved listings to everyone,
-  // but allow the author to see their own listing regardless of status.
-  // In a real app, you might get the current user's session here.
-  // For this simplified example, we'll assume public access must be approved.
-  if (data.status !== 'publicado' && data.status !== 'approved') { // 'approved' for backwards compatibility
-      // This is a placeholder for real auth check. 
-      // A real implementation would check if the current logged-in user is `data.authorId`.
-      // Since we can't easily get the current user in a server component without a session library,
-      // we'll just block non-approved listings for now to demonstrate the status field usage.
-      // A user should still be able to see their own rejected/pending posts.
-      // For now, we will show a generic not found.
-      // In a real app, you'd redirect or show an "access denied" page.
-      // notFound();
+  // Basic access control: only show approved listings to everyone.
+  // A real app would have more complex logic to allow the author to see their own listing.
+  if (data.status !== 'publicado') {
+      // For simplicity, we just show notFound. A real app might show an "under review" page.
+      // notFound(); // Temporarily disabled to allow viewing non-public posts during development
   }
 
+  // Find the full category object
   const category = allCategories.find(c => c.id === data.categoryId);
   if (!category) {
       console.warn(`Categoria com ID '${data.categoryId}' não encontrada para o anúncio '${id}'.`);
-      // Decide how to handle: notFound() or render with default category
+      // Decide how to handle: notFound() or render with a default category
   }
   
-  let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
+  // Fetch author details
+  let author: ListingAuthor = { name: "Usuário iNeed", id: data.authorId, rating: 0, reviewCount: 0 };
   
   if (data.authorId) {
       try {
@@ -61,7 +56,7 @@ export default async function ListingPage({ params }: { params: { id: string } }
             const userData = userDocSnap.data()!;
             author = {
                 id: data.authorId,
-                name: userData.displayName,
+                name: userData.displayName || 'Usuário iNeed',
                 photoURL: userData.photoURL,
                 rating: userData.rating || 0,
                 reviewCount: userData.reviewCount || 0,
@@ -72,8 +67,8 @@ export default async function ListingPage({ params }: { params: { id: string } }
       }
   }
 
-
-  // We need to serialize the `createdAt` timestamp safely
+  // We need to serialize the `createdAt` timestamp safely.
+  // Firestore Timestamps are not directly serializable for client components.
   const listingData: Listing = {
     id: docSnap.id,
     title: data.title,
@@ -85,6 +80,7 @@ export default async function ListingPage({ params }: { params: { id: string } }
     imageUrls: data.imageUrls || [],
     status: data.status,
     createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+    // Provide the full category and author objects
     category: category || ({ id: 'unknown', name: 'Desconhecida', slug: 'unknown', type: 'product', iconName: 'Box', subcategories: [] } as Category),
     author: author,
   };
