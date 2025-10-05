@@ -1,4 +1,3 @@
-
 // src/lib/data.ts
 import { getAdminFirestore } from "@/lib/firebase-admin";
 import {
@@ -12,9 +11,11 @@ import {
   getDoc,
   where,
   Query,
+  DocumentData,
+  QueryDocumentSnapshot,
 } from "firebase-admin/firestore";
 import { allCategoriesById } from "./categories";
-import type { Listing, ListingAuthor, ListingCursor, ListingFilters } from "./types"; // Importa os tipos centralizados
+import type { Listing, ListingAuthor, ListingCursor, ListingFilters, User } from "./types";
 
 /**
  * Busca anúncios publicados de forma paginada com filtros no lado do servidor.
@@ -24,7 +25,7 @@ export async function getPaginatedListings(
   lastVisible: ListingCursor = null,
   pageSize: number = 12,
   filters: ListingFilters = {}
-) {
+): Promise<{ data: Listing[]; nextCursor: QueryDocumentSnapshot<DocumentData> | null; hasMore: boolean }> {
   const db = getAdminFirestore();
   if (!db) {
     console.error("Firestore Admin não inicializado.");
@@ -36,16 +37,14 @@ export async function getPaginatedListings(
   let q: Query = query(listingsRef, where("status", "==", "publicado"));
 
   // Aplicar filtros
-  if (filters.categoryId) {
+  if (filters.categoryId && filters.categoryId !== 'all') {
     q = query(q, where("categoryId", "==", filters.categoryId));
   }
   
   if (filters.maxBudget !== undefined && filters.maxBudget > 0 && filters.maxBudget < 5000) {
     q = query(q, where("budget", "<=", filters.maxBudget));
-    // Quando filtramos por orçamento, faz sentido ordenar por ele para mostrar os mais relevantes primeiro
     q = query(q, orderBy("budget", "desc"));
   } else {
-    // A ordenação padrão deve ser pela data de criação
     q = query(q, orderBy("createdAt", "desc"));
   }
 
@@ -64,18 +63,20 @@ export async function getPaginatedListings(
 
       let author: ListingAuthor = { name: "Usuário iNeed", id: data.authorId, rating: 0, reviewCount: 0 };
       try {
-        const userDocRef = doc(db, "users", data.authorId);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          if (userData) {
-            author = {
-              id: data.authorId,
-              name: userData.displayName || "Usuário iNeed",
-              photoURL: userData.photoURL,
-              rating: userData.rating || 0,
-              reviewCount: userData.reviewCount || 0,
-            };
+        if(data.authorId) {
+          const userDocRef = doc(db, "users", data.authorId);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data() as User;
+            if (userData) {
+              author = {
+                id: data.authorId,
+                name: userData.displayName || "Usuário iNeed",
+                photoURL: userData.photoURL,
+                rating: userData.rating || 0,
+                reviewCount: userData.reviewCount || 0,
+              };
+            }
           }
         }
       } catch (e) {
@@ -100,3 +101,6 @@ export async function getPaginatedListings(
     hasMore: data.length === pageSize,
   };
 }
+
+
+export type { User, Listing, Category, ListingAuthor, ListingCursor, ListingFilters, Proposal, Contract, Message, Conversation } from './types';

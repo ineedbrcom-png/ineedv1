@@ -1,9 +1,9 @@
-
 import { productCategories, serviceCategories } from "@/lib/categories";
 import { Listing, ListingAuthor } from "@/lib/data";
 import { getAdminFirestore } from "@/lib/firebase-admin";
 import { HomeClient } from "./home-client";
 import { allCategories } from "@/lib/categories";
+import { User } from "@/lib/types";
 
 async function getListings(): Promise<Listing[]> {
     const firestoreAdmin = getAdminFirestore();
@@ -32,16 +32,18 @@ async function getListings(): Promise<Listing[]> {
                 let author: ListingAuthor = { id: listingData.authorId, name: 'Usuário iNeed', rating: 0, reviewCount: 0 };
 
                 try {
-                    const authorDoc = await firestoreAdmin.collection('users').doc(listingData.authorId).get();
-                    if (authorDoc.exists) {
-                        const authorData = authorDoc.data() as ListingAuthor | undefined;
-                        author = {
-                           id: listingData.authorId,
-                           name: authorData?.name || 'Usuário iNeed',
-                           photoURL: authorData?.photoURL,
-                           rating: authorData?.rating || 0,
-                           reviewCount: authorData?.reviewCount || 0
-                        };
+                    if (listingData.authorId) {
+                        const authorDoc = await firestoreAdmin.collection('users').doc(listingData.authorId).get();
+                        if (authorDoc.exists) {
+                            const authorData = authorDoc.data() as User;
+                            author = {
+                               id: listingData.authorId,
+                               name: authorData?.displayName || 'Usuário iNeed',
+                               photoURL: authorData?.photoURL,
+                               rating: authorData?.rating || 0,
+                               reviewCount: authorData?.reviewCount || 0
+                            };
+                        }
                     }
                 } catch (e) {
                     console.error(`Erro ao buscar autor ${listingData.authorId}:`, e);
