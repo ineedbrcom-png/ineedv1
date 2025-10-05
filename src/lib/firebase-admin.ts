@@ -8,7 +8,7 @@ function getServiceAccount(): admin.ServiceAccount | null {
     return null;
   }
 
-  // 2. Ler a variável de ambiente (SEM o prefixo NEXT_PUBLIC_)
+  // 2. Ler a variável de ambiente
   const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
   if (!serviceAccountKey) {
@@ -17,40 +17,43 @@ function getServiceAccount(): admin.ServiceAccount | null {
   }
 
   try {
-    // 3. Tenta analisar o JSON da variável de ambiente
-    // Se isso falhar em produção devido a múltiplas linhas, a solução será codificar a chave em Base64.
-    return JSON.parse(serviceAccountKey) as admin.ServiceAccount;
-  } catch (error) {
-    console.error("ERRO CRÍTICO: Falha ao analisar FIREBASE_SERVICE_ACCOUNT_KEY. Verifique se o JSON é válido.", error);
-    return null;
+    // NOVO: Tenta decodificar de Base64 primeiro. Isso é mais robusto para produção.
+    const decodedKey = Buffer.from(serviceAccountKey, 'base64').toString('utf-8');
+    return JSON.parse(decodedKey) as admin.ServiceAccount;
+  } catch (e) {
+    // Se a decodificação Base64 falhar, tenta analisar o JSON diretamente (para desenvolvimento).
+    console.warn("A decodificação Base64 da chave de serviço falhou. Tentando analisar o JSON diretamente. Para produção, use Base64.");
+    try {
+        return JSON.parse(serviceAccountKey) as admin.ServiceAccount;
+    } catch (error) {
+        console.error("ERRO CRÍTICO: Falha ao analisar FIREBASE_SERVICE_ACCOUNT_KEY como JSON direto. Verifique se a variável está correta e considere usar Base64.", error);
+        return null;
+    }
   }
 }
 
+// O restante do arquivo permanece o mesmo...
+
 export function initializeFirebaseAdmin() {
   if (admin.apps.length > 0) {
-    // Já inicializado (evita erros em Hot Reload do Next.js)
     return admin.app();
   }
 
   const serviceAccount = getServiceAccount();
 
   if (!serviceAccount) {
-    // Não conseguiu carregar as credenciais, a inicialização falha.
     return null;
   }
 
-  // Inicializa o app Admin
   return admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
   });
 }
 
-// Função auxiliar para obter a instância do Admin Firestore
 export function getAdminFirestore() {
   const app = initializeFirebaseAdmin();
   if (!app) {
-    // Este é o ponto que gera o seu erro atual!
-    console.error("Firestore Admin não inicializado."); // Mensagem de erro vista no console
+    console.error("Firestore Admin não inicializado.");
     return null;
   }
   return admin.firestore(app);

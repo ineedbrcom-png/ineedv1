@@ -10,7 +10,7 @@ import {
   User,
   LogOut,
   ChevronDown,
-  HandHeart,
+  Handshake, // Trocado de HandHeart para Handshake
   MessageCircle,
   Home,
   Menu,
@@ -143,7 +143,7 @@ export function Header() {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-2 text-primary">
-              <HandHeart className="text-2xl" />
+              <Handshake className="text-2xl" /> {/* Ícone atualizado */}
               <h1 className="text-2xl font-bold">iNeed</h1>
             </Link>
 
@@ -281,5 +281,3 @@ export function Header() {
     </>
   );
 }
-
-    
