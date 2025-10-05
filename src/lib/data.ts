@@ -39,11 +39,13 @@ export async function getPaginatedListings(
   if (filters.categoryId) {
     q = query(q, where("categoryId", "==", filters.categoryId));
   }
-
+  
   if (filters.maxBudget !== undefined && filters.maxBudget > 0 && filters.maxBudget < 5000) {
     q = query(q, where("budget", "<=", filters.maxBudget));
+    // Quando filtramos por orçamento, faz sentido ordenar por ele para mostrar os mais relevantes primeiro
     q = query(q, orderBy("budget", "desc"));
   } else {
+    // A ordenação padrão deve ser pela data de criação
     q = query(q, orderBy("createdAt", "desc"));
   }
 
