@@ -23,17 +23,20 @@ export function ListingCard({ listing }: ListingCardProps) {
     if (!listing.createdAt) return 'há um tempo';
     
     let date: Date;
-    if (typeof listing.createdAt === 'string') {
+    // Check if createdAt is already a Date object, a string, or a Firestore-like object with toDate
+    if (listing.createdAt instanceof Date) {
+      date = listing.createdAt;
+    } else if (typeof listing.createdAt === 'string') {
       date = new Date(listing.createdAt);
-    } else if ((listing.createdAt as any)?.toDate) { // Type assertion for toDate
+    } else if ((listing.createdAt as any)?.toDate) {
       date = (listing.createdAt as any).toDate();
     } else {
-      return 'há um tempo';
+      return 'data inválida';
     }
 
     // Check if the date is valid
     if (isNaN(date.getTime())) {
-      return 'há um tempo';
+      return 'data inválida';
     }
 
     return formatDistanceToNow(date, { addSuffix: true, locale: ptBR });

@@ -1,9 +1,10 @@
+
 import { productCategories, serviceCategories } from "@/lib/categories";
 import { Listing, ListingAuthor } from "@/lib/data";
 import { getAdminFirestore } from "@/lib/firebase-admin";
 import { HomeClient } from "./home-client";
 import { allCategories } from "@/lib/categories";
-import { User } from "@/lib/types";
+import { User }from "@/lib/types";
 
 async function getListings(): Promise<Listing[]> {
     const firestoreAdmin = getAdminFirestore();
@@ -49,6 +50,15 @@ async function getListings(): Promise<Listing[]> {
                     console.error(`Erro ao buscar autor ${listingData.authorId}:`, e);
                 }
 
+                // Robust date handling
+                let createdAtISO = new Date().toISOString();
+                if (listingData.createdAt) {
+                    if (typeof listingData.createdAt.toDate === 'function') {
+                        createdAtISO = listingData.createdAt.toDate().toISOString();
+                    } else if (typeof listingData.createdAt === 'string') {
+                        createdAtISO = listingData.createdAt;
+                    }
+                }
 
                 return {
                     id: doc.id,
@@ -62,7 +72,7 @@ async function getListings(): Promise<Listing[]> {
                     status: listingData.status,
                     category: category,
                     author: author,
-                    createdAt: listingData.createdAt.toDate().toISOString(),
+                    createdAt: createdAtISO,
                 } as Listing;
             })
         );

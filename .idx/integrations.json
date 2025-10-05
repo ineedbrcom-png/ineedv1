@@ -3,7 +3,5 @@
     "deploymentHostingUrl": "https://ineed-app-2dcbd.web.app"
   },
   "cloud_run_deploy": {},
-  "gemini_api": {},
-  "google_maps_platform": {},
-  "secrets_manager": {}
+  "gemini_api": {}
 }
