@@ -215,7 +215,6 @@ export function PostRequestForm() {
 
   return (
     <Form {...form}>
-      {/* ... O restante do JSX do formulário permanece o mesmo ... */}
        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
@@ -386,5 +385,3 @@ export function PostRequestForm() {
     </Form>
   );
 }
-
-    
