@@ -84,6 +84,12 @@ export function Map() {
   useEffect(() => {
     if (mapRef.current && geoJson) {
         const map = mapRef.current;
+        
+        // Limpa dados anteriores para evitar duplicação
+        map.data.forEach(feature => {
+            map.data.remove(feature);
+        });
+
         map.data.addGeoJson(geoJson);
 
         // Estiliza os pinos com base na categoria
