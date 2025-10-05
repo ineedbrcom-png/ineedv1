@@ -54,8 +54,8 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     }
   };
 
-  const productListings = (initialListings || []).filter((l) => l.category.type === "product").slice(0, 3);
-  const serviceListings = (initialListings || []).filter((l) => l.category.type === "service").slice(0, 3);
+  const productListings = (initialListings || []).filter((l) => l.category?.type === "product").slice(0, 3);
+  const serviceListings = (initialListings || []).filter((l) => l.category?.type === "service").slice(0, 3);
 
   return (
     <>
@@ -145,7 +145,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
               <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
                 Pedidos Ativos no Mapa
               </h2>
-              <Map listings={initialListings} />
+              <Map />
             </div>
           </section>
 

@@ -25,8 +25,8 @@ export function ListingCard({ listing }: ListingCardProps) {
     let date: Date;
     if (typeof listing.createdAt === 'string') {
       date = new Date(listing.createdAt);
-    } else if (listing.createdAt?.toDate) {
-      date = listing.createdAt.toDate();
+    } else if ((listing.createdAt as any)?.toDate) { // Type assertion for toDate
+      date = (listing.createdAt as any).toDate();
     } else {
       return 'há um tempo';
     }
