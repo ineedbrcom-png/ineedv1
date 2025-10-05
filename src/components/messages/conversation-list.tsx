@@ -1,12 +1,13 @@
 
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { type Conversation } from "@/lib/data";
+import { type Conversation } from "@/lib/types";
 import { Inbox, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
+import type { Timestamp } from "firebase/firestore";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -18,7 +19,7 @@ interface ConversationListProps {
 export function ConversationList({ conversations, activeConversationId, onConversationSelect, isLoading }: ConversationListProps) {
   const { user } = useAuth();
   
-  const getTimestamp = (timestamp: any) => {
+  const getTimestamp = (timestamp: Timestamp | any) => {
     if (!timestamp?.toDate) return '';
     return formatDistanceToNow(timestamp.toDate(), { addSuffix: true, locale: ptBR });
   }
@@ -82,5 +83,3 @@ export function ConversationList({ conversations, activeConversationId, onConver
     </div>
   );
 }
-
-    

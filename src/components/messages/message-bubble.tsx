@@ -1,7 +1,7 @@
 
 "use client";
 
-import { type Message, type Conversation } from "@/lib/data";
+import { type Message, type Conversation } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
 import { format } from 'date-fns';
 import { getFirebaseClient } from "@/lib/firebase";
-import { doc, updateDoc, collection, getDocs, query, where, writeBatch } from "firebase/firestore";
+import { doc, updateDoc, collection, getDocs, query, where, writeBatch, Timestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from "react";
 import { ContractModal } from "./contract-modal";
@@ -168,7 +168,6 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
             <li className="flex items-center"><User className="h-4 w-4 mr-2 text-green-700" /><strong>Nome:</strong><span className="ml-2">{message.contactDetails.name}</span></li>
             <li className="flex items-center"><Phone className="h-4 w-4 mr-2 text-green-700" /><strong>Telefone:</strong><span className="ml-2">{message.contactDetails.phone}</span></li>
             <li className="flex items-center"><Home className="h-4 w-4 mr-2 text-green-700" /><strong>Endereço:</strong><span className="ml-2">{message.contactDetails.address}</span></li>
-            <li className="flex items-center"><User className="h-4 w-4 mr-2 text-green-700" /><strong>Local:</strong><span className="ml-2">{message.contactDetails.location}</span></li>
           </ul>
         </div>
       </div>
@@ -245,8 +244,9 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
   }
   
   const getTimestamp = () => {
-      if(message.timestamp?.toDate) {
-          return format(message.timestamp.toDate(), 'HH:mm');
+      const ts = message.timestamp as unknown as Timestamp;
+      if(ts?.toDate) {
+          return format(ts.toDate(), 'HH:mm');
       }
       return '';
   }

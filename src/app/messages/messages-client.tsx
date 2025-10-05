@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ConversationList } from "@/components/messages/conversation-list";
 import { ChatWindow } from "@/components/messages/chat-window";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
-import { Conversation, Message, User } from "@/lib/data";
+import { Conversation, Message, User } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { Loader2, Inbox } from "lucide-react";
 import { 
   collection, query, where, getDocs, onSnapshot, 
   orderBy, doc, getDoc, addDoc, serverTimestamp, 
-  updateDoc, DocumentReference, Firestore
+  updateDoc, Firestore
 } from "firebase/firestore";
 import { getFirebaseClient } from "@/lib/firebase";
 import { useSearchParams } from "next/navigation";
@@ -65,8 +65,8 @@ async function getOrCreateConversation(db: Firestore, currentUser: User, targetU
     const newConversationData = {
         participants: participants,
         participantsDetails: [
-            { id: user1Data.uid, name: user1Data.displayName, photoURL: user1Data.photoURL || "" },
-            { id: user2Doc.id, name: user2Data?.displayName, photoURL: user2Data?.photoURL || "" },
+            { id: user1Data.uid, name: user1Data.displayName || "Usuário", photoURL: user1Data.photoURL || "" },
+            { id: user2Doc.id, name: user2Data?.displayName || "Usuário", photoURL: user2Data?.photoURL || "" },
         ],
         listingId: targetListingId,
         listingAuthorId: listingData.authorId,
@@ -80,7 +80,9 @@ async function getOrCreateConversation(db: Firestore, currentUser: User, targetU
     };
 
     const docRef = await addDoc(collection(db, "conversations"), newConversationData);
-    return { id: docRef.id, ...newConversationData } as Conversation;
+    const newConversationSnap = await getDoc(docRef);
+
+    return { id: newConversationSnap.id, ...newConversationSnap.data() } as Conversation;
 }
 
 
@@ -115,7 +117,14 @@ export function MessagesClient() {
         const { db } = getFirebaseClient();
         getOrCreateConversation(db, user, targetUserId, targetListingId).then(convo => {
             if (convo) {
+                // Since this creates a new conversation, we need to ensure it's added to our state
+                // and set as active. The onSnapshot listener below will pick it up,
+                // but setting it directly gives a faster UI update.
                 setActiveConversation(convo);
+                 setConversations(prev => {
+                    const exists = prev.some(c => c.id === convo.id);
+                    return exists ? prev : [convo, ...prev];
+                 });
             }
         });
     }
@@ -156,7 +165,7 @@ export function MessagesClient() {
     });
 
     return () => unsubscribe();
-  }, [user, isAuthLoading, activeConversation, targetListingId, handleConversationSelect]);
+  }, [user, isAuthLoading, activeConversation?.id, targetListingId, handleConversationSelect]);
 
   useEffect(() => {
     if (!activeConversation) {

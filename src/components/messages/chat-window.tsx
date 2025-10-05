@@ -1,6 +1,8 @@
 
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { type Conversation, type Message } from "@/lib/data";
+import { type Conversation, type Message } from "@/lib/types";
 import { MessageInput } from "./message-input";
 import { MessageBubble } from "./message-bubble";
 import Link from "next/link";
@@ -60,5 +62,3 @@ export function ChatWindow({ conversation, messages, isLoading }: ChatWindowProp
     </div>
   );
 }
-
-    

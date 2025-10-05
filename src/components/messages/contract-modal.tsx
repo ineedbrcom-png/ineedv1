@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getFirebaseClient } from "@/lib/firebase";
 import { useState, useEffect } from "react";
-import { type Proposal, type Contract } from "@/lib/data";
+import { type Proposal, type Contract } from "@/lib/types";
 
 const contractSchema = z.object({
     terms: z.string().min(50, "Os termos do contrato devem ter pelo menos 50 caracteres."),
@@ -48,7 +48,7 @@ export function ContractModal({
         resolver: zodResolver(contractSchema),
     });
 
-    const finalContractDetails = acceptedProposal || contractDetails;
+    const finalContractValue = acceptedProposal?.value || contractDetails?.value;
 
     useEffect(() => {
         if(acceptedProposal) {
@@ -131,10 +131,12 @@ export function ContractModal({
                     </DialogHeader>
                     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4 py-4" id="contractPrintContent">
                         <h3 className="font-bold">CONTRATO DE SERVIÇO/PRODUTO</h3>
-                        <div>
-                            <strong>Valor:</strong>
-                            <p>R$ {finalContractDetails?.value.toFixed(2)}</p>
-                        </div>
+                        {finalContractValue !== undefined && (
+                            <div>
+                                <strong>Valor:</strong>
+                                <p>R$ {finalContractValue.toFixed(2)}</p>
+                            </div>
+                        )}
                         <div>
                             <strong>Termos e Condições:</strong>
                             <p className="whitespace-pre-wrap text-sm text-muted-foreground bg-muted/50 p-4 rounded-md">{contractDetails.terms}</p>

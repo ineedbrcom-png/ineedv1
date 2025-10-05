@@ -1,6 +1,6 @@
 
 // src/lib/data.ts
-import { db } from "@/lib/firebase-admin"; // Usa o admin-sdk no lado do servidor
+import { getAdminFirestore } from "@/lib/firebase-admin";
 import {
   collection,
   query,
@@ -25,6 +25,12 @@ export async function getPaginatedListings(
   pageSize: number = 12,
   filters: ListingFilters = {}
 ) {
+  const db = getAdminFirestore();
+  if (!db) {
+    console.error("Firestore Admin não inicializado.");
+    return { data: [], nextCursor: null, hasMore: false };
+  }
+
   const listingsRef = collection(db, "listings");
 
   let q: Query = query(listingsRef, where("status", "==", "publicado"));
@@ -60,13 +66,15 @@ export async function getPaginatedListings(
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           const userData = userDocSnap.data();
-          author = {
-            id: data.authorId,
-            name: userData.displayName || "Usuário iNeed",
-            photoURL: userData.photoURL,
-            rating: userData.rating || 0,
-            reviewCount: userData.reviewCount || 0,
-          };
+          if (userData) {
+            author = {
+              id: data.authorId,
+              name: userData.displayName || "Usuário iNeed",
+              photoURL: userData.photoURL,
+              rating: userData.rating || 0,
+              reviewCount: userData.reviewCount || 0,
+            };
+          }
         }
       } catch (e) {
         console.error("Erro ao buscar dados do autor:", e);
@@ -75,6 +83,7 @@ export async function getPaginatedListings(
       return {
         id: docSnapshot.id,
         ...data,
+        createdAt: data.createdAt.toDate().toISOString(),
         category: listingCategory,
         author: author,
       } as Listing;

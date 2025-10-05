@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { addDoc, collection, serverTimestamp, doc, updateDoc, getDocs, query, where, orderBy, limit, getDoc } from "firebase/firestore";
 import { getFirebaseClient } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Proposal, Conversation } from "@/lib/data";
+import { Proposal, Conversation } from "@/lib/types";
 
 interface MessageInputProps {
     conversation: Conversation;
@@ -119,6 +119,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
         await updateDoc(conversationRef, {
             lastMessage: message,
             lastMessageTimestamp: serverTimestamp(),
+            unreadBy: [conversation.participants.find(p => p !== user.uid)]
         });
 
         setMessage("");
@@ -146,7 +147,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
         
         const userData = userDocSnap.data();
         const address = userData.address;
-        const fullAddress = `${address.street}, ${address.number} - ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.cep}`;
+        const fullAddress = address ? `${address.street}, ${address.number} - ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.cep}` : "Endereço não informado";
 
         const messagesCol = collection(db, "conversations", conversation.id, "messages");
         await addDoc(messagesCol, {
@@ -156,9 +157,8 @@ export function MessageInput({ conversation }: MessageInputProps) {
             type: 'contact_details',
             contactDetails: {
                 name: userData.displayName,
-                phone: userData.phone,
+                phone: userData.phone || "Não informado",
                 address: fullAddress,
-                location: conversation.listingTitle, // Using listing title as placeholder for location context
             }
         });
         
@@ -166,6 +166,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
         await updateDoc(conversationRef, {
             lastMessage: "Informações de contato compartilhadas.",
             lastMessageTimestamp: serverTimestamp(),
+            unreadBy: [conversation.participants.find(p => p !== user.uid)]
         });
 
         toast({ title: "Dados compartilhados!", description: "Suas informações de contato foram enviadas na conversa."});
@@ -188,6 +189,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
             status: "completed",
             lastMessage: "O pedido foi marcado como concluído.",
             lastMessageTimestamp: serverTimestamp(),
+            unreadBy: [conversation.participants.find(p => p !== user.uid)]
         });
 
         const messagesCol = collection(db, "conversations", conversation.id, "messages");
@@ -213,7 +215,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
         <form onSubmit={handleSubmit} className="space-y-2">
           {preview && (
             <div className="relative w-24 h-24">
-              <Image src={preview} alt="Preview" layout="fill" objectFit="cover" className="rounded-md" />
+              <Image src={preview} alt="Preview" fill objectFit="cover" className="rounded-md" />
               <Button
                 type="button"
                 variant="destructive"
@@ -240,26 +242,30 @@ export function MessageInput({ conversation }: MessageInputProps) {
               rows={1}
               disabled={isSending}
             />
-            <Button type="submit" size="icon" className="rounded-full" disabled={isSending}>
-              <Send />
+            <Button type="submit" size="icon" className="rounded-full" disabled={isSending || (!message.trim() && !file)}>
+              {isSending ? <Loader2 className="animate-spin" /> : <Send />}
             </Button>
           </div>
           <div className="flex justify-between items-center pt-1">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <Button type="button" variant="link" className="text-primary p-0 h-auto" onClick={() => setIsProposalModalOpen(true)}>
-                    <Handshake className="mr-1 h-4 w-4" /> Enviar Proposta
-                </Button>
-                <Button 
-                    type="button" 
-                    variant="link" 
-                    className="text-primary p-0 h-auto" 
-                    onClick={() => setIsContractModalOpen(true)}
-                    disabled={!canCreateContract}
-                    title={!canCreateContract ? "Um contrato só pode ser criado após uma proposta ser aceita." : "Criar Contrato com base na proposta aceita"}
-                >
-                    <FileSignature className="mr-1 h-4 w-4" /> Criar Contrato
-                </Button>
-                 {isListingAuthor && conversation.contractAccepted && (
+                {!isListingAuthor && (
+                    <Button type="button" variant="link" className="text-primary p-0 h-auto" onClick={() => setIsProposalModalOpen(true)}>
+                        <Handshake className="mr-1 h-4 w-4" /> Enviar Proposta
+                    </Button>
+                )}
+                {isListingAuthor && (
+                    <Button 
+                        type="button" 
+                        variant="link" 
+                        className="text-primary p-0 h-auto" 
+                        onClick={() => setIsContractModalOpen(true)}
+                        disabled={!canCreateContract}
+                        title={!canCreateContract ? "Um contrato só pode ser criado após uma proposta ser aceita." : "Criar Contrato com base na proposta aceita"}
+                    >
+                        <FileSignature className="mr-1 h-4 w-4" /> Criar Contrato
+                    </Button>
+                )}
+                 {conversation.contractAccepted && (
                      <Button 
                         type="button" 
                         variant="link" 
@@ -268,7 +274,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
                         disabled={isSharingContact}
                     >
                         {isSharingContact ? <Loader2 className="animate-spin mr-1" /> : <Share2 className="mr-1 h-4 w-4" />}
-                        {isSharingContact ? "Compartilhando..." : "Compartilhar Dados de Contato"}
+                        {isSharingContact ? "Compartilhando..." : "Compartilhar Dados"}
                     </Button>
                  )}
                  {isListingAuthor && conversation.contractAccepted && conversation.status === 'open' && (

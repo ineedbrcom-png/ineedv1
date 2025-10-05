@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Category, Listing } from "@/lib/data";
+import type { Category, Listing } from "@/lib/types";
 import { Map } from "@/components/map";
 import { Box, Wrench, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +14,7 @@ import { AuthModal } from "@/components/auth/auth-modal";
 import { CategoryCard } from "@/components/category-card";
 import { ListingGrid } from "@/components/listing-grid";
 import { HowItWorksSection } from "@/components/how-it-works-section";
-import { HeroSection } from "@/components/hero-section"; // NOVO: Importa a Hero Section
+import { HeroSection } from "@/components/hero-section";
 
 interface HomeClientProps {
   productCategories: Category[];
@@ -40,7 +40,6 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
   const { isLoggedIn, isAuthLoading } = useAuth();
   const router = useRouter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [listings] = useState<Listing[]>(initialListings);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -55,8 +54,8 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     }
   };
 
-  const productListings = listings.filter((l) => l.category.type === "product").slice(0, 3);
-  const serviceListings = listings.filter((l) => l.category.type === "service").slice(0, 3);
+  const productListings = initialListings.filter((l) => l.category.type === "product").slice(0, 3);
+  const serviceListings = initialListings.filter((l) => l.category.type === "service").slice(0, 3);
 
   return (
     <>
@@ -146,7 +145,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
               <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
                 Pedidos Ativos no Mapa
               </h2>
-              <Map listings={listings} />
+              <Map listings={initialListings} />
             </div>
           </section>
 

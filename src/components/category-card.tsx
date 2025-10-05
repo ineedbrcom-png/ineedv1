@@ -26,7 +26,7 @@ import {
   KeyRound,
   Cog,
 } from "lucide-react";
-import type { CategorySummary } from "@/lib/data";
+import type { Category } from "@/lib/types";
 
 const iconMap: { [key: string]: LucideIcon } = {
   Car,
@@ -55,7 +55,7 @@ const iconMap: { [key: string]: LucideIcon } = {
 };
 
 interface CategoryCardProps {
-  category: CategorySummary;
+  category: Category;
   colorClassName: string;
 }
 

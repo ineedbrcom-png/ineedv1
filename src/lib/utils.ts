@@ -1,4 +1,11 @@
 
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 // Função para converter uma string em um formato de slug amigável para URL
 export function sluggify(text: string): string {
   return text
