@@ -36,9 +36,10 @@ export function MessageInput({ conversation }: MessageInputProps) {
   const isListingAuthor = user?.uid === conversation.listingAuthorId;
   
   useEffect(() => {
-    // This effect runs when the conversation object changes
-    setCanCreateContract(conversation.contractAccepted === false && !!acceptedProposal);
-  }, [conversation.contractAccepted, acceptedProposal]);
+    // This effect runs when the conversation object or accepted proposal changes
+    const contractAlreadyExists = conversation.contractAccepted; // Assuming this field indicates a contract was sent/accepted
+    setCanCreateContract(!contractAlreadyExists && !!acceptedProposal);
+  }, [conversation, acceptedProposal]);
 
 
   useEffect(() => {
@@ -58,18 +59,8 @@ export function MessageInput({ conversation }: MessageInputProps) {
         if (!snapshot.empty) {
             const doc = snapshot.docs[0];
             setAcceptedProposal(doc.data().proposalDetails as Proposal);
-
-            // Check if a contract already exists for this conversation
-            const contractQuery = query(collection(db, "conversations", conversationId, "messages"), where('type', '==', 'contract'));
-            const contractSnapshot = await getDocs(contractQuery);
-            if(contractSnapshot.empty) {
-                setCanCreateContract(true);
-            } else {
-                setCanCreateContract(false);
-            }
         } else {
              setAcceptedProposal(null);
-             setCanCreateContract(false);
         }
     }
     checkAcceptedProposals();

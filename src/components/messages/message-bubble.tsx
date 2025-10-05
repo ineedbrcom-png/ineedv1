@@ -282,5 +282,3 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
     </div>
   );
 }
-
-    
