@@ -3,6 +3,15 @@ import { getAdminApp } from '@/lib/firebase-admin';
 import { ai } from '@/ai/genkit';
 import '@/ai/dev'; // Ensure all flows are loaded
 
+// === CORREÇÃO 1: Definir o tipo exato esperado pelo Next.js para [[...slug]] ===
+interface RouteContext {
+    params: {
+        // 'slug' deve ser opcional ('?') e um array de strings ('string[]')
+        slug?: string[];
+    };
+}
+// =============================================================================
+
 async function performAppCheck(req: NextRequest): Promise<Response | null> {
   const appCheckToken = req.headers.get('X-Firebase-AppCheck');
 
@@ -25,15 +34,17 @@ async function performAppCheck(req: NextRequest): Promise<Response | null> {
   return null;
 }
 
-async function handler(req: NextRequest, context: { params: { slug: string[] | string | undefined } }) {
+// === CORREÇÃO 2: Aplicar o tipo correto ao segundo argumento ===
+async function handler(req: NextRequest, context: RouteContext) {
+// =================================================================
+
   const authError = await performAppCheck(req);
   if (authError) {
     return authError;
   }
 
-  const flowName = Array.isArray(context.params.slug) 
-    ? context.params.slug.join('/')
-    : context.params.slug || '';
+  // A extração do nome do fluxo agora é mais simples, pois o tipo está correto
+  const flowName = context.params.slug?.join('/') || '';
 
   if (!flowName) {
     return new Response('Flow not specified', { status: 400 });
@@ -45,9 +56,23 @@ async function handler(req: NextRequest, context: { params: { slug: string[] | s
     return new Response(`Flow not found: ${flowName}`, { status: 404 });
   }
 
-  const input = await req.json();
+  // === CORREÇÃO 3: Ler o input de forma segura (evitar erros em GET/OPTIONS) ===
+  let input: any; // Pode ser undefined se não houver corpo
+  const contentLength = req.headers.get('content-length');
+
+  // Tenta ler o JSON apenas se houver conteúdo na requisição
+  if (contentLength && Number(contentLength) > 0) {
+    try {
+        input = await req.json();
+    } catch (err) {
+        // Se falhar ao analisar o JSON (ex: JSON inválido)
+        return new Response('Invalid JSON input', { status: 400 });
+    }
+  }
+  // =============================================================================
 
   try {
+    // Executa o fluxo (input pode ser undefined)
     const result = await flow.run(input);
     return NextResponse.json(result);
   } catch (err: any) {
