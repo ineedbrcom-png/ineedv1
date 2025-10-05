@@ -1,54 +1,57 @@
 
-import admin from 'firebase-admin';
-import type { app } from 'firebase-admin';
+import * as admin from 'firebase-admin';
 
-let adminApp: app.App | null = null;
-let firestoreAdmin: admin.firestore.Firestore | null = null;
-let authAdmin: admin.auth.Auth | null = null;
-
-export function initializeAdminApp() {
-  if (adminApp) {
-    return;
+// Função auxiliar para analisar a chave privada do ambiente
+function getServiceAccount(): admin.ServiceAccount | null {
+  // 1. Segurança: Garantir que estamos no servidor
+  if (typeof window !== 'undefined') {
+    return null;
   }
 
+  // 2. Ler a variável de ambiente (SEM o prefixo NEXT_PUBLIC_)
+  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+  if (!serviceAccountKey) {
+    console.error("ERRO CRÍTICO: FIREBASE_SERVICE_ACCOUNT_KEY não está definida no ambiente do servidor.");
+    return null;
+  }
+
+  try {
+    // 3. Tenta analisar o JSON da variável de ambiente
+    // Se isso falhar em produção devido a múltiplas linhas, a solução será codificar a chave em Base64.
+    return JSON.parse(serviceAccountKey) as admin.ServiceAccount;
+  } catch (error) {
+    console.error("ERRO CRÍTICO: Falha ao analisar FIREBASE_SERVICE_ACCOUNT_KEY. Verifique se o JSON é válido.", error);
+    return null;
+  }
+}
+
+export function initializeFirebaseAdmin() {
   if (admin.apps.length > 0) {
-    adminApp = admin.app();
-  } else {
-    try {
-      const serviceAccountJSON = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-      if (!serviceAccountJSON) {
-        console.warn('A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida. O Firebase Admin SDK não será inicializado no servidor.');
-        return;
-      }
-      
-      const serviceAccount = JSON.parse(serviceAccountJSON);
-
-      adminApp = admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: 'studio-9893157227-94cea.appspot.com',
-      });
-
-    } catch (error: any) {
-      console.error('Falha na inicialização do Firebase Admin SDK:', error.message);
-      adminApp = null;
-    }
+    // Já inicializado (evita erros em Hot Reload do Next.js)
+    return admin.app();
   }
-  
-  if (adminApp) {
-    firestoreAdmin = admin.firestore();
-    authAdmin = admin.auth();
+
+  const serviceAccount = getServiceAccount();
+
+  if (!serviceAccount) {
+    // Não conseguiu carregar as credenciais, a inicialização falha.
+    return null;
   }
+
+  // Inicializa o app Admin
+  return admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
 }
 
-// Esta função é a que o middleware (ou outras partes do app) vai usar
-export function getAdminApp() {
-  if (!adminApp) {
-    initializeAdminApp();
+// Função auxiliar para obter a instância do Admin Firestore
+export function getAdminFirestore() {
+  const app = initializeFirebaseAdmin();
+  if (!app) {
+    // Este é o ponto que gera o seu erro atual!
+    console.error("Firestore Admin não inicializado."); // Mensagem de erro vista no console
+    return null;
   }
-  return adminApp;
+  return admin.firestore(app);
 }
-
-// Inicializa na primeira importação
-initializeAdminApp();
-
-export { firestoreAdmin, authAdmin, admin };

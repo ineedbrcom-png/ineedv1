@@ -1,69 +1,31 @@
 
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Regras para Anúncios (Listings)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
     match /listings/{listingId} {
-      // Qualquer pessoa pode ler um anúncio específico e listar anúncios
-      allow get: if true;
-      allow list: if true; // Permite queries, mas limita o tamanho para evitar abuso
+      allow read: if resource.data.status == 'publicado';
 
-      // Apenas usuários autenticados podem criar
-      allow create: if request.auth != null;
+      allow create: if request.auth != null 
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.status == 'pendente';
 
-      // Apenas o autor pode atualizar ou deletar
-      // Adicionalmente, o status não pode ser alterado diretamente pelo usuário
-      allow update: if request.auth != null && request.auth.uid == resource.data.authorId
-                    && request.resource.data.status == resource.data.status;
-                    
-      allow delete: if request.auth != null && request.auth.uid == resource.data.authorId;
+      // ATUALIZAÇÃO RESTRITA: Permitir atualização pelo dono, mas IMPEDIR a mudança do status.
+      // O usuário pode editar o conteúdo, mas não o estado de moderação.
+      allow update: if request.auth != null 
+                    && resource.data.authorId == request.auth.uid
+                    && request.resource.data.status == resource.data.status; // Garante que o status não foi alterado
+
+      allow delete: if request.auth != null && resource.data.authorId == request.auth.uid;
     }
 
-    // Regras para Usuários (Users)
     match /users/{userId} {
-      // Qualquer pessoa pode ler perfis de usuário para ver reputação, etc.
-      allow read: if true;
-      
-      // Apenas o próprio usuário pode criar, editar ou apagar seu perfil
-      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    // Regras para Conversas e Mensagens (Conversations & Messages)
-    match /conversations/{conversationId} {
-      // Apenas participantes da conversa podem ler os detalhes da conversa
-      allow get: if request.auth != null && request.auth.uid in resource.data.participants;
-      
-      // Apenas participantes podem listar as conversas em que estão
-      allow list: if request.auth != null && request.auth.uid == request.query.filters[0].value;
-
-      // Apenas usuários autenticados podem criar conversas, e eles devem ser um dos participantes
-      allow create: if request.auth != null && request.auth.uid in request.resource.data.participants;
-
-      // Apenas participantes podem atualizar a conversa (ex: marcar como lida, status)
-      allow update: if request.auth != null && request.auth.uid in resource.data.participants;
-
-      // Desabilitar deleção por padrão para manter histórico
-      allow delete: if false;
-
-      // Regras aninhadas para as mensagens dentro de uma conversa
-      match /messages/{messageId} {
-        // Apenas participantes da conversa podem ler e escrever mensagens
-        allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
-      }
-    }
-    
-    // Regras para Avaliações (Reviews)
-    match /reviews/{reviewId} {
-      // Todos podem ler as avaliações
-      allow read: if true;
-      
-      // Apenas usuários autenticados podem criar avaliações
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.fromUserId;
-
-      // Ninguém pode atualizar ou deletar avaliações para manter a integridade
-      allow update, delete: if false;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

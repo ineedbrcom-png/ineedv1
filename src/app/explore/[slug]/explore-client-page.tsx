@@ -1,158 +1,117 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { allCategories } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
 import { notFound, useSearchParams } from "next/navigation";
-import { collection, query, where, getDocs, orderBy, doc, getDoc } from "firebase/firestore";
-import { getFirebaseClient } from "@/lib/firebase";
-import { Listing, ListingAuthor } from "@/lib/data";
+import { getPaginatedListings, ListingCursor } from "@/lib/data";
+import { Listing } from "@/lib/data";
 import { Loader2, Search, MapPin, Wallet, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useDebounce } from "@/hooks/use-debounce"; // Um hook customizado para debounce
 
 type ExploreClientPageProps = {
   slug: string;
 };
 
 export function ExploreClientPage({ slug }: ExploreClientPageProps) {
-  const [allListings, setAllListings] = useState<Listing[]>([]);
-  const [filteredListings, setFilteredListings] = useState<Listing[]>([]);
+  const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<ListingCursor>(null);
+  const [hasMore, setHasMore] = useState(true);
+
   const searchParams = useSearchParams();
   const initialSearchTerm = searchParams.get('q') || "";
 
+  // Filtros
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   const [locationFilter, setLocationFilter] = useState("");
   const [budgetFilter, setBudgetFilter] = useState([5000]);
 
+  // Debounce para os filtros para evitar buscas excessivas
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const debouncedLocationFilter = useDebounce(locationFilter, 500);
+  const debouncedBudgetFilter = useDebounce(budgetFilter, 500);
+
   const maxBudget = 5000;
 
-  const category =
+  const category = useMemo(() => 
     slug === "all"
       ? { name: "Todos os Pedidos", slug: "all", id: "all" }
-      : allCategories.find((c) => c.slug === slug);
+      : allCategories.find((c) => c.slug === slug)
+  , [slug]);
 
   if (!category) {
     notFound();
   }
 
-  useEffect(() => {
-    if (!category) return;
+  const fetchListings = useCallback(async (cursor: ListingCursor = null) => {
+    if (cursor === null) setIsLoading(true);
+    else setIsLoadingMore(true);
 
-    const fetchListings = async () => {
-      setIsLoading(true);
-      try {
-        const { db } = getFirebaseClient();
-        const listingsCol = collection(db, "listings");
-        
-        let queries = [where("status", "==", "approved")];
+    try {
+      const filters = {
+        categoryId: slug === "all" ? undefined : category?.id,
+        maxBudget: debouncedBudgetFilter[0] < maxBudget ? debouncedBudgetFilter[0] : undefined,
+      };
 
-        if (slug !== "all" && category?.id) {
-          queries.push(where("categoryId", "==", category.id));
-        }
-
-        // Firestore limitation: You can't have inequality filters on multiple fields.
-        // We will do the budget filtering on the client side.
-        // The orderBy('createdAt') was also removed to avoid needing a composite index for every category.
-        const q = query(
-            listingsCol,
-            ...queries,
-             orderBy("createdAt", "desc")
-        );
-
-
-        const listingSnapshot = await getDocs(q);
-        const listingList = await Promise.all(listingSnapshot.docs.map(async (docSnapshot) => {
-          const data = docSnapshot.data();
-           const listingCategory = allCategories.find(c => c.id === data.categoryId)!;
-
-           let author: ListingAuthor = { name: "Usuário", id: data.authorId, rating: 0, reviewCount: 0 };
-           const userDocRef = doc(db, "users", data.authorId);
-           const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                const userData = userDocSnap.data();
-                author = {
-                    id: data.authorId,
-                    name: userData.displayName,
-                    photoURL: userData.photoURL,
-                    rating: userData.rating || 0,
-                    reviewCount: userData.reviewCount || 0,
-                }
-            }
-
-          return {
-            id: docSnapshot.id,
-            ...data,
-            category: listingCategory,
-            author: author,
-          } as Listing;
-        }));
-        setAllListings(listingList);
-      } catch (error) {
-        console.error("Error fetching listings:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchListings();
-  }, [slug, category]);
-
-  
-  useEffect(() => {
-    // This effect runs whenever the base list of listings or any filter changes.
-    let listings = [...allListings];
-
-    // Search term filter (title and description)
-    if (searchTerm) {
-      listings = listings.filter(l => 
-          l.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          l.description.toLowerCase().includes(searchTerm.toLowerCase())
+      const { data, nextCursor: newNextCursor, hasMore: newHasMore } = await getPaginatedListings(cursor, 12, filters);
+      
+      // A filtragem por texto e localização continua no cliente.
+      const clientFilteredData = data.filter(l => 
+        (debouncedSearchTerm ? (l.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) || l.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) : true) &&
+        (debouncedLocationFilter ? l.location.toLowerCase().includes(debouncedLocationFilter.toLowerCase()) : true)
       );
+
+      setListings(prev => cursor ? [...prev, ...clientFilteredData] : clientFilteredData);
+      setNextCursor(newNextCursor);
+      setHasMore(newHasMore);
+
+    } catch (error) {
+      console.error("Error fetching listings:", error);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
     }
+  }, [slug, category?.id, debouncedBudgetFilter, debouncedSearchTerm, debouncedLocationFilter]);
 
-    // Location filter
-    if (locationFilter) {
-        listings = listings.filter(l => 
-            l.location.toLowerCase().includes(locationFilter.toLowerCase())
-        );
+  // Efeito para carregar/recarregar os anúncios quando os filtros DEBOUNCED mudam
+  useEffect(() => {
+    setListings([]);
+    setNextCursor(null);
+    setHasMore(true);
+    fetchListings(null);
+  }, [fetchListings]); 
+
+  const handleLoadMore = () => {
+    if (hasMore && !isLoadingMore && nextCursor) {
+      fetchListings(nextCursor);
     }
+  };
 
-    // Budget filter
-    listings = listings.filter(l => l.budget <= budgetFilter[0]);
-    
-    setFilteredListings(listings);
-  }, [allListings, searchTerm, locationFilter, budgetFilter]);
-
-
-  const handleFilterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Filters are now applied automatically via useEffect, so this can be empty
-    // or used for other purposes if needed.
-  }
-  
   const clearFilters = () => {
     setSearchTerm("");
     setLocationFilter("");
     setBudgetFilter([maxBudget]);
-  }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
+      {/* ... Cabeçalho e Formulário de Filtros ... */}
+       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-800">{category?.name}</h1>
         <p className="text-lg text-gray-600 mt-2">
-          {filteredListings.length} pedido(s) encontrado(s)
+          Mostrando {listings.length} pedido(s)
         </p>
       </div>
       
       <Card className="mb-8 p-6 bg-muted/30">
-        <form onSubmit={handleFilterSubmit}>
+        <form onSubmit={(e) => e.preventDefault()}> {/* Previne submit tradicional */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
                 <div className="lg:col-span-2">
                     <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Palavra-chave</label>
@@ -203,22 +162,33 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
                     <X className="mr-2 h-4 w-4"/>
                     Limpar Filtros
                 </Button>
-                {/* The Apply button is no longer strictly necessary as filters apply on change */}
             </div>
         </form>
       </Card>
 
-
       {isLoading ? (
-         <div className="flex justify-center items-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin" />
-         </div>
-      ) : filteredListings.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredListings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
-          ))}
+        <div className="flex justify-center items-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
+      ) : listings.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {listings.map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+          {hasMore && (
+            <div className="mt-12 text-center">
+              <Button onClick={handleLoadMore} disabled={isLoadingMore}>
+                {isLoadingMore ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Carregando...</>
+                ) : (
+                  "Carregar Mais Pedidos"
+                )}
+              </Button>
+            </div>
+          )}
+        </>
       ) : (
         <div className="text-center py-16">
           <p className="text-xl text-gray-500">
@@ -230,3 +200,5 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
     </div>
   );
 }
+
+// Você precisará criar este hook, por exemplo em /src/hooks/use-debounce.ts

@@ -26,10 +26,9 @@ import {
 } from "@/components/ui/select";
 import { allCategories } from "@/lib/categories";
 import { refineListingDescription } from "@/ai/flows/listing-description-refinement";
-import { moderateListingContent } from "@/ai/flows/content-moderation";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2, Upload, X } from "lucide-react";
-import { collection, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { getFirebaseClient } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "@/hooks/use-auth";
@@ -109,7 +108,6 @@ export function PostRequestForm() {
     setPreviews(updatedPreviews);
   };
 
-
   async function handleRefineDescription() {
     const description = form.getValues("description");
     if (!description || description.length < 20) {
@@ -135,8 +133,8 @@ export function PostRequestForm() {
       console.error("Failed to refine description:", error);
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Não foi possível refinar a descrição neste momento.",
+        title: "Erro de IA",
+        description: "Não foi possível refinar a descrição. A IA pode estar temporariamente indisponível.",
       });
     } finally {
       setIsRefining(false);
@@ -147,27 +145,28 @@ export function PostRequestForm() {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Erro de autenticação",
+        title: "Acesso Negado",
         description: "Você precisa estar logado para publicar um pedido.",
       });
       return;
     }
     setIsSubmitting(true);
-    
-    let imageUrls: string[] = [];
-    const { db, storage } = getFirebaseClient();
 
     try {
+      const { db, storage } = getFirebaseClient();
+      let imageUrls: string[] = [];
+
+      // 1. Upload de Imagens
       if (values.images && values.images.length > 0) {
         const uploadPromises = values.images.map(async (image) => {
           const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}_${image.name}`);
           await uploadBytes(storageRef, image);
-          const downloadURL = await getDownloadURL(storageRef);
-          return downloadURL;
+          return getDownloadURL(storageRef);
         });
         imageUrls = await Promise.all(uploadPromises);
       }
       
+      // 2. Criação do Documento com status 'pendente'
       const docData = {
         title: values.title,
         categoryId: values.categoryId,
@@ -177,50 +176,33 @@ export function PostRequestForm() {
         authorId: user.uid,
         createdAt: serverTimestamp(),
         imageUrls: imageUrls,
-        status: 'pending_review' as const,
+        status: 'pendente' as const, // <-- CORRETO: Apenas define como pendente.
       };
 
       const docRef = await addDoc(collection(db, "listings"), docData);
 
       toast({
         title: "Pedido Enviado para Análise!",
-        description: "Seu pedido foi recebido e está sendo analisado. Ele aparecerá publicamente em breve.",
+        description: "Seu pedido foi recebido e será revisado em breve. Você será notificado quando for publicado.",
       });
 
-      // Navigate away immediately for better user experience
-      router.push(`/listing/${docRef.id}`);
+      router.push(`/`); // Redireciona para a home page após o envio.
+
+    } catch (error: any) {
+      console.error("Error publishing request: ", error);
       
-      // Perform moderation in the background
-      try {
-        const moderationResult = await moderateListingContent({
-          title: values.title,
-          description: values.description,
-        });
+      let errorMessage = "Ocorreu um erro inesperado. Por favor, tente novamente.";
 
-        let finalStatus = 'pending_review';
-        if (moderationResult.classification === 'SEGURO') {
-            finalStatus = 'approved';
-        } else if (moderationResult.classification === 'VIOLACAO') {
-            finalStatus = 'rejected';
-        }
-        
-        await updateDoc(doc(db, "listings", docRef.id), { status: finalStatus });
-
-        if (finalStatus === 'rejected') {
-            console.warn(`Listing ${docRef.id} was automatically rejected by AI moderation.`);
-        }
-
-      } catch (moderationError) {
-          console.error("Error during content moderation:", moderationError);
-          // Keep status as pending_review for manual check
+      if (error.code === 'permission-denied') {
+        errorMessage = "Você não tem permissão para publicar um pedido. Verifique as regras de segurança do seu projeto.";
+      } else if (error.code === 'unauthenticated') {
+        errorMessage = "Sua sessão expirou. Por favor, faça login novamente.";
       }
 
-    } catch (e) {
-      console.error("Error adding document: ", e);
       toast({
         variant: "destructive",
-        title: "Erro ao publicar",
-        description: "Não foi possível salvar seu pedido. Verifique sua conexão e tente novamente.",
+        title: "Falha ao Publicar",
+        description: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
@@ -233,7 +215,8 @@ export function PostRequestForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      {/* ... O restante do JSX do formulário permanece o mesmo ... */}
+       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="title"

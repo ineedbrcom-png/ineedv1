@@ -1,32 +1,50 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
 
-import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
-import * as logger from "firebase-functions/logger";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
+import { moderateListingContent } from "../../src/ai/flows/content-moderation";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+// Lógica de moderação reutilizável
+async function moderateListing(snapshot: admin.firestore.DocumentSnapshot) {
+    const data = snapshot.data();
+    if (!data) return;
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+    console.log(`Executando moderação para o anúncio ${snapshot.id}`);
+    try {
+        const moderationResult = await moderateListingContent({
+            title: data.title,
+            description: data.description,
+        });
+        await snapshot.ref.update({ status: moderationResult.classification });
+        console.log(`Anúncio ${snapshot.id} atualizado para: ${moderationResult.classification}`);
+    } catch (error) {
+        console.error(`Erro na moderação do anúncio ${snapshot.id}:`, error);
+        await snapshot.ref.update({ status: 'revisao' });
+    }
+}
+
+// Gatilho para NOVOS anúncios
+export const moderateNewListing = onDocumentCreated("listings/{listingId}", (event) => {
+    if (event.data?.data().status === 'pendente') {
+        return moderateListing(event.data.ref.parent.firestore.doc(event.params.listingId));
+    }
+    return null;
+});
+
+// Gatilho para ATUALIZAÇÕES de anúncios
+export const moderateUpdatedListing = onDocumentUpdated("listings/{listingId}", (event) => {
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (before && after && (before.title !== after.title || before.description !== after.description)) {
+        if (after.status === 'pendente') {
+             return moderateListing(event.data.after.ref.parent.firestore.doc(event.params.listingId));
+        }
+    }
+    return null;
+});
+
+// (O restante do código de cleanupUserOnDelete permanece o mesmo)
