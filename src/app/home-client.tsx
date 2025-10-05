@@ -54,8 +54,8 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
     }
   };
 
-  const productListings = initialListings.filter((l) => l.category.type === "product").slice(0, 3);
-  const serviceListings = initialListings.filter((l) => l.category.type === "service").slice(0, 3);
+  const productListings = (initialListings || []).filter((l) => l.category.type === "product").slice(0, 3);
+  const serviceListings = (initialListings || []).filter((l) => l.category.type === "service").slice(0, 3);
 
   return (
     <>
