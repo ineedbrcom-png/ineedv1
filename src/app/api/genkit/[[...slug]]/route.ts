@@ -25,13 +25,20 @@ async function performAppCheck(req: NextRequest): Promise<Response | null> {
   return null;
 }
 
-async function handler(req: NextRequest, context: { params: { slug: string[] } }) {
+async function handler(req: NextRequest, context: { params: { slug: string[] | string | undefined } }) {
   const authError = await performAppCheck(req);
   if (authError) {
     return authError;
   }
 
-  const flowName = context.params.slug.join('/');
+  const flowName = Array.isArray(context.params.slug) 
+    ? context.params.slug.join('/')
+    : context.params.slug || '';
+
+  if (!flowName) {
+    return new Response('Flow not specified', { status: 400 });
+  }
+    
   const flow = await ai.registry.lookupAction(`/flow/${flowName}`);
 
   if (!flow) {
