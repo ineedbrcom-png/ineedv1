@@ -131,5 +131,4 @@ export interface ContactDetails {
     name: string;
     phone: string;
     address: string;
-    location: string;
 }
