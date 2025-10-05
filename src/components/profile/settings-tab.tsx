@@ -1,7 +1,7 @@
 
 "use client";
 
-import { TabsContent, Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TabsContent } from "@/components/ui/tabs";
 
 export function SettingsTab() {
   return (

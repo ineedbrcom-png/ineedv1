@@ -2,7 +2,6 @@
 "use client";
 
 import {
-  TabsContent,
   Card,
   CardHeader,
   CardContent,
@@ -19,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { User as UserProfile } from "@/lib/data";
+import { TabsContent } from "@/components/ui/tabs";
 
 interface SupplierTabProps {
   profile: UserProfile;

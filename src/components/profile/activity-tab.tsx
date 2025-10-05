@@ -1,7 +1,8 @@
 
 "use client";
 
-import { TabsContent, Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { TabsContent } from "@/components/ui/tabs";
 
 export function ActivityTab() {
   return (

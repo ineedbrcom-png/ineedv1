@@ -1,20 +1,18 @@
 /**
  * @fileoverview This file creates a Next.js API route handler for Genkit.
  * It manually performs an App Check verification before passing the request
- * to the Genkit handler. This approach avoids using Next.js middleware, which
- * runs in an Edge environment incompatible with the Firebase Admin SDK.
+ * to the Genkit handler.
  */
-import { ai } from '@/ai/genkit';
+import { handleGenkitRequest } from '@genkit-ai/next/api';
 import { NextRequest } from 'next/server';
 import { getAdminApp } from '@/lib/firebase-admin';
 
-// This is the actual handler that will process Genkit requests.
-// We get it from the standard Genkit Next.js plugin.
-const genkitHandler = ai.getHttpRequestHandler();
+// Ensure all flows are loaded.
+import '@/ai/dev';
 
-// We create a new POST function that wraps the Genkit handler with our security check.
-export async function POST(req: NextRequest) {
-  // --- START OF APP CHECK VERIFICATION ---
+const genkitHandler = handleGenkitRequest();
+
+async function performAppCheck(req: NextRequest): Promise<Response | null> {
   const appCheckToken = req.headers.get('X-Firebase-AppCheck');
 
   if (!appCheckToken) {
@@ -22,26 +20,38 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Get the initialized Firebase Admin SDK instance.
     const adminApp = getAdminApp();
     if (!adminApp) {
-      // This should not happen if initialization is successful, but it's a good safeguard.
       console.error('App Check failed: Admin SDK not initialized.');
       return new Response('Internal Server Error', { status: 500 });
     }
-    // Verify the token using the Admin SDK.
-    // If the token is invalid, this will throw an error, which is caught below.
     await adminApp.appCheck().verifyToken(appCheckToken);
   } catch (err) {
     console.error('App Check verification failed:', err);
     return new Response('Unauthorized - Invalid App Check token', { status: 401 });
   }
-  // --- END OF APP CHECK VERIFICATION ---
 
-  // If verification is successful, pass the original request to the Genkit handler.
-  return genkitHandler(req);
+  // If verification is successful, return null to proceed.
+  return null;
+}
+
+export async function POST(req: NextRequest, { params }: { params: { slug: string[] } }) {
+  const authError = await performAppCheck(req);
+  if (authError) {
+    return authError;
+  }
+  // Pass the request to the standard Genkit handler.
+  return genkitHandler(req, { params });
 };
 
-// We also export the handler for other HTTP methods Genkit might use.
-export const GET = genkitHandler;
-export const OPTIONS = genkitHandler;
+export async function GET(req: NextRequest, { params }: { params: { slug: string[] } }) {
+    const authError = await performAppCheck(req);
+    if (authError) {
+        return authError;
+    }
+    return genkitHandler(req, { params });
+}
+
+export async function OPTIONS(req: NextRequest, { params }: { params: { slug: string[] } }) {
+    return genkitHandler(req, { params });
+}
