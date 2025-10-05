@@ -51,6 +51,7 @@ export function ConversationList({ conversations, activeConversationId, onConver
         ) : (
           conversations.map((convo) => {
           const otherParticipant = convo.participantsDetails.find(p => p.id !== user?.uid);
+          const isUnread = convo.unreadBy && convo.unreadBy.includes(user?.uid || '');
           return (
             <button
               key={convo.id}
@@ -68,13 +69,13 @@ export function ConversationList({ conversations, activeConversationId, onConver
               )}
               <div className="flex-1 min-w-0">
                 <div className="flex justify-between">
-                  <p className="font-medium truncate">{otherParticipant?.name}</p>
+                  <p className={cn("font-medium truncate", isUnread && "font-bold")}>{otherParticipant?.name}</p>
                   <span className="text-xs text-gray-500 flex-shrink-0 ml-2">{getTimestamp(convo.lastMessageTimestamp)}</span>
                 </div>
                 <p className="text-sm text-gray-600 truncate">{convo.listingTitle}</p>
-                <p className="text-sm text-gray-500 truncate">{convo.lastMessage}</p>
+                <p className={cn("text-sm text-gray-500 truncate", isUnread && "text-gray-800 font-semibold")}>{convo.lastMessage}</p>
               </div>
-              {convo.unreadBy && convo.unreadBy.includes(user?.uid || '') && <div className="w-2 h-2 rounded-full bg-blue-600 absolute right-4 top-1/2 -translate-y-1/2"></div>}
+              {isUnread && <div className="w-2.5 h-2.5 rounded-full bg-blue-600 absolute right-4 top-1/2 -translate-y-1/2"></div>}
             </button>
           );
         })

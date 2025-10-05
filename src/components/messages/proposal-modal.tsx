@@ -1,3 +1,4 @@
+"use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
              await updateDoc(conversationRef, {
                  lastMessage: "Uma nova proposta foi enviada.",
                  lastMessageTimestamp: serverTimestamp(),
+                 unreadBy: [conversation.participants.find(p => p !== user.uid)]
              });
 
             toast({ title: "Proposta Enviada!", description: "Sua proposta foi registrada na conversa."});
