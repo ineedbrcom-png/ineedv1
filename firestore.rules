@@ -8,7 +8,7 @@ service cloud.firestore {
     match /listings/{listingId} {
       // Qualquer pessoa pode ler um anúncio específico e listar anúncios
       allow get: if true;
-      allow list: if request.query.limit <= 10; // Permite queries, mas limita o tamanho para evitar abuso
+      allow list: if true; // Permite queries, mas limita o tamanho para evitar abuso
 
       // Apenas usuários autenticados podem criar
       allow create: if request.auth != null;

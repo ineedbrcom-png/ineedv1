@@ -1,16 +1,14 @@
 {
   "hosting": {
-    "source": "y",
+    "source": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
-  },
-  "firestore": {
-    "database": "(default)",
-    "location": "us-central1",
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+    ],
+    "frameworksBackend": {
+      "id": "studio",
+      "region": "us-central1"
+    }
   }
 }
