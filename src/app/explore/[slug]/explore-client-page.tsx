@@ -5,8 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { allCategories } from "@/lib/categories";
 import { ListingCard } from "@/components/listing-card";
 import { notFound, useSearchParams } from "next/navigation";
-import { getPaginatedListings, ListingCursor } from "@/lib/data";
-import { Listing } from "@/lib/data";
+import { Listing, ListingCursor } from "@/lib/types";
 import { Loader2, Search, MapPin, Wallet, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -16,14 +15,19 @@ import { useDebounce } from "@/hooks/use-debounce"; // Um hook customizado para 
 
 type ExploreClientPageProps = {
   slug: string;
+  initialData: {
+    data: Listing[];
+    nextCursor: ListingCursor;
+    hasMore: boolean;
+  };
 };
 
-export function ExploreClientPage({ slug }: ExploreClientPageProps) {
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function ExploreClientPage({ slug, initialData }: ExploreClientPageProps) {
+  const [listings, setListings] = useState<Listing[]>(initialData.data);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<ListingCursor>(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [nextCursor, setNextCursor] = useState<ListingCursor>(initialData.nextCursor);
+  const [hasMore, setHasMore] = useState(initialData.hasMore);
 
   const searchParams = useSearchParams();
   const initialSearchTerm = searchParams.get('q') || "";
@@ -60,7 +64,19 @@ export function ExploreClientPage({ slug }: ExploreClientPageProps) {
         maxBudget: debouncedBudgetFilter[0] < maxBudget ? debouncedBudgetFilter[0] : undefined,
       };
 
-      const { data, nextCursor: newNextCursor, hasMore: newHasMore } = await getPaginatedListings(cursor, 12, filters);
+      const response = await fetch("/api/listings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cursor, pageSize: 12, filters }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch listings");
+      }
+
+      const { data, nextCursor: newNextCursor, hasMore: newHasMore } = await response.json();
       
       // A filtragem por texto e localização continua no cliente.
       const clientFilteredData = data.filter(l => 

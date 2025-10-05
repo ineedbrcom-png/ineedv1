@@ -1,16 +1,7 @@
-/**
- * @fileoverview This file creates a Next.js API route handler for Genkit.
- * It manually performs an App Check verification before passing the request
- * to the Genkit handler.
- */
-import { handleGenkitRequest } from '@genkit-ai/next/api';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAdminApp } from '@/lib/firebase-admin';
-
-// Ensure all flows are loaded.
-import '@/ai/dev';
-
-const genkitHandler = handleGenkitRequest();
+import { ai } from '@/ai/genkit';
+import '@/ai/dev'; // Ensure all flows are loaded
 
 async function performAppCheck(req: NextRequest): Promise<Response | null> {
   const appCheckToken = req.headers.get('X-Firebase-AppCheck');
@@ -31,27 +22,33 @@ async function performAppCheck(req: NextRequest): Promise<Response | null> {
     return new Response('Unauthorized - Invalid App Check token', { status: 401 });
   }
 
-  // If verification is successful, return null to proceed.
   return null;
 }
 
-export async function POST(req: NextRequest, { params }: { params: { slug: string[] } }) {
+async function handler(req: NextRequest, context: { params: { slug: string[] } }) {
   const authError = await performAppCheck(req);
   if (authError) {
     return authError;
   }
-  // Pass the request to the standard Genkit handler.
-  return genkitHandler(req, { params });
-};
 
-export async function GET(req: NextRequest, { params }: { params: { slug: string[] } }) {
-    const authError = await performAppCheck(req);
-    if (authError) {
-        return authError;
-    }
-    return genkitHandler(req, { params });
+  const flowName = context.params.slug.join('/');
+  const flow = await ai.registry.lookupAction(`/flow/${flowName}`);
+
+  if (!flow) {
+    return new Response(`Flow not found: ${flowName}`, { status: 404 });
+  }
+
+  const input = await req.json();
+
+  try {
+    const result = await flow.run(input);
+    return NextResponse.json(result);
+  } catch (err: any) {
+    console.error(`Error running flow ${flowName}:`, err);
+    return new Response(`Error running flow: ${err.message}`, { status: 500 });
+  }
 }
 
-export async function OPTIONS(req: NextRequest, { params }: { params: { slug: string[] } }) {
-    return genkitHandler(req, { params });
-}
+export const POST = handler;
+export const GET = handler;
+export const OPTIONS = handler;
