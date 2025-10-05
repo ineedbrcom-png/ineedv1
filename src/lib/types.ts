@@ -132,3 +132,5 @@ export interface ContactDetails {
     phone: string;
     address: string;
 }
+
+    

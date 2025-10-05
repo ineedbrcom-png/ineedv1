@@ -1,4 +1,3 @@
-
 "use client";
 
 import { type Message, type Conversation } from "@/lib/types";
@@ -282,3 +281,5 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
     </div>
   );
 }
+
+    
