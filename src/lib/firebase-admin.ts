@@ -15,10 +15,16 @@ function initializeAdminApp() {
   }
 
   try {
-    // Em ambientes de produção (como App Hosting), as credenciais são injetadas automaticamente.
-    // Em desenvolvimento local com emuladores, o SDK também pode usar credenciais padrão se configurado.
-    console.log("Inicializando Firebase Admin com as credenciais padrão do aplicativo.");
-    return admin.initializeApp();
+    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (!serviceAccountKey) {
+        throw new Error("A variável de ambiente FIREBASE_SERVICE_ACCOUNT_KEY não está definida.");
+    }
+      
+    const credential = admin.credential.cert(JSON.parse(serviceAccountKey));
+
+    console.log("Inicializando Firebase Admin com credenciais da conta de serviço.");
+    return admin.initializeApp({ credential });
+
   } catch (error) {
     console.error("ERRO CRÍTICO: Falha ao inicializar o Firebase Admin. Verifique as credenciais do ambiente.", error);
     return null;
