@@ -63,13 +63,13 @@ const contentModerationFlow = ai.defineFlow(
 
     const llmResponse = await ai.generate({
       prompt: prompt,
-      model: 'googleai/gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       output: {
         schema: ModerateListingOutputSchema,
       },
     });
 
-    return llmResponse.output()!;
+    return llmResponse.output!;
   }
 );
 
