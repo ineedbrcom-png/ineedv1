@@ -13,50 +13,14 @@ function initializeAdminApp() {
     console.error("Firebase Admin SDK não pode ser inicializado no cliente.");
     return null;
   }
-  
-  // 2. Tentar inicialização automática do App Hosting
-  // O App Hosting injeta a configuração via process.env.FIREBASE_CONFIG
-  if (process.env.FIREBASE_CONFIG) {
-    try {
-      console.log("Inicializando Firebase Admin com configuração automática do App Hosting.");
-      return admin.initializeApp();
-    } catch (error) {
-      console.error("Erro ao inicializar Firebase Admin com config automática:", error);
-      // Se a automática falhar, tentamos a manual abaixo.
-    }
-  }
 
-  // 3. Tentar inicialização manual com chave de serviço (para desenvolvimento local)
-  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-
-  if (!serviceAccountKey) {
-    console.error("ERRO CRÍTICO: Nenhuma configuração automática (FIREBASE_CONFIG) ou manual (FIREBASE_SERVICE_ACCOUNT_KEY) encontrada.");
-    return null;
-  }
-
-  let serviceAccount: admin.ServiceAccount;
   try {
-    // Tenta decodificar de Base64, que é o formato ideal.
-    const decodedKey = Buffer.from(serviceAccountKey, 'base64').toString('utf-8');
-    serviceAccount = JSON.parse(decodedKey);
-  } catch (e) {
-    console.warn("A decodificação Base64 da chave de serviço falhou. Tentando analisar o JSON diretamente. Para produção, use Base64.");
-    try {
-        serviceAccount = JSON.parse(serviceAccountKey);
-    } catch (error) {
-        console.error("ERRO CRÍTICO: Falha ao analisar FIREBASE_SERVICE_ACCOUNT_KEY. Verifique se a variável está correta e considere usar Base64.", error);
-        return null;
-    }
-  }
-
-  // Inicializa o app com as credenciais manuais
-  try {
-    console.log("Inicializando Firebase Admin com chave de serviço manual (local).");
-    return admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
+    // Em ambientes de produção (como App Hosting), as credenciais são injetadas automaticamente.
+    // Em desenvolvimento local com emuladores, o SDK também pode usar credenciais padrão se configurado.
+    console.log("Inicializando Firebase Admin com as credenciais padrão do aplicativo.");
+    return admin.initializeApp();
   } catch (error) {
-    console.error("Erro ao inicializar o Firebase Admin App com chave manual:", error);
+    console.error("ERRO CRÍTICO: Falha ao inicializar o Firebase Admin. Verifique as credenciais do ambiente.", error);
     return null;
   }
 }
