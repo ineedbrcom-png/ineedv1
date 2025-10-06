@@ -26,7 +26,7 @@ export function ExploreClientPage({ slug, initialData }: ExploreClientPageProps)
   const [listings, setListings] = useState<Listing[]>(initialData.data);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [nextCursor, setNextCursor] = useState<ListingCursor>(initialData.nextCursor);
+  const [nextCursor, setNextCursor] = useState<ListingCursor | null>(initialData.nextCursor);
   const [hasMore, setHasMore] = useState(initialData.hasMore);
 
   const searchParams = useSearchParams();
@@ -54,7 +54,7 @@ export function ExploreClientPage({ slug, initialData }: ExploreClientPageProps)
     notFound();
   }
 
-  const fetchListings = useCallback(async (cursor: ListingCursor = null) => {
+  const fetchListings = useCallback(async (cursor: ListingCursor | null = null) => {
     if (cursor === null) setIsLoading(true);
     else setIsLoadingMore(true);
 
@@ -218,3 +218,5 @@ export function ExploreClientPage({ slug, initialData }: ExploreClientPageProps)
 }
 
 // Você precisará criar este hook, por exemplo em /src/hooks/use-debounce.ts
+
+    

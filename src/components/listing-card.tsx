@@ -9,7 +9,7 @@ import type { Listing } from "@/lib/data";
 import { Handshake, MapPin } from "lucide-react";
 import { StarRating } from "./star-rating";
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { enUS, ptBR } from 'date-fns/locale';
 
 type ListingCardProps = {
   listing: Listing;
@@ -78,3 +78,5 @@ export function ListingCard({ listing }: ListingCardProps) {
     </Card>
   );
 }
+
+    
