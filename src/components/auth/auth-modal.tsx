@@ -42,10 +42,10 @@ export function AuthModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800 text-center">
-            {mode === "login" ? "Entrar na sua conta" : "Criar nova conta"}
+            {mode === "login" ? "Login to your account" : "Create a new account"}
           </DialogTitle>
           <DialogDescription className="text-center">
-            {mode === 'login' ? 'Bem-vindo de volta! Faça login para continuar.' : 'Complete os campos para se registrar.'}
+            {mode === 'login' ? 'Welcome back! Please login to continue.' : 'Complete the fields to register.'}
           </DialogDescription>
         </DialogHeader>
         {mode === "login" ? (

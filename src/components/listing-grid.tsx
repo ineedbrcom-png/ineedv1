@@ -29,20 +29,20 @@ export function ListingGrid({
   }
 
   if (listings.length === 0) {
-    const typeText = emptyStateType === 'product' ? "produto" : "serviço";
+    const typeText = emptyStateType === 'product' ? "product" : "service";
     const message = emptyStateType === 'general' 
-        ? "Nenhum pedido encontrado com os filtros atuais."
-        : `Nenhum pedido de ${typeText} ainda.`;
+        ? "No requests found with the current filters."
+        : `No ${typeText} requests yet.`;
 
     return (
       <Card className="col-span-1 md:col-span-2 lg:col-span-3 mt-4 flex flex-col items-center justify-center text-center p-8 border-dashed">
         <Inbox className="h-12 w-12 text-gray-400 mb-4" />
         <h4 className="text-xl font-semibold text-gray-700">{message}</h4>
         <p className="text-gray-500 mt-2 mb-4">
-          Seja o primeiro a criar um pedido e movimentar a comunidade!
+          Be the first to create a request and get the community moving!
         </p>
         <Button onClick={onPostRequestClick}>
-          <PlusCircle className="mr-2" /> Criar um Pedido
+          <PlusCircle className="mr-2" /> Create a Request
         </Button>
       </Card>
     );

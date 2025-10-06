@@ -13,7 +13,7 @@ import { Handshake, MapPin, Calendar, Tag, Wallet, Bot, Loader2, User, Star, Mes
 import { useToast } from "@/hooks/use-toast";
 import { Listing } from "@/lib/data";
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
 import {
   Carousel,
@@ -31,12 +31,9 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
   const router = useRouter();
   const { user, isLoggedIn } = useAuth();
   
-  // The listing data is now passed as a prop from the server component.
   const [listing, setListing] = useState<Listing | null>(initialListing);
 
   useEffect(() => {
-    // If the listing data is passed, we need to convert the ISO string date back to a Date object
-    // to make it compatible with `formatDistanceToNow`.
     if (initialListing && typeof initialListing.createdAt === 'string') {
         setListing({
             ...initialListing,
@@ -47,21 +44,18 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
 
 
   if (!listing) {
-    // This case should ideally be handled by the server component returning notFound(),
-    // but as a fallback, we can do it here too.
     notFound();
   }
   
   const handleStartConversation = () => {
       if (!isLoggedIn) {
-          toast({ variant: "destructive", title: "Faça login para iniciar uma conversa."});
+          toast({ variant: "destructive", title: "Please login to start a conversation."});
           return;
       }
       if (user?.uid === listing.authorId) {
-          toast({ variant: "destructive", title: "Você não pode iniciar uma conversa com você mesmo."});
+          toast({ variant: "destructive", title: "You cannot start a conversation with yourself."});
           return;
       }
-      // Redirect to messages page, creating a new conversation if needed.
       router.push(`/messages?listingId=${listing.id}&userId=${listing.authorId}`);
   }
 
@@ -77,8 +71,8 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
       console.error("Failed to get recommendations:", error);
       toast({
         variant: "destructive",
-        title: "Erro ao buscar recomendações",
-        description: "Não foi possível obter sugestões da IA neste momento. Tente novamente mais tarde.",
+        title: "Error fetching recommendations",
+        description: "Could not get AI suggestions at this time. Please try again later.",
       });
     } finally {
       setIsLoadingRecommendations(false);
@@ -87,10 +81,9 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
   
   const getPostTime = () => {
     if (listing.createdAt instanceof Date) {
-      return formatDistanceToNow(listing.createdAt, { addSuffix: true, locale: ptBR });
+      return formatDistanceToNow(listing.createdAt, { addSuffix: true, locale: enUS });
     }
-    // Fallback for when date is not yet processed
-    return 'há um tempo';
+    return 'a while ago';
   }
 
   const getInitials = (name: string) => {
@@ -110,7 +103,7 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
                       <CarouselItem key={index}>
                         <Image
                           src={url}
-                          alt={`${listing.title} - Imagem ${index + 1}`}
+                          alt={`${listing.title} - Image ${index + 1}`}
                           width={800}
                           height={450}
                           className="w-full aspect-video object-cover"
@@ -127,7 +120,7 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
                 </Carousel>
               ) : (
                 <div className="w-full h-64 bg-muted flex items-center justify-center rounded-t-lg">
-                  <p className="text-muted-foreground">Nenhuma imagem fornecida</p>
+                  <p className="text-muted-foreground">No image provided</p>
                 </div>
               )
             }
@@ -136,7 +129,7 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
               <CardDescription className="flex flex-wrap items-center gap-x-4 gap-y-2 text-base pt-2">
                 <span className="flex items-center"><MapPin className="mr-1 h-4 w-4" /> {listing.location}</span>
                 <span className="flex items-center"><Calendar className="mr-1 h-4 w-4" /> {getPostTime()}</span>
-                <span className="flex items-center"><Tag className="mr-1 h-4 w-4" /> Categoria: {listing.category?.name || 'Não informada'}</span>
+                <span className="flex items-center"><Tag className="mr-1 h-4 w-4" /> Category: {listing.category?.name || 'Not specified'}</span>
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -144,9 +137,9 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
                 {listing.description}
               </p>
               <div className="mt-6 border-t pt-6">
-                <h3 className="text-xl font-bold mb-4">Recomendações da IA</h3>
+                <h3 className="text-xl font-bold mb-4">AI Recommendations</h3>
                 <p className="text-gray-600 mb-4">
-                  Clique no botão abaixo para que nossa inteligência artificial encontre os melhores fornecedores para o seu pedido.
+                  Click the button below for our AI to find the best providers for your request.
                 </p>
                 <Button onClick={handleGetRecommendations} disabled={isLoadingRecommendations}>
                   {isLoadingRecommendations ? (
@@ -154,7 +147,7 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
                   ) : (
                     <Bot className="mr-2 h-4 w-4" />
                   )}
-                  {isLoadingRecommendations ? "Buscando..." : "Encontrar Fornecedores com IA"}
+                  {isLoadingRecommendations ? "Searching..." : "Find Providers with AI"}
                 </Button>
                 
                 {recommendations && recommendations.recommendations.length > 0 && (
@@ -172,13 +165,13 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
                               <Badge className="flex items-center gap-1 text-base py-1 px-3 bg-blue-100 text-blue-800 border-blue-200">
                                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /> 
                                   {(rec.matchScore * 100).toFixed(0)}%
-                                  <span className="hidden sm:inline-block ml-1">Compatível</span>
+                                  <span className="hidden sm:inline-block ml-1">Compatible</span>
                               </Badge>
                           </div>
                         </CardHeader>
                         <CardContent>
                             <Button asChild variant="outline" disabled>
-                                <Link href="#">Ver Perfil (demo)</Link>
+                                <Link href="#">View Profile (demo)</Link>
                             </Button>
                         </CardContent>
                       </Card>
@@ -187,31 +180,30 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
                 )}
 
                  {recommendations && recommendations.recommendations.length === 0 && (
-                   <p className="mt-6 text-gray-600">Nenhuma recomendação encontrada.</p>
+                   <p className="mt-6 text-gray-600">No recommendations found.</p>
                  )}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Coluna lateral */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Orçamento</CardTitle>
+              <CardTitle className="text-xl">Budget</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center text-3xl font-bold text-primary">
                 <Wallet className="mr-2 h-8 w-8" />
-                <span>R$ {listing.budget.toFixed(2)}</span>
+                <span>$ {listing.budget.toFixed(2)}</span>
               </div>
-              <p className="text-muted-foreground mt-1">Valor estimado/máximo</p>
+              <p className="text-muted-foreground mt-1">Estimated/maximum value</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl">Informações do Solicitante</CardTitle>
+              <CardTitle className="text-xl">Requester Information</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-start gap-4">
               <div className="flex items-center gap-4">
@@ -222,24 +214,24 @@ export default function ListingDetailPage({ listing: initialListing }: { listing
                   <div>
                     <h4 className="font-bold">{listing.author.name}</h4>
                     <Button variant="link" className="p-0 h-auto" asChild>
-                        <Link href={`/profile/${listing.author.id}`}>Ver Perfil</Link>
+                        <Link href={`/profile/${listing.author.id}`}>View Profile</Link>
                     </Button>
                   </div>
               </div>
               <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={handleStartConversation}>
-                  <MessageSquare className="h-4 w-4"/> Iniciar Conversa
+                  <MessageSquare className="h-4 w-4"/> Start Conversation
               </Button>
             </CardContent>
           </Card>
           
            <Card className="bg-primary text-primary-foreground">
             <CardHeader>
-              <CardTitle className="text-xl">Pronto para ajudar?</CardTitle>
+              <CardTitle className="text-xl">Ready to help?</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="mb-4">Se você pode atender a este pedido, envie sua proposta agora mesmo.</p>
+                <p className="mb-4">If you can fulfill this request, send your proposal now.</p>
                 <Button className="w-full bg-white text-primary hover:bg-gray-100" onClick={handleStartConversation}>
-                   <Handshake className="mr-2 h-4 w-4" /> Enviar Proposta
+                   <Handshake className="mr-2 h-4 w-4" /> Send Proposal
                 </Button>
             </CardContent>
           </Card>

@@ -26,12 +26,12 @@ import ReCAPTCHA from "react-google-recaptcha";
 const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const formSchema = z.object({
-  firstName: z.string().min(1, "O nome é obrigatório."),
-  lastName: z.string().min(1, "O sobrenome é obrigatório."),
-  email: z.string().email("Por favor, insira um e-mail válido."),
-  cpf: z.string().refine((cpf) => /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf), "O CPF deve ter o formato 000.000.000-00."),
-  phone: z.string().optional().refine(phone => !phone || phone.length === 0 || /^\(\d{2}\) \d{5}-\d{4}$/.test(phone), "O telefone deve ter o formato (00) 00000-0000."),
-  password: z.string().min(8, "A senha deve ter no mínimo 8 caracteres."),
+  firstName: z.string().min(1, "First name is required."),
+  lastName: z.string().min(1, "Last name is required."),
+  email: z.string().email("Please enter a valid email."),
+  cpf: z.string().refine((cpf) => /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(cpf), "CPF must be in the format 000.000.000-00."),
+  phone: z.string().optional().refine(phone => !phone || phone.length === 0 || /^\(\d{2}\) \d{5}-\d{4}$/.test(phone), "Phone must be in the format (00) 00000-0000."),
+  password: z.string().min(8, "Password must be at least 8 characters long."),
   confirmPassword: z.string(),
   cep: z.string().optional(),
   street: z.string().optional(),
@@ -39,10 +39,10 @@ const formSchema = z.object({
   neighborhood: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  terms: z.boolean().refine(val => val === true, "Você deve aceitar os termos de uso."),
+  terms: z.boolean().refine(val => val === true, "You must accept the terms of use."),
   recaptcha: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem.",
+  message: "Passwords do not match.",
   path: ["confirmPassword"],
 }).refine(data => {
     if (recaptchaSiteKey) {
@@ -50,15 +50,15 @@ const formSchema = z.object({
     }
     return true;
 }, {
-  message: "Por favor, complete o reCAPTCHA.",
+  message: "Please complete the reCAPTCHA.",
   path: ["recaptcha"],
 }).superRefine((data, ctx) => {
     if (data.cep && data.cep.length > 0) {
-        if (!data.street) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A rua é obrigatória.", path: ["street"] });
-        if (!data.number) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "O número é obrigatório.", path: ["number"] });
-        if (!data.neighborhood) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "O bairro é obrigatório.", path: ["neighborhood"] });
-        if (!data.city) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A cidade é obrigatória.", path: ["city"] });
-        if (!data.state) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "O estado é obrigatório.", path: ["state"] });
+        if (!data.street) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Street is required.", path: ["street"] });
+        if (!data.number) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Number is required.", path: ["number"] });
+        if (!data.neighborhood) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Neighborhood is required.", path: ["neighborhood"] });
+        if (!data.city) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "City is required.", path: ["city"] });
+        if (!data.state) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "State is required.", path: ["state"] });
     }
 });
 
@@ -111,7 +111,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         form.setFocus("number");
       }
     } catch (error) {
-      console.error("Erro ao buscar CEP:", error);
+      console.error("Error fetching CEP:", error);
     }
   };
 
@@ -178,22 +178,22 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
       await setDoc(doc(db, "users", user.uid), userDoc);
 
       toast({
-        title: "Cadastro realizado!",
-        description: "Sua conta foi criada com sucesso.",
+        title: "Registration successful!",
+        description: "Your account has been created successfully.",
       });
       onSwitchToLogin();
     } catch (error: any) {
       console.error("Registration failed:", error);
-      let description = "Ocorreu um erro ao tentar se cadastrar.";
+      let description = "An error occurred while trying to register.";
       if(error.code === 'auth/email-already-in-use') {
-        description = "Este e-mail já está em uso por outra conta.";
+        description = "This email is already in use by another account.";
       }
       if (error.code === 'auth/firebase-app-check-token-is-invalid') {
-        description = "A verificação do App Check falhou. Por favor, recarregue a página e tente novamente."
+        description = "App Check verification failed. Please reload the page and try again."
       }
       toast({
         variant: "destructive",
-        title: "Falha no cadastro",
+        title: "Registration failed",
         description,
       });
     } finally {
@@ -212,9 +212,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome</FormLabel>
+                    <FormLabel>First Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Seu nome" {...field} />
+                      <Input placeholder="Your first name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -225,9 +225,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Sobrenome</FormLabel>
+                    <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Seu sobrenome" {...field} />
+                      <Input placeholder="Your last name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -239,9 +239,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>E-mail</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="seu@email.com" {...field} />
+                  <Input placeholder="your@email.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -271,7 +271,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefone (opcional)</FormLabel>
+                  <FormLabel>Phone (optional)</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="(00) 00000-0000" 
@@ -291,11 +291,11 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha</FormLabel>
+                  <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Crie uma senha" {...field} />
+                    <Input type="password" placeholder="Create a password" {...field} />
                   </FormControl>
-                  <p className="text-xs text-gray-500 mt-1">Mínimo de 8 caracteres.</p>
+                  <p className="text-xs text-gray-500 mt-1">Minimum of 8 characters.</p>
                   <FormMessage />
                 </FormItem>
               )}
@@ -305,9 +305,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirmar Senha</FormLabel>
+                  <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Confirme sua senha" {...field} />
+                    <Input type="password" placeholder="Confirm your password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -320,7 +320,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               name="cep"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CEP (opcional)</FormLabel>
+                  <FormLabel>CEP (optional)</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="00000-000" 
@@ -340,9 +340,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 name="street"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>Endereço</FormLabel>
+                    <FormLabel>Street</FormLabel>
                     <FormControl>
-                      <Input placeholder="Sua rua, avenida..." {...field} />
+                      <Input placeholder="Your street, avenue..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -353,7 +353,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 name="number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Número</FormLabel>
+                    <FormLabel>Number</FormLabel>
                     <FormControl>
                       <Input placeholder="Nº" {...field} />
                     </FormControl>
@@ -368,9 +368,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 name="neighborhood"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bairro</FormLabel>
+                    <FormLabel>Neighborhood</FormLabel>
                     <FormControl>
-                      <Input placeholder="Seu bairro" {...field} />
+                      <Input placeholder="Your neighborhood" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -381,9 +381,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 name="city"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cidade</FormLabel>
+                    <FormLabel>City</FormLabel>
                     <FormControl>
-                      <Input placeholder="Sua cidade" {...field} />
+                      <Input placeholder="Your city" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -394,7 +394,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 name="state"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado</FormLabel>
+                    <FormLabel>State</FormLabel>
                     <FormControl>
                       <Input placeholder="UF" {...field} maxLength={2} />
                     </FormControl>
@@ -417,7 +417,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
                 </FormControl>
                 <div className="space-y-1 leading-none">
                   <FormLabel className="text-sm font-normal">
-                     Concordo com os <Link href="#" className="text-blue-600 hover:underline">Termos de Serviço</Link> e a <Link href="#" className="text-blue-600 hover:underline">Política de Privacidade</Link>.
+                     I agree to the <Link href="#" className="text-blue-600 hover:underline">Terms of Service</Link> and <Link href="#" className="text-blue-600 hover:underline">Privacy Policy</Link>.
                   </FormLabel>
                    <FormMessage />
                 </div>
@@ -447,20 +447,20 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
           <div className="pt-2">
             <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="animate-spin" />}
-                {!isLoading && "Criar conta"}
+                {!isLoading && "Create account"}
             </Button>
           </div>
         </form>
       </Form>
       <div className="text-center text-gray-600 text-sm">
-        Já tem uma conta?{" "}
+        Already have an account?{" "}
         <Button
           variant="link"
           type="button"
           onClick={onSwitchToLogin}
           className="p-0 h-auto"
         >
-          Faça login
+          Login
         </Button>
       </div>
     </div>

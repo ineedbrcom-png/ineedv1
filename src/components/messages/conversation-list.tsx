@@ -5,7 +5,7 @@ import { type Conversation } from "@/lib/types";
 import { Inbox, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import { useAuth } from "@/hooks/use-auth";
 import type { Timestamp } from "firebase/firestore";
 
@@ -21,20 +21,20 @@ export function ConversationList({ conversations, activeConversationId, onConver
   
   const getTimestamp = (timestamp: Timestamp | any) => {
     if (!timestamp?.toDate) return '';
-    return formatDistanceToNow(timestamp.toDate(), { addSuffix: true, locale: ptBR });
+    return formatDistanceToNow(timestamp.toDate(), { addSuffix: true, locale: enUS });
   }
 
   return (
     <div className="w-full lg:w-1/3 border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-xl font-bold flex items-center">
-          <Inbox className="mr-2 h-5 w-5" /> Mensagens
+          <Inbox className="mr-2 h-5 w-5" /> Messages
         </h2>
       </div>
 
       <div className="p-4 border-b border-gray-200">
         <div className="relative">
-          <Input type="text" placeholder="Buscar conversas..." className="pl-10"/>
+          <Input type="text" placeholder="Search conversations..." className="pl-10"/>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         </div>
       </div>
@@ -46,7 +46,7 @@ export function ConversationList({ conversations, activeConversationId, onConver
           </div>
         ) : conversations.length === 0 ? (
            <div className="text-center p-6 text-gray-500">
-             <p>Nenhuma conversa encontrada.</p>
+             <p>No conversations found.</p>
            </div>
         ) : (
           conversations.map((convo) => {

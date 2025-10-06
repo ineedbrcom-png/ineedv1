@@ -32,7 +32,7 @@ import { ActivityTab } from "@/components/profile/activity-tab";
 import { SettingsTab } from "@/components/profile/settings-tab";
 
 const profileFormSchema = z.object({
-  displayName: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
+  displayName: z.string().min(3, "Name must be at least 3 characters."),
   about: z.string().optional(),
   skills: z.string().optional(),
 });
@@ -109,7 +109,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
     const file = event.target.files?.[0];
     if (!file || !user || !isOwnProfile) return;
 
-    toast({ title: "Enviando imagem...", description: "Por favor, aguarde." });
+    toast({ title: "Uploading image...", description: "Please wait." });
 
     try {
       const { db, storage } = getFirebaseClient();
@@ -126,15 +126,15 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
 
       setProfile(prev => prev ? {...prev, photoURL} : null)
       toast({
-          title: "Imagem de perfil atualizada!",
-          description: "Sua nova foto de perfil está visível."
+          title: "Profile image updated!",
+          description: "Your new profile picture is visible."
       });
     } catch (error) {
         console.error("Error uploading profile image: ", error);
         toast({
             variant: "destructive",
-            title: "Erro no upload",
-            description: "Não foi possível enviar sua imagem. Tente novamente."
+            title: "Upload Error",
+            description: "Could not upload your image. Please try again."
         })
     }
   };
@@ -162,15 +162,15 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
         setProfile(prev => prev ? {...prev, ...updatedData} : null);
         setIsEditing(false);
         toast({
-            title: "Perfil Atualizado!",
-            description: "Suas informações foram salvas com sucesso.",
+            title: "Profile Updated!",
+            description: "Your information has been saved successfully.",
         });
     } catch (error) {
         console.error("Error updating profile: ", error);
         toast({
             variant: "destructive",
-            title: "Erro ao atualizar",
-            description: "Não foi possível salvar suas alterações. Tente novamente.",
+            title: "Error updating",
+            description: "Could not save your changes. Please try again.",
         });
     } finally {
         setIsSaving(false);
@@ -196,12 +196,12 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
         <div className="flex flex-col items-center justify-center text-center py-20">
           <Card className="w-full max-w-lg p-8">
             <CardHeader>
-              <CardTitle className="text-2xl mb-2">Acesso Negado</CardTitle>
+              <CardTitle className="text-2xl mb-2">Access Denied</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-6">Você precisa estar logado para ver este perfil.</p>
+              <p className="mb-6">You need to be logged in to view this profile.</p>
               <Button onClick={() => setIsAuthModalOpen(true)}>
-                Fazer Login ou Cadastrar
+                Login or Sign Up
               </Button>
             </CardContent>
           </Card>
@@ -274,7 +274,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                                 )}
                             />
                         ) : (
-                            <h1 className="text-2xl font-bold">{profile.displayName || "Usuário"}</h1>
+                            <h1 className="text-2xl font-bold">{profile.displayName || "User"}</h1>
                         )}
                         <span className="text-gray-500 ml-0 md:ml-2">
                         @{profile.email?.split("@")[0]}
@@ -287,14 +287,14 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                                 render={({ field }) => (
                                     <FormItem className="mt-2">
                                     <FormControl>
-                                            <Textarea placeholder="Fale um pouco sobre você..." {...field} />
+                                            <Textarea placeholder="Tell us a little about yourself..." {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         ) : (
-                            <p className="text-gray-600 mt-2">{profile.about || (isOwnProfile ? "Edite seu perfil para adicionar uma descrição." : "Nenhuma descrição fornecida.")}</p>
+                            <p className="text-gray-600 mt-2">{profile.about || (isOwnProfile ? "Edit your profile to add a description." : "No description provided.")}</p>
                         )}
                     <div className="flex flex-wrap items-center justify-center md:justify-start mt-3 text-sm text-muted-foreground gap-x-4 gap-y-1">
                         {profile.address && profile.address.city && (
@@ -303,8 +303,8 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                         </span>
                         )}
                         <span className="flex items-center">
-                        <Calendar className="mr-1 h-4 w-4" /> No iNeed desde{" "}
-                        {joinDate.toLocaleDateString("pt-BR", {
+                        <Calendar className="mr-1 h-4 w-4" /> On iNeed since{" "}
+                        {joinDate.toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
                         })}
@@ -316,7 +316,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                             variant={"default"}
                             className={`gap-2 p-2 bg-green-100 text-green-800 border-green-200`}
                             >
-                            <CheckCircle className="h-4 w-4" /> Email Verificado
+                            <CheckCircle className="h-4 w-4" /> Email Verified
                             </Badge>
                         )}
                         <Badge
@@ -325,7 +325,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                         }
                         className={`gap-2 p-2 ${profile.isPhoneVerified ? 'bg-green-100 text-green-800 border-green-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
                         >
-                        <CheckCircle className="h-4 w-4" /> Telefone {profile.isPhoneVerified ? "Verificado" : "Não Verificado"}
+                        <CheckCircle className="h-4 w-4" /> Phone {profile.isPhoneVerified ? "Verified" : "Not Verified"}
                         </Badge>
                         <Badge
                         variant={
@@ -333,7 +333,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                         }
                         className={`gap-2 p-2 ${profile.isDocumentVerified ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'}`}
                         >
-                        <ShieldCheck className="h-4 w-4" /> Documento {profile.isDocumentVerified ? "Verificado" : "Não Verificado"}
+                        <ShieldCheck className="h-4 w-4" /> Document {profile.isDocumentVerified ? "Verified" : "Not Verified"}
                         </Badge>
                     </div>
                     </div>
@@ -341,7 +341,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                         {isOwnProfile && (isEditing ? (
                             <div className="flex gap-2">
                                 <Button type="submit" disabled={isSaving}>
-                                    {isSaving ? <Loader2 className="animate-spin" /> : "Salvar"}
+                                    {isSaving ? <Loader2 className="animate-spin" /> : "Save"}
                                 </Button>
                                 <Button variant="ghost" onClick={handleEditToggle} type="button">
                                     <X />
@@ -349,7 +349,7 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                             </div>
                         ) : (
                             <Button onClick={handleEditToggle} type="button">
-                                <Pencil className="mr-2 h-4 w-4" /> Editar Perfil
+                                <Pencil className="mr-2 h-4 w-4" /> Edit Profile
                             </Button>
                         ))}
                         
@@ -371,20 +371,20 @@ export function ProfileClient({ profileId: profileIdFromProps }: ProfileClientPr
                         value="supplier"
                         className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none"
                     >
-                        Fornecedor
+                        Supplier
                     </TabsTrigger>
                     <TabsTrigger
                         value="activity"
                         className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none"
                     >
-                        Atividade
+                        Activity
                     </TabsTrigger>
                     {isOwnProfile && (
                         <TabsTrigger
                             value="settings"
                             className="py-3 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none data-[state=active]:shadow-none"
                         >
-                            Configurações
+                            Settings
                         </TabsTrigger>
                     )}
                     </TabsList>

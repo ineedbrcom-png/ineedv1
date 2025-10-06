@@ -66,17 +66,17 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
           <Tabs defaultValue="products" className="container mx-auto px-4 mt-10">
             <TabsList className="border-b border-gray-200 bg-transparent p-0 justify-start h-auto rounded-none">
               <TabsTrigger value="products" className="py-3 px-6 font-medium data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none text-gray-600">
-                <Box className="mr-2 h-5 w-5" /> Produtos
+                <Box className="mr-2 h-5 w-5" /> Products
               </TabsTrigger>
               <TabsTrigger value="services" className="py-3 px-6 font-medium data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none text-gray-600">
-                <Wrench className="mr-2 h-5 w-5" /> Serviços
+                <Wrench className="mr-2 h-5 w-5" /> Services
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="products">
               <section className="py-8 bg-background">
                 <div className="container mx-auto px-4">
-                  <h3 className="text-2xl font-bold mb-6 text-gray-800">Categorias de Produtos</h3>
+                  <h3 className="text-2xl font-bold mb-6 text-gray-800">Product Categories</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-4">
                     {productCategories.map((cat, index) => (
                       <CategoryCard
@@ -91,9 +91,9 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
               <section className="py-12 bg-muted/50">
                 <div className="container mx-auto px-4">
                   <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-bold text-gray-800">Pedidos Recentes de Produtos</h3>
+                    <h3 className="text-2xl font-bold text-gray-800">Recent Product Requests</h3>
                     <Link href="/explore/all" className="text-primary hover:underline font-medium flex items-center">
-                      Ver todos <ChevronRight className="h-4 w-4 ml-1" />
+                      View all <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
                   </div>
                   <ListingGrid
@@ -109,7 +109,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
             <TabsContent value="services">
               <section className="py-8 bg-background">
                 <div className="container mx-auto px-4">
-                  <h3 className="text-2xl font-bold mb-6 text-gray-800">Categorias de Serviços</h3>
+                  <h3 className="text-2xl font-bold mb-6 text-gray-800">Service Categories</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-11 gap-4">
                     {serviceCategories.map((cat, index) => (
                       <CategoryCard
@@ -124,9 +124,9 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
               <section className="py-12 bg-muted/50">
                 <div className="container mx-auto px-4">
                   <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-2xl font-bold text-gray-800">Pedidos Recentes de Serviços</h3>
+                    <h3 className="text-2xl font-bold text-gray-800">Recent Service Requests</h3>
                     <Link href="/explore/all" className="text-primary hover:underline font-medium flex items-center">
-                      Ver todos <ChevronRight className="h-4 w-4 ml-1" />
+                      View all <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
                   </div>
                   <ListingGrid
@@ -143,7 +143,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
           <section className="py-12 bg-background">
             <div className="container mx-auto px-4">
               <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-                Pedidos Ativos no Mapa
+                Active Requests on the Map
               </h2>
               <Map />
             </div>

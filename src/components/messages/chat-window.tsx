@@ -22,7 +22,6 @@ export function ChatWindow({ conversation, messages, isLoading }: ChatWindowProp
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll to bottom when messages change
     if (scrollRef.current) {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
@@ -40,10 +39,10 @@ export function ChatWindow({ conversation, messages, isLoading }: ChatWindowProp
         <div>
           <div className="flex items-center">
             <h3 className="font-bold">{otherParticipant?.name}</h3>
-            <Link href={`/profile/${otherParticipant?.id}`} className="ml-2 text-sm text-blue-600 hover:underline">(ver perfil)</Link>
+            <Link href={`/profile/${otherParticipant?.id}`} className="ml-2 text-sm text-blue-600 hover:underline">(view profile)</Link>
           </div>
           <p className="text-sm text-gray-600">
-            Sobre o pedido: <Link href={`/listing/${conversation.listingId}`} className="text-blue-600 hover:underline">{conversation.listingTitle.replace('Re: ', '')}</Link>
+            Regarding the request: <Link href={`/listing/${conversation.listingId}`} className="text-blue-600 hover:underline">{conversation.listingTitle.replace('Re: ', '')}</Link>
           </p>
         </div>
       </div>

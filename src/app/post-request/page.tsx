@@ -21,7 +21,7 @@ export default function PostRequestPage() {
   if (isAuthLoading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <p>Carregando...</p>
+        <p>Loading...</p>
       </div>
     );
   }
@@ -31,12 +31,12 @@ export default function PostRequestPage() {
       <>
         <div className="flex flex-col items-center justify-center text-center py-20">
           <Card className="w-full max-w-lg p-8">
-            <CardTitle className="text-2xl mb-2">Acesso Negado</CardTitle>
+            <CardTitle className="text-2xl mb-2">Access Denied</CardTitle>
             <CardDescription className="mb-6">
-              Você precisa estar logado para criar um novo pedido.
+              You need to be logged in to create a new request.
             </CardDescription>
             <Button onClick={() => setIsAuthModalOpen(true)}>
-              Fazer Login ou Cadastrar
+              Login or Sign Up
             </Button>
           </Card>
         </div>
@@ -53,10 +53,9 @@ export default function PostRequestPage() {
     <div className="flex justify-center items-start py-8">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle className="text-2xl">Criar um novo pedido</CardTitle>
+          <CardTitle className="text-2xl">Create a new request</CardTitle>
           <CardDescription>
-            Detalhe o que você precisa e deixe que o fornecedor certo encontre
-            você.
+            Detail what you need and let the right provider find you.
           </CardDescription>
         </CardHeader>
         <CardContent>

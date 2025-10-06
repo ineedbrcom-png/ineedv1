@@ -1,5 +1,5 @@
 
-import type { Category } from "./types"; // Alterado para importar de types.ts
+import type { Category } from "./types";
 import { sluggify } from "./utils";
 
 function createCategory(name: string, iconName: string, type: 'product' | 'service'): Category {
@@ -15,30 +15,30 @@ function createCategory(name: string, iconName: string, type: 'product' | 'servi
 }
 
 export const productCategories: Category[] = [
-    createCategory("Tecnologia", "Laptop", 'product'),
-    createCategory("Celulares", "Smartphone", 'product'),
-    createCategory("Móveis & Eletro", "Sofa", 'product'),
-    createCategory("Auto Peças", "Cog", 'product'),
-    createCategory("Aluguéis", "KeyRound", 'product'),
-    createCategory("Livros", "Book", 'product'),
-    createCategory("Moda", "Shirt", 'product'),
+    createCategory("Technology", "Laptop", 'product'),
+    createCategory("Cell Phones", "Smartphone", 'product'),
+    createCategory("Furniture & Appliances", "Sofa", 'product'),
+    createCategory("Auto Parts", "Cog", 'product'),
+    createCategory("Rentals", "KeyRound", 'product'),
+    createCategory("Books", "Book", 'product'),
+    createCategory("Fashion", "Shirt", 'product'),
     createCategory("Games", "Gamepad", 'product'),
-    createCategory("Alimentos", "Utensils", 'product'),
-    createCategory("Infantil", "Baby", 'product'),
+    createCategory("Food", "Utensils", 'product'),
+    createCategory("Children", "Baby", 'product'),
 ];
 
 export const serviceCategories: Category[] = [
-    createCategory("Reparos", "Wrench", 'service'),
-    createCategory("Jardinagem", "Scissors", 'service'),
+    createCategory("Repairs", "Wrench", 'service'),
+    createCategory("Gardening", "Scissors", 'service'),
     createCategory("Pet Care", "Dog", 'service'),
-    createCategory("Reformas", "Paintbrush", 'service'),
-    createCategory("Mecânica", "Car", 'service'),
-    createCategory("TI", "Laptop2", 'service'),
-    createCategory("Aulas", "GraduationCap", 'service'),
-    createCategory("Estética", "Sparkles", 'service'),
+    createCategory("Renovations", "Paintbrush", 'service'),
+    createCategory("Mechanics", "Car", 'service'),
+    createCategory("IT", "Laptop2", 'service'),
+    createCategory("Classes", "GraduationCap", 'service'),
+    createCategory("Beauty", "Sparkles", 'service'),
     createCategory("Fitness", "Dumbbell", 'service'),
-    createCategory("Procura-se", "Search", 'service'),
-    createCategory("Denúncias", "ShieldAlert", 'service'),
+    createCategory("Wanted", "Search", 'service'),
+    createCategory("Reports", "ShieldAlert", 'service'),
 ];
 
 export const allCategories: Category[] = [...productCategories, ...serviceCategories];

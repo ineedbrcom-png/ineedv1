@@ -48,7 +48,7 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
     if (!message.proposalDetails || !user) return;
     
     if (isMe) {
-        toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode aceitar ou recusar sua própria proposta." });
+        toast({ variant: "destructive", title: "Action not allowed", description: "You cannot accept or reject your own proposal." });
         return;
     }
 
@@ -72,10 +72,10 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
         await batch.commit();
 
         setProposalStatus(newStatus);
-        toast({ title: `Proposta ${newStatus === 'accepted' ? 'aceita' : 'recusada'}!`, description: `O status da proposta foi atualizado.`});
+        toast({ title: `Proposal ${newStatus === 'accepted' ? 'accepted' : 'rejected'}!`, description: `The proposal status has been updated.`});
     } catch (error) {
         console.error("Error updating proposal:", error);
-        toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar o status da proposta."})
+        toast({ variant: "destructive", title: "Error", description: "Could not update the proposal status."})
     } finally {
         setIsUpdating(false);
     }
@@ -84,9 +84,8 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
   const handleUpdateContract = async (newStatus: 'accepted' | 'rejected') => {
     if (!message.contractDetails || !user) return;
     
-    // The sender of the contract cannot accept it
     if (isMe) {
-        toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode aceitar ou recusar um contrato que você enviou." });
+        toast({ variant: "destructive", title: "Action not allowed", description: "You cannot accept or reject a contract that you sent." });
         return;
     }
 
@@ -99,7 +98,6 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
             'contractDetails.status': newStatus
         });
 
-        // If accepted, update the conversation as well
         if (newStatus === 'accepted') {
             const conversationRef = doc(db, "conversations", message.conversationId);
             await updateDoc(conversationRef, {
@@ -109,10 +107,10 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
         
         setContractStatus(newStatus);
 
-        toast({ title: `Contrato ${newStatus === 'accepted' ? 'aceito' : 'recusado'}!`, description: `O status do contrato foi atualizado.`});
+        toast({ title: `Contract ${newStatus === 'accepted' ? 'accepted' : 'rejected'}!`, description: `The contract status has been updated.`});
     } catch (error) {
         console.error("Error updating contract:", error);
-        toast({ variant: "destructive", title: "Erro", description: "Não foi possível atualizar o status do contrato."})
+        toast({ variant: "destructive", title: "Error", description: "Could not update the contract status."})
     } finally {
         setIsUpdating(false);
     }
@@ -132,19 +130,19 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
       <>
         <div className="text-center my-4">
             <div className="inline-block bg-amber-50 rounded-lg p-4 text-center border border-amber-200 max-w-sm w-full">
-                <h4 className="font-bold mb-2 flex items-center justify-center gap-2"><Star className="text-amber-500"/> Avaliação Pendente</h4>
-                <p className="mb-4 text-sm">O trabalho foi concluído! Por favor, avalie sua experiência para ajudar a comunidade.</p>
+                <h4 className="font-bold mb-2 flex items-center justify-center gap-2"><Star className="text-amber-500"/> Pending Review</h4>
+                <p className="mb-4 text-sm">The job has been completed! Please rate your experience to help the community.</p>
                 <div className="space-y-2">
                     {hasUserReviewed ? (
-                        <p className="text-sm font-medium text-green-600">Você já avaliou {otherParticipant?.name}.</p>
+                        <p className="text-sm font-medium text-green-600">You have already reviewed {otherParticipant?.name}.</p>
                     ) : (
-                        <Button onClick={() => setIsReviewModalOpen(true)}>Avaliar {otherParticipant?.name}</Button>
+                        <Button onClick={() => setIsReviewModalOpen(true)}>Review {otherParticipant?.name}</Button>
                     )}
                     
                     {hasOtherUserReviewed ? (
-                         <p className="text-sm text-muted-foreground">{otherParticipant?.name} já te avaliou.</p>
+                         <p className="text-sm text-muted-foreground">{otherParticipant?.name} has already reviewed you.</p>
                     ) : (
-                         <p className="text-sm text-muted-foreground">Aguardando avaliação de {otherParticipant?.name}.</p>
+                         <p className="text-sm text-muted-foreground">Waiting for review from {otherParticipant?.name}.</p>
                     )}
                 </div>
             </div>
@@ -162,11 +160,11 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
     return (
       <div className="text-center my-4">
         <div className="inline-block bg-green-50 rounded-lg p-4 text-left border border-green-200 max-w-sm w-full">
-          <h4 className="font-bold mb-3 text-center">Dados de Contato Compartilhados</h4>
+          <h4 className="font-bold mb-3 text-center">Contact Details Shared</h4>
           <ul className="space-y-2 text-sm">
-            <li className="flex items-center"><User className="h-4 w-4 mr-2 text-green-700" /><strong>Nome:</strong><span className="ml-2">{message.contactDetails.name}</span></li>
-            <li className="flex items-center"><Phone className="h-4 w-4 mr-2 text-green-700" /><strong>Telefone:</strong><span className="ml-2">{message.contactDetails.phone}</span></li>
-            <li className="flex items-center"><Home className="h-4 w-4 mr-2 text-green-700" /><strong>Endereço:</strong><span className="ml-2">{message.contactDetails.address}</span></li>
+            <li className="flex items-center"><User className="h-4 w-4 mr-2 text-green-700" /><strong>Name:</strong><span className="ml-2">{message.contactDetails.name}</span></li>
+            <li className="flex items-center"><Phone className="h-4 w-4 mr-2 text-green-700" /><strong>Phone:</strong><span className="ml-2">{message.contactDetails.phone}</span></li>
+            <li className="flex items-center"><Home className="h-4 w-4 mr-2 text-green-700" /><strong>Address:</strong><span className="ml-2">{message.contactDetails.address}</span></li>
           </ul>
         </div>
       </div>
@@ -177,28 +175,28 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
     return (
       <div className="text-center my-4">
         <div className="inline-block bg-blue-50 rounded-lg p-4 text-center border border-blue-100 max-w-sm w-full">
-          <h4 className="font-bold mb-2">Proposta Formal</h4>
+          <h4 className="font-bold mb-2">Formal Proposal</h4>
           <div className="text-left space-y-1">
-            <p><span className="font-semibold">Valor:</span> R$ {message.proposalDetails.value.toFixed(2)}</p>
-            <p><span className="font-semibold">Prazo:</span> {message.proposalDetails.deadline}</p>
-            <p><span className="font-semibold">Condições:</span> {message.proposalDetails.conditions}</p>
+            <p><span className="font-semibold">Value:</span> $ {message.proposalDetails.value.toFixed(2)}</p>
+            <p><span className="font-semibold">Deadline:</span> {message.proposalDetails.deadline}</p>
+            <p><span className="font-semibold">Conditions:</span> {message.proposalDetails.conditions}</p>
           </div>
           <div className="mt-4">
             {proposalStatus === 'pending' && !isMe && (
               <div className="flex justify-center gap-4">
                 <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleUpdateProposal('accepted')} disabled={isUpdating}>
-                  {isUpdating ? <Loader2 className="mr-1 h-4 w-4 animate-spin"/> : <Check className="mr-1 h-4 w-4" />} Aceitar
+                  {isUpdating ? <Loader2 className="mr-1 h-4 w-4 animate-spin"/> : <Check className="mr-1 h-4 w-4" />} Accept
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => handleUpdateProposal('rejected')} disabled={isUpdating}>
-                  <X className="mr-1 h-4 w-4" /> Recusar
+                  <X className="mr-1 h-4 w-4" /> Decline
                 </Button>
               </div>
             )}
             {proposalStatus === 'pending' && isMe && (
-                 <p className="font-medium text-yellow-600 text-sm">Aguardando resposta do cliente...</p>
+                 <p className="font-medium text-yellow-600 text-sm">Waiting for customer response...</p>
             )}
-            {proposalStatus === 'accepted' && <p className="font-medium text-green-600">Proposta aceita!</p>}
-            {proposalStatus === 'rejected' && <p className="font-medium text-red-600">Proposta recusada.</p>}
+            {proposalStatus === 'accepted' && <p className="font-medium text-green-600">Proposal accepted!</p>}
+            {proposalStatus === 'rejected' && <p className="font-medium text-red-600">Proposal rejected.</p>}
           </div>
         </div>
       </div>
@@ -210,31 +208,32 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
       <>
       <div className="text-center my-4">
         <div className="inline-block bg-yellow-50 rounded-lg p-4 text-center border border-yellow-200 max-w-sm w-full">
-          <h4 className="font-bold mb-2 flex items-center justify-center gap-2"><FileText /> Contrato Gerado</h4>
-          <p className="mb-4 text-sm">{isMe ? "Você enviou um contrato." : "Você recebeu uma proposta de contrato."}</p>
-          <Button onClick={() => setIsContractModalOpen(true)}>Ver Detalhes do Contrato</Button>
+          <h4 className="font-bold mb-2 flex items-center justify-center gap-2"><FileText /> Contract Generated</h4>
+          <p className="mb-4 text-sm">{isMe ? "You sent a contract." : "You received a contract proposal."}</p>
+          <Button onClick={() => setIsContractModalOpen(true)}>View Contract Details</Button>
           <div className="mt-4">
             {contractStatus === 'pending' && !isMe && (
               <div className="flex justify-center gap-4">
                 <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleUpdateContract('accepted')} disabled={isUpdating}>
-                  {isUpdating ? <Loader2 className="mr-1 h-4 w-4 animate-spin"/> : <Check className="mr-1 h-4 w-4" />} Aceitar Contrato
+                  {isUpdating ? <Loader2 className="mr-1 h-4 w-4 animate-spin"/> : <Check className="mr-1 h-4 w-4" />} Accept Contract
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => handleUpdateContract('rejected')} disabled={isUpdating}>
-                  <X className="mr-1 h-4 w-4" /> Recusar Contrato
+                  <X className="mr-1 h-4 w-4" /> Decline Contract
                 </Button>
               </div>
             )}
             {contractStatus === 'pending' && isMe && (
-                 <p className="font-medium text-yellow-600 text-sm mt-2">Aguardando resposta da outra parte...</p>
+                 <p className="font-medium text-yellow-600 text-sm mt-2">Waiting for the other party's response...</p>
             )}
-            {contractStatus === 'accepted' && <p className="font-medium text-green-600 mt-2">Contrato aceito por ambas as partes!</p>}
-            {contractStatus === 'rejected' && <p className="font-medium text-red-600 mt-2">Contrato recusado.</p>}
+            {contractStatus === 'accepted' && <p className="font-medium text-green-600 mt-2">Contract accepted by both parties!</p>}
+            {contractStatus === 'rejected' && <p className="font-medium text-red-600 mt-2">Contract rejected.</p>}
           </div>
         </div>
       </div>
       <ContractModal 
         isOpen={isContractModalOpen} 
-        onOpenChange={setIsContractModalOpen} 
+        onOpenChange={setIsContractModalOpen}
+        conversation={conversation}
         contractDetails={message.contractDetails}
         isSigner={!isMe}
       />
@@ -281,5 +280,3 @@ export function MessageBubble({ message, conversation }: MessageBubbleProps) {
     </div>
   );
 }
-
-    

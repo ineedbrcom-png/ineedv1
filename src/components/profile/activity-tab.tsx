@@ -12,21 +12,21 @@ export function ActivityTab() {
           <Card>
             <CardHeader>
               <h2 className="text-xl font-bold">
-                Histórico de Pedidos
+                Request History
               </h2>
             </CardHeader>
             <CardContent className="flex items-center justify-center h-40 text-muted-foreground">
-                <p>Nenhum pedido concluído ainda.</p>
+                <p>No completed requests yet.</p>
             </CardContent>
           </Card>
         </div>
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <h2 className="text-xl font-bold">Depoimentos</h2>
+              <h2 className="text-xl font-bold">Testimonials</h2>
             </CardHeader>
             <CardContent className="flex items-center justify-center h-24 text-muted-foreground">
-                <p>Nenhum depoimento recebido.</p>
+                <p>No testimonials received.</p>
             </CardContent>
           </Card>
         </div>

@@ -36,10 +36,10 @@ export function SupplierTab({
   return (
     <TabsContent value="supplier" className="p-6">
       <h2 className="text-xl font-bold mb-4">
-        O que {isOwnProfile ? "eu ofereço" : `${profile.displayName} oferece`}
+        What {isOwnProfile ? "I offer" : `${profile.displayName} offers`}
       </h2>
       <div className="mb-6 space-y-2">
-        <h3 className="font-medium">Habilidades / Categorias de Serviço</h3>
+        <h3 className="font-medium">Skills / Service Categories</h3>
         {isEditing && isOwnProfile ? (
           <FormField
             control={form.control}
@@ -48,12 +48,12 @@ export function SupplierTab({
               <FormItem>
                 <FormControl>
                   <Input
-                    placeholder="Ex: Design Gráfico, Edição de Vídeo"
+                    placeholder="E.g., Graphic Design, Video Editing"
                     {...field}
                   />
                 </FormControl>
                 <p className="text-xs text-muted-foreground">
-                  Separe as habilidades por vírgula.
+                  Separate skills with a comma.
                 </p>
                 <FormMessage />
               </FormItem>
@@ -74,8 +74,8 @@ export function SupplierTab({
             ) : (
               <p className="text-sm text-muted-foreground">
                 {isOwnProfile
-                  ? "Você ainda não adicionou nenhuma habilidade. Edite seu perfil para adicioná-las."
-                  : "Nenhuma habilidade informada."}
+                  ? "You haven't added any skills yet. Edit your profile to add them."
+                  : "No skills provided."}
               </p>
             )}
           </div>
@@ -83,28 +83,28 @@ export function SupplierTab({
       </div>
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="font-medium">Portfólio</h3>
+          <h3 className="font-medium">Portfolio</h3>
           {isOwnProfile && (
             <Button variant="link" className="text-primary p-0 h-auto">
-              <Plus className="mr-1 h-4 w-4" /> Adicionar item
+              <Plus className="mr-1 h-4 w-4" /> Add item
             </Button>
           )}
         </div>
         <Card className="flex items-center justify-center h-40 text-muted-foreground bg-muted/50 border-dashed">
-          <p>Nenhum item no portfólio ainda.</p>
+          <p>No portfolio items yet.</p>
         </Card>
       </div>
       <div className="grid md:grid-cols-2 gap-6">
         <div>
-          <h3 className="font-medium mb-2">Preços</h3>
+          <h3 className="font-medium mb-2">Pricing</h3>
           <p className="text-muted-foreground">
-            Funcionalidade em desenvolvimento.
+            Feature in development.
           </p>
         </div>
         <div>
-          <h3 className="font-medium mb-2">Área de Atendimento</h3>
+          <h3 className="font-medium mb-2">Service Area</h3>
           <div className="bg-muted border rounded-lg h-48 flex items-center justify-center text-muted-foreground">
-            <p>Funcionalidade em desenvolvimento.</p>
+            <p>Feature in development.</p>
           </div>
         </div>
       </div>

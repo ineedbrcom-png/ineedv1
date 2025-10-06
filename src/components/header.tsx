@@ -10,7 +10,7 @@ import {
   User,
   LogOut,
   ChevronDown,
-  Handshake, // Trocado de HandHeart para Handshake
+  Handshake,
   MessageCircle,
   Home,
   Menu,
@@ -76,8 +76,8 @@ export function Header() {
     if (!auth) {
       toast({
         variant: "destructive",
-        title: "Erro ao sair",
-        description: "Serviço de autenticação não disponível.",
+        title: "Logout Error",
+        description: "Authentication service not available.",
       });
       return;
     }
@@ -85,14 +85,14 @@ export function Header() {
       await signOut(auth);
       router.push("/");
       toast({
-        title: "Logout bem-sucedido",
-        description: "Você foi desconectado com sucesso.",
+        title: "Logout Successful",
+        description: "You have been successfully logged out.",
       })
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Erro ao sair",
-        description: "Não foi possível fazer logout. Tente novamente.",
+        title: "Logout Error",
+        description: "Could not log out. Please try again.",
       })
     }
     setIsSheetOpen(false);
@@ -109,7 +109,7 @@ export function Header() {
         className="text-foreground hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
         onClick={() => { router.push('/'); setIsSheetOpen(false); }}
       >
-        <Home className="h-4 w-4" /> Início
+        <Home className="h-4 w-4" /> Home
       </Button>
       {isLoggedIn && (
         <>
@@ -118,14 +118,14 @@ export function Header() {
             className="text-foreground hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
             onClick={() => handleLinkClick("/messages")}
           >
-            <MessageCircle className="h-4 w-4" /> Mensagens
+            <MessageCircle className="h-4 w-4" /> Messages
           </Button>
           <Button
             variant="link"
             className="text-foreground hover:underline font-medium flex items-center gap-1 justify-start p-0 h-auto text-base md:text-sm"
             onClick={() => handleLinkClick("/profile")}
           >
-            <User className="h-4 w-4" /> Perfil
+            <User className="h-4 w-4" /> Profile
           </Button>
         </>
       )}
@@ -143,14 +143,14 @@ export function Header() {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center space-x-2 text-primary">
-              <Handshake className="text-2xl" /> {/* Ícone atualizado */}
+              <Handshake className="text-2xl" />
               <h1 className="text-2xl font-bold">iNeed</h1>
             </Link>
 
             <form className="relative w-1/2 hidden md:block" onSubmit={handleSearch}>
               <Input
                 type="text"
-                placeholder="Buscar pedidos..."
+                placeholder="Search requests..."
                 className="w-full py-2 px-4 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary h-9"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -208,7 +208,7 @@ export function Header() {
                         className="cursor-pointer"
                       >
                         <LogOut className="mr-2 h-4 w-4" />
-                        <span>Sair</span>
+                        <span>Logout</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -223,13 +223,13 @@ export function Header() {
                     className="px-4 py-2 text-foreground hover:bg-accent/50 rounded-lg transition duration-300"
                     variant="ghost"
                   >
-                    Entrar
+                    Login
                   </Button>
                   <Button
                     onClick={() => openAuthModal("register")}
                     className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition duration-300"
                   >
-                    Cadastrar
+                    Sign Up
                   </Button>
                 </div>
               )}
@@ -255,13 +255,13 @@ export function Header() {
                             </div>
                           </div>
                           {navLinks}
-                          <Button variant="ghost" className="justify-start p-0 h-auto text-base" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />Sair</Button>
+                          <Button variant="ghost" className="justify-start p-0 h-auto text-base" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" />Logout</Button>
                         </>
                       ) : (
                         <>
                            {navLinks}
-                          <Button onClick={() => openAuthModal("login")} className="justify-center" variant="ghost" size="lg">Entrar</Button>
-                          <Button onClick={() => openAuthModal("register")} className="justify-center bg-primary text-primary-foreground" size="lg">Cadastrar</Button>
+                          <Button onClick={() => openAuthModal("login")} className="justify-center" variant="ghost" size="lg">Login</Button>
+                          <Button onClick={() => openAuthModal("register")} className="justify-center bg-primary text-primary-foreground" size="lg">Sign Up</Button>
                         </>
                       )}
                      </nav>

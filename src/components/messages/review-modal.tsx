@@ -27,8 +27,8 @@ import { doc, runTransaction, serverTimestamp, arrayUnion, collection } from "fi
 import { type Conversation } from "@/lib/data";
 
 const reviewSchema = z.object({
-  rating: z.number().min(1, "A avaliação é obrigatória.").max(5),
-  comment: z.string().min(10, "O comentário deve ter pelo menos 10 caracteres.").max(500, "O comentário não pode exceder 500 caracteres."),
+  rating: z.number().min(1, "Rating is required.").max(5),
+  comment: z.string().min(10, "Comment must be at least 10 characters.").max(500, "Comment cannot exceed 500 characters."),
 });
 
 type ReviewFormValues = z.infer<typeof reviewSchema>;
@@ -66,15 +66,15 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
     Simulating email to ineed@ineedbr.com`);
 
     toast({
-      title: "Reclamação Enviada",
-      description: "Sua reclamação foi registrada e será analisada pela nossa equipe.",
+      title: "Complaint Sent",
+      description: "Your complaint has been registered and will be reviewed by our team.",
     });
   }
 
 
   const onSubmit = async (data: ReviewFormValues) => {
     if (!user || !otherParticipant) {
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível enviar a avaliação." });
+      toast({ variant: "destructive", title: "Error", description: "Could not submit the review." });
       return;
     }
     setIsSubmitting(true);
@@ -88,7 +88,7 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
         const reviewedUserDoc = await transaction.get(reviewedUserRef);
 
         if (!reviewedUserDoc.exists()) {
-          throw new Error("Usuário a ser avaliado não encontrado.");
+          throw new Error("User to be reviewed not found.");
         }
 
         // Create new review
@@ -118,13 +118,13 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
         });
       });
 
-      toast({ title: "Avaliação Enviada!", description: "Obrigado pelo seu feedback." });
+      toast({ title: "Review Submitted!", description: "Thank you for your feedback." });
       onOpenChange(false);
       form.reset();
 
     } catch (error) {
       console.error("Error submitting review:", error);
-      toast({ variant: "destructive", title: "Erro ao enviar avaliação." });
+      toast({ variant: "destructive", title: "Error submitting review." });
     } finally {
       setIsSubmitting(false);
     }
@@ -136,9 +136,9 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Avaliar {otherParticipant?.name}</DialogTitle>
+          <DialogTitle>Review {otherParticipant?.name}</DialogTitle>
           <DialogDescription>
-            Sua avaliação ajuda a construir uma comunidade mais segura e confiável.
+            Your review helps build a safer and more reliable community.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -148,7 +148,7 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
               name="rating"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nota</FormLabel>
+                  <FormLabel>Rating</FormLabel>
                   <FormControl>
                     <div
                       className="flex items-center gap-1"
@@ -177,9 +177,9 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
               name="comment"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Comentário</FormLabel>
+                  <FormLabel>Comment</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Descreva sua experiência..." {...field} />
+                    <Textarea placeholder="Describe your experience..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,29 +189,29 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button variant="link" size="sm" className="p-0 text-xs text-muted-foreground h-auto hover:text-destructive">
-                        <AlertTriangle className="h-4 w-4 mr-1"/> Comunicar um problema
+                        <AlertTriangle className="h-4 w-4 mr-1"/> Report a problem
                     </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                    <AlertDialogTitle>Abrir Reclamação</AlertDialogTitle>
+                    <AlertDialogTitle>File a Complaint</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Você tem certeza que quer abrir esta reclamação? Os dados do usuário e da conversa serão enviados para nossa equipe de moderação.
+                        Are you sure you want to file this complaint? The user and conversation data will be sent to our moderation team.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                    <AlertDialogCancel>Não</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleReportUser} className="bg-destructive hover:bg-destructive/90">Sim</AlertDialogAction>
+                    <AlertDialogCancel>No</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleReportUser} className="bg-destructive hover:bg-destructive/90">Yes</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
               <div className="flex gap-2">
                 <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-                    Cancelar
+                    Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting && <Loader2 className="animate-spin mr-2" />}
-                    {isSubmitting ? "Enviando..." : "Enviar Avaliação"}
+                    {isSubmitting ? "Submitting..." : "Submit Review"}
                 </Button>
               </div>
             </DialogFooter>
@@ -221,5 +221,3 @@ export function ReviewModal({ isOpen, onOpenChange, conversation }: ReviewModalP
     </Dialog>
   );
 }
-
-    

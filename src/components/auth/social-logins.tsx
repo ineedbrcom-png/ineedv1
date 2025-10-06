@@ -36,16 +36,16 @@ export function SocialLogins() {
       console.error("Google login failed:", error);
       toast({
         variant: "destructive",
-        title: "Falha no login com Google",
-        description: "Não foi possível autenticar com o Google. Tente novamente.",
+        title: "Google login failed",
+        description: "Could not authenticate with Google. Please try again.",
       });
     }
   };
 
   const handleAppleLogin = () => {
      toast({
-        title: "Em breve!",
-        description: "O login com a Apple ainda não está disponível.",
+        title: "Coming soon!",
+        description: "Apple login is not yet available.",
       });
   }
 
@@ -54,11 +54,11 @@ export function SocialLogins() {
     <div className="space-y-3">
       <Button variant="outline" className="w-full" onClick={handleGoogleLogin}>
         <GoogleIcon />
-        <span>Entrar com Google</span>
+        <span>Login with Google</span>
       </Button>
       <Button variant="outline" className="w-full" onClick={handleAppleLogin}>
         <AppleIcon />
-        <span>Entrar com Apple</span>
+        <span>Login with Apple</span>
       </Button>
     </div>
   );

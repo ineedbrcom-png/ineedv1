@@ -21,35 +21,35 @@ export function SettingsTab() {
           <Card>
             <CardHeader>
               <h2 className="text-xl font-bold">
-                Gerenciamento de Notificações
+                Notification Management
               </h2>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-medium">
-                    Notificações de novas ofertas
+                    New offer notifications
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Receba alertas para seus pedidos
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">Mensagens diretas</p>
-                  <p className="text-sm text-muted-foreground">
-                    Receba notificações de novas mensagens
+                    Receive alerts for your requests
                   </p>
                 </div>
                 <Switch defaultChecked />
               </div>
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="font-medium">Atualizações de pedidos</p>
+                  <p className="font-medium">Direct messages</p>
                   <p className="text-sm text-muted-foreground">
-                    Saiba quando o status dos pedidos mudar
+                    Receive notifications for new messages
+                  </p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium">Request updates</p>
+                  <p className="text-sm text-muted-foreground">
+                    Know when the status of requests changes
                   </p>
                 </div>
                 <Switch />
@@ -58,26 +58,26 @@ export function SettingsTab() {
           </Card>
           <Card>
             <CardHeader>
-              <h2 className="text-xl font-bold">Segurança da Conta</h2>
+              <h2 className="text-xl font-bold">Account Security</h2>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <p className="font-medium mb-2">Alterar senha</p>
-                <Button>Alterar senha</Button>
+                <p className="font-medium mb-2">Change password</p>
+                <Button>Change password</Button>
               </div>
               <div>
                 <p className="font-medium mb-2">
-                  Autenticação de dois fatores
+                  Two-factor authentication
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-green-600 font-medium">
-                    Ativado
+                    Enabled
                   </span>
                   <Button
                     variant="link"
                     className="p-0 h-auto text-primary"
                   >
-                    Desativar
+                    Disable
                   </Button>
                 </div>
               </div>
@@ -87,40 +87,40 @@ export function SettingsTab() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <h2 className="text-xl font-bold">Privacidade</h2>
+              <h2 className="text-xl font-bold">Privacy</h2>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <p className="font-medium mb-2">
-                  Visibilidade do perfil
+                  Profile visibility
                 </p>
                 <Select defaultValue="public">
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="public">Público</SelectItem>
+                    <SelectItem value="public">Public</SelectItem>
                     <SelectItem value="connections">
-                      Apenas conexões
+                      Connections only
                     </SelectItem>
-                    <SelectItem value="private">Privado</SelectItem>
+                    <SelectItem value="private">Private</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <p className="font-medium mb-2">
-                  Histórico de pedidos
+                  Request history
                 </p>
                 <Select defaultValue="public">
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="public">Público</SelectItem>
+                    <SelectItem value="public">Public</SelectItem>
                     <SelectItem value="connections">
-                      Apenas conexões
+                      Connections only
                     </SelectItem>
-                    <SelectItem value="private">Privado</SelectItem>
+                    <SelectItem value="private">Private</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -128,14 +128,14 @@ export function SettingsTab() {
           </Card>
           <Card>
             <CardHeader>
-              <h2 className="text-xl font-bold">Dados da Conta</h2>
+              <h2 className="text-xl font-bold">Account Data</h2>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button variant="outline" className="w-full">
-                Baixar meus dados
+                Download my data
               </Button>
               <Button variant="destructive" className="w-full">
-                Excluir conta
+                Delete account
               </Button>
             </CardContent>
           </Card>

@@ -16,11 +16,12 @@ import { addDoc, collection, serverTimestamp, doc, updateDoc } from "firebase/fi
 import { getFirebaseClient } from "@/lib/firebase";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { type Conversation } from "@/lib/data";
 
 
 const proposalSchema = z.object({
-    value: z.coerce.number().positive("O valor deve ser positivo."),
-    deadline: z.string().min(1, "Selecione um prazo."),
+    value: z.coerce.number().positive("Value must be positive."),
+    deadline: z.string().min(1, "Select a deadline."),
     conditions: z.string().optional(),
 });
 
@@ -29,10 +30,10 @@ type ProposalFormValues = z.infer<typeof proposalSchema>;
 interface ProposalModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  conversationId: string;
+  conversation: Conversation;
 }
 
-export function ProposalModal({ isOpen, onOpenChange, conversationId }: ProposalModalProps) {
+export function ProposalModal({ isOpen, onOpenChange, conversation }: ProposalModalProps) {
     const { user } = useAuth();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,38 +47,43 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
 
     const onSubmit = async (data: ProposalFormValues) => {
         if (!user) {
-            toast({ variant: "destructive", title: "Você não está logado."});
+            toast({ variant: "destructive", title: "You are not logged in."});
             return;
         }
         setIsSubmitting(true);
         try {
             const { db } = getFirebaseClient();
-            const messagesCol = collection(db, "conversations", conversationId, "messages");
+            const messagesCol = collection(db, "conversations", conversation.id, "messages");
             await addDoc(messagesCol, {
-                content: `Proposta enviada no valor de R$ ${data.value.toFixed(2)}`,
+                content: `Proposal sent for $${data.value.toFixed(2)}`,
                 sender: user.uid,
                 timestamp: serverTimestamp(),
                 type: 'proposal',
                 proposalDetails: {
                     ...data,
-                    conditions: data.conditions || "Sem condições especiais",
+                    conditions: data.conditions || "No special conditions",
                     status: 'pending'
                 }
             });
 
-             const conversationRef = doc(db, "conversations", conversationId);
-             await updateDoc(conversationRef, {
-                 lastMessage: "Uma nova proposta foi enviada.",
-                 lastMessageTimestamp: serverTimestamp(),
-                 unreadBy: [conversation.participants.find(p => p !== user.uid)]
-             });
+             const conversationRef = doc(db, "conversations", conversation.id);
+             const otherParticipantId = conversation.participants.find(p => p !== user.uid);
 
-            toast({ title: "Proposta Enviada!", description: "Sua proposta foi registrada na conversa."});
+             if(otherParticipantId) {
+                await updateDoc(conversationRef, {
+                    lastMessage: "A new proposal has been sent.",
+                    lastMessageTimestamp: serverTimestamp(),
+                    unreadBy: [otherParticipantId]
+                });
+             }
+
+
+            toast({ title: "Proposal Sent!", description: "Your proposal has been recorded in the conversation."});
             form.reset();
             onOpenChange(false);
         } catch (error) {
             console.error("Error sending proposal:", error);
-            toast({ variant: "destructive", title: "Erro ao enviar proposta." });
+            toast({ variant: "destructive", title: "Error sending proposal." });
         } finally {
             setIsSubmitting(false);
         }
@@ -87,9 +93,9 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Enviar Proposta Formal</DialogTitle>
+          <DialogTitle>Send Formal Proposal</DialogTitle>
           <DialogDescription>
-            A proposta será enviada na conversa para que a outra parte possa aceitar ou recusar.
+            The proposal will be sent in the conversation so that the other party can accept or decline it.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -99,9 +105,9 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
                     name="value"
                     render={({ field }) => (
                         <FormItem>
-                            <Label>Valor (R$)</Label>
+                            <Label>Value ($)</Label>
                             <FormControl>
-                                <Input type="number" placeholder="Ex: 2500.00" {...field} />
+                                <Input type="number" placeholder="E.g., 2500.00" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -112,18 +118,18 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
                     name="deadline"
                     render={({ field }) => (
                         <FormItem>
-                             <Label>Prazo de Entrega</Label>
+                             <Label>Delivery Time</Label>
                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Selecione o prazo" />
+                                        <SelectValue placeholder="Select the deadline" />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="3 dias úteis">Em até 3 dias úteis</SelectItem>
-                                    <SelectItem value="1 semana">1 semana</SelectItem>
-                                    <SelectItem value="2 semanas">2 semanas</SelectItem>
-                                    <SelectItem value="A combinar">Outro (a combinar)</SelectItem>
+                                    <SelectItem value="3 business days">Within 3 business days</SelectItem>
+                                    <SelectItem value="1 week">1 week</SelectItem>
+                                    <SelectItem value="2 weeks">2 weeks</SelectItem>
+                                    <SelectItem value="To be agreed">Other (to be agreed)</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -135,19 +141,19 @@ export function ProposalModal({ isOpen, onOpenChange, conversationId }: Proposal
                     name="conditions"
                     render={({ field }) => (
                         <FormItem>
-                            <Label>Condições Especiais (opcional)</Label>
+                            <Label>Special Conditions (optional)</Label>
                             <FormControl>
-                                <Textarea placeholder="Garantia, condições de pagamento, etc." {...field} />
+                                <Textarea placeholder="Warranty, payment conditions, etc." {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
                  <DialogFooter>
-                    <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancelar</Button>
+                    <Button variant="outline" type="button" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancel</Button>
                     <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting && <Loader2 className="animate-spin mr-2" />}
-                        {isSubmitting ? "Enviando..." : "Enviar Proposta"}
+                        {isSubmitting ? "Sending..." : "Send Proposal"}
                     </Button>
                 </DialogFooter>
             </form>

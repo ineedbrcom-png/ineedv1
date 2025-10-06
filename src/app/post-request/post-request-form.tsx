@@ -37,17 +37,17 @@ import Image from "next/image";
 import { useJsApiLoader, Autocomplete } from "@react-google-maps/api";
 
 const formSchema = z.object({
-  title: z.string().min(10, "O título deve ter pelo menos 10 caracteres."),
-  categoryId: z.string({ required_error: "Por favor, selecione uma categoria." }),
+  title: z.string().min(10, "Title must be at least 10 characters long."),
+  categoryId: z.string({ required_error: "Please select a category." }),
   description: z
     .string()
-    .min(50, "A descrição deve ter pelo menos 50 caracteres."),
+    .min(50, "Description must be at least 50 characters long."),
   budget: z.coerce
     .number()
-    .positive("O orçamento deve ser um número positivo.")
-    .min(1, "O orçamento deve ser de pelo menos R$1."),
-  location: z.string().min(2, "A localização é obrigatória."),
-  images: z.array(z.instanceof(File)).max(4, "Você pode enviar no máximo 4 imagens.").optional(),
+    .positive("Budget must be a positive number.")
+    .min(1, "Budget must be at least $1."),
+  location: z.string().min(2, "Location is required."),
+  images: z.array(z.instanceof(File)).max(4, "You can upload a maximum of 4 images.").optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -113,8 +113,8 @@ export function PostRequestForm() {
     if (!description || description.length < 20) {
       toast({
         variant: "destructive",
-        title: "Descrição muito curta",
-        description: "Por favor, insira pelo menos 20 caracteres para refinar com IA.",
+        title: "Description too short",
+        description: "Please enter at least 20 characters to refine with AI.",
       });
       return;
     }
@@ -126,15 +126,15 @@ export function PostRequestForm() {
         shouldValidate: true,
       });
       toast({
-        title: "Descrição Refinada!",
-        description: "Sua descrição foi melhorada pela IA.",
+        title: "Description Refined!",
+        description: "Your description has been improved by AI.",
       });
     } catch (error) {
       console.error("Failed to refine description:", error);
       toast({
         variant: "destructive",
-        title: "Erro de IA",
-        description: "Não foi possível refinar a descrição. A IA pode estar temporariamente indisponível.",
+        title: "AI Error",
+        description: "Could not refine the description. The AI may be temporarily unavailable.",
       });
     } finally {
       setIsRefining(false);
@@ -145,8 +145,8 @@ export function PostRequestForm() {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Acesso Negado",
-        description: "Você precisa estar logado para publicar um pedido.",
+        title: "Access Denied",
+        description: "You must be logged in to post a request.",
       });
       return;
     }
@@ -156,7 +156,7 @@ export function PostRequestForm() {
       const { db, storage } = getFirebaseClient();
       let imageUrls: string[] = [];
 
-      // 1. Upload de Imagens
+      // 1. Image Upload
       if (values.images && values.images.length > 0) {
         const uploadPromises = values.images.map(async (image) => {
           const storageRef = ref(storage, `listings/${user.uid}/${Date.now()}_${image.name}`);
@@ -166,7 +166,7 @@ export function PostRequestForm() {
         imageUrls = await Promise.all(uploadPromises);
       }
       
-      // 2. Criação do Documento com status 'pendente'
+      // 2. Create Document with 'pending' status
       const docData = {
         title: values.title,
         categoryId: values.categoryId,
@@ -176,32 +176,32 @@ export function PostRequestForm() {
         authorId: user.uid,
         createdAt: serverTimestamp(),
         imageUrls: imageUrls,
-        status: 'pendente' as const, // <-- CORRETO: Apenas define como pendente.
+        status: 'pending' as const,
       };
 
       const docRef = await addDoc(collection(db, "listings"), docData);
 
       toast({
-        title: "Pedido Enviado para Análise!",
-        description: "Seu pedido foi recebido e será revisado em breve. Você será notificado quando for publicado.",
+        title: "Request Submitted for Review!",
+        description: "Your request has been received and will be reviewed shortly. You will be notified when it is published.",
       });
 
-      router.push(`/`); // Redireciona para a home page após o envio.
+      router.push(`/`); // Redirect to the home page after submission.
 
     } catch (error: any) {
       console.error("Error publishing request: ", error);
       
-      let errorMessage = "Ocorreu um erro inesperado. Por favor, tente novamente.";
+      let errorMessage = "An unexpected error occurred. Please try again.";
 
       if (error.code === 'permission-denied') {
-        errorMessage = "Você não tem permissão para publicar um pedido. Verifique as regras de segurança do seu projeto.";
+        errorMessage = "You do not have permission to publish a request. Please check your project's security rules.";
       } else if (error.code === 'unauthenticated') {
-        errorMessage = "Sua sessão expirou. Por favor, faça login novamente.";
+        errorMessage = "Your session has expired. Please log in again.";
       }
 
       toast({
         variant: "destructive",
-        title: "Falha ao Publicar",
+        title: "Failed to Publish",
         description: errorMessage,
       });
     } finally {
@@ -221,9 +221,9 @@ export function PostRequestForm() {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Título do Pedido</FormLabel>
+              <FormLabel>Request Title</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Preciso de um logo moderno" {...field} />
+                <Input placeholder="E.g., I need a modern logo" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -235,7 +235,7 @@ export function PostRequestForm() {
           render={({ field }) => (
             <FormItem>
               <div className="flex items-center justify-between">
-                <FormLabel>Descrição</FormLabel>
+                <FormLabel>Description</FormLabel>
                 <Button
                   type="button"
                   variant="ghost"
@@ -248,12 +248,12 @@ export function PostRequestForm() {
                   ) : (
                     <Sparkles className="mr-2 h-4 w-4 text-yellow-400" />
                   )}
-                  Refinar com IA
+                  Refine with AI
                 </Button>
               </div>
               <FormControl>
                 <Textarea
-                  placeholder="Descreva o que você precisa em detalhes..."
+                  placeholder="Describe what you need in detail..."
                   className="min-h-[150px]"
                   {...field}
                 />
@@ -268,14 +268,14 @@ export function PostRequestForm() {
           name="images"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Fotos do Pedido (até 4)</FormLabel>
+              <FormLabel>Request Photos (up to 4)</FormLabel>
               <FormControl>
                 <div className="flex items-center justify-center w-full">
                     <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                             <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
-                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Clique para enviar</span> ou arraste e solte</p>
-                            <p className="text-xs text-muted-foreground">PNG, JPG ou GIF (MAX. 4MB por imagem)</p>
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG or GIF (MAX. 4MB per image)</p>
                         </div>
                         <input id="dropzone-file" type="file" className="hidden" onChange={handleImageChange} multiple accept="image/*" disabled={(form.getValues('images') || []).length >= 4} />
                     </label>
@@ -311,14 +311,14 @@ export function PostRequestForm() {
             name="categoryId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Categoria</FormLabel>
+                <FormLabel>Category</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
+                      <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -338,9 +338,9 @@ export function PostRequestForm() {
             name="budget"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Orçamento (R$)</FormLabel>
+                <FormLabel>Budget ($)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="Ex: 500" {...field} />
+                  <Input type="number" placeholder="E.g., 500" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -353,7 +353,7 @@ export function PostRequestForm() {
           name="location"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Localização</FormLabel>
+              <FormLabel>Location</FormLabel>
               <FormControl>
                 <Autocomplete
                   onLoad={(autocomplete) => {
@@ -362,14 +362,13 @@ export function PostRequestForm() {
                   onPlaceChanged={handlePlaceChanged}
                   options={{
                     types: ["(regions)"],
-                    componentRestrictions: { country: "br" },
                   }}
                 >
-                  <Input placeholder="Ex: Santa Maria, RS ou 'Remoto'" {...field} />
+                  <Input placeholder="E.g., Santa Maria, RS or 'Remote'" {...field} />
                 </Autocomplete>
               </FormControl>
               <FormDescription>
-                Digite sua cidade e estado, ou especifique "Remoto".
+                Enter your city and state, or specify "Remote".
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -378,7 +377,7 @@ export function PostRequestForm() {
         <div className="flex justify-end pt-4">
           <Button type="submit" size="lg" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="animate-spin mr-2" />}
-            {isSubmitting ? "Publicando..." : "Publicar Pedido"}
+            {isSubmitting ? "Publishing..." : "Publish Request"}
           </Button>
         </div>
       </form>

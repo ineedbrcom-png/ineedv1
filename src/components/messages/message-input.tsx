@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
   
   useEffect(() => {
     // This effect runs when the conversation object or accepted proposal changes
-    const contractAlreadyExists = conversation.contractAccepted; // Assuming this field indicates a contract was sent/accepted
+    const contractAlreadyExists = conversation.contractAccepted;
     setCanCreateContract(!contractAlreadyExists && !!acceptedProposal);
   }, [conversation, acceptedProposal]);
 
@@ -88,7 +88,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
     e.preventDefault();
     if (!message.trim() && !file) return;
     if (!user) {
-        toast({ variant: "destructive", title: "Você não está logado." });
+        toast({ variant: "destructive", title: "You are not logged in." });
         return;
     }
 
@@ -96,28 +96,32 @@ export function MessageInput({ conversation }: MessageInputProps) {
     try {
         const { db } = getFirebaseClient();
         const messagesCol = collection(db, "conversations", conversation.id, "messages");
+        const otherParticipantId = conversation.participants.find(p => p !== user.uid);
+
         await addDoc(messagesCol, {
             content: message,
             sender: user.uid,
             timestamp: serverTimestamp(),
             type: 'user',
-            read: false,
-            // image upload logic would go here
+            readBy: [],
         });
 
         const conversationRef = doc(db, "conversations", conversation.id);
-        await updateDoc(conversationRef, {
-            lastMessage: message,
-            lastMessageTimestamp: serverTimestamp(),
-            unreadBy: [conversation.participants.find(p => p !== user.uid)]
-        });
+        if(otherParticipantId) {
+            await updateDoc(conversationRef, {
+                lastMessage: message,
+                lastMessageTimestamp: serverTimestamp(),
+                unreadBy: [otherParticipantId]
+            });
+        }
+        
 
         setMessage("");
         removeAttachment();
 
     } catch (error) {
         console.error("Error sending message:", error);
-        toast({ variant: "destructive", title: "Erro ao enviar mensagem." });
+        toast({ variant: "destructive", title: "Error sending message." });
     } finally {
         setIsSending(false);
     }
@@ -137,33 +141,39 @@ export function MessageInput({ conversation }: MessageInputProps) {
         
         const userData = userDocSnap.data();
         const address = userData.address;
-        const fullAddress = address ? `${address.street}, ${address.number} - ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.cep}` : "Endereço não informado";
+        const fullAddress = address ? `${address.street}, ${address.number} - ${address.neighborhood}, ${address.city} - ${address.state}, CEP: ${address.cep}` : "Address not provided";
+        const otherParticipantId = conversation.participants.find(p => p !== user.uid);
 
         const messagesCol = collection(db, "conversations", conversation.id, "messages");
         await addDoc(messagesCol, {
-            content: `${user.displayName} compartilhou suas informações de contato.`,
+            content: `${user.displayName} has shared their contact information.`,
             sender: user.uid,
             timestamp: serverTimestamp(),
             type: 'contact_details',
+            readBy: [],
             contactDetails: {
                 name: userData.displayName,
-                phone: userData.phone || "Não informado",
+                phone: userData.phone || "Not provided",
                 address: fullAddress,
             }
         });
         
         const conversationRef = doc(db, "conversations", conversation.id);
-        await updateDoc(conversationRef, {
-            lastMessage: "Informações de contato compartilhadas.",
-            lastMessageTimestamp: serverTimestamp(),
-            unreadBy: [conversation.participants.find(p => p !== user.uid)]
-        });
 
-        toast({ title: "Dados compartilhados!", description: "Suas informações de contato foram enviadas na conversa."});
+        if (otherParticipantId) {
+             await updateDoc(conversationRef, {
+                lastMessage: "Contact information shared.",
+                lastMessageTimestamp: serverTimestamp(),
+                unreadBy: [otherParticipantId]
+            });
+        }
+       
+
+        toast({ title: "Data shared!", description: "Your contact information has been sent in the conversation."});
 
     } catch (error) {
         console.error("Error sharing contact info:", error);
-        toast({ variant: "destructive", title: "Erro ao compartilhar dados", description: "Não foi possível enviar suas informações." });
+        toast({ variant: "destructive", title: "Error sharing data", description: "Could not send your information." });
     } finally {
         setIsSharingContact(false);
     }
@@ -175,25 +185,31 @@ export function MessageInput({ conversation }: MessageInputProps) {
     try {
         const { db } = getFirebaseClient();
         const conversationRef = doc(db, "conversations", conversation.id);
-        await updateDoc(conversationRef, {
-            status: "completed",
-            lastMessage: "O pedido foi marcado como concluído.",
-            lastMessageTimestamp: serverTimestamp(),
-            unreadBy: [conversation.participants.find(p => p !== user.uid)]
-        });
+        const otherParticipantId = conversation.participants.find(p => p !== user.uid);
+        
+        if (otherParticipantId) {
+             await updateDoc(conversationRef, {
+                status: "completed",
+                lastMessage: "The request has been marked as completed.",
+                lastMessageTimestamp: serverTimestamp(),
+                unreadBy: [otherParticipantId]
+            });
+        }
+       
 
         const messagesCol = collection(db, "conversations", conversation.id, "messages");
         await addDoc(messagesCol, {
-            content: "Pedido marcado como concluído. Agora vocês podem deixar uma avaliação.",
+            content: "Request marked as completed. You can now leave a review.",
             sender: user.uid,
             timestamp: serverTimestamp(),
             type: 'review_prompt',
+            readBy: [],
         });
         
-        toast({ title: "Pedido Concluído!", description: "O pedido foi marcado como concluído. Não se esqueça de avaliar o prestador."});
+        toast({ title: "Request Completed!", description: "The request has been marked as completed. Don't forget to rate the provider."});
     } catch(error) {
         console.error("Error marking as complete:", error);
-        toast({ variant: "destructive", title: "Erro", description: "Não foi possível marcar o pedido como concluído." });
+        toast({ variant: "destructive", title: "Error", description: "Could not mark the request as completed." });
     } finally {
         setIsCompleting(false);
     }
@@ -227,7 +243,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Digite sua mensagem..."
+              placeholder="Type your message..."
               className="flex-1 rounded-full py-2 px-4 resize-none max-h-32"
               rows={1}
               disabled={isSending}
@@ -240,7 +256,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 {!isListingAuthor && (
                     <Button type="button" variant="link" className="text-primary p-0 h-auto" onClick={() => setIsProposalModalOpen(true)}>
-                        <Handshake className="mr-1 h-4 w-4" /> Enviar Proposta
+                        <Handshake className="mr-1 h-4 w-4" /> Send Proposal
                     </Button>
                 )}
                 {isListingAuthor && (
@@ -250,9 +266,9 @@ export function MessageInput({ conversation }: MessageInputProps) {
                         className="text-primary p-0 h-auto" 
                         onClick={() => setIsContractModalOpen(true)}
                         disabled={!canCreateContract}
-                        title={!canCreateContract ? "Um contrato só pode ser criado após uma proposta ser aceita." : "Criar Contrato com base na proposta aceita"}
+                        title={!canCreateContract ? "A contract can only be created after a proposal is accepted." : "Create a contract based on the accepted proposal"}
                     >
-                        <FileSignature className="mr-1 h-4 w-4" /> Criar Contrato
+                        <FileSignature className="mr-1 h-4 w-4" /> Create Contract
                     </Button>
                 )}
                  {conversation.contractAccepted && (
@@ -264,7 +280,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
                         disabled={isSharingContact}
                     >
                         {isSharingContact ? <Loader2 className="animate-spin mr-1" /> : <Share2 className="mr-1 h-4 w-4" />}
-                        {isSharingContact ? "Compartilhando..." : "Compartilhar Dados"}
+                        {isSharingContact ? "Sharing..." : "Share Data"}
                     </Button>
                  )}
                  {isListingAuthor && conversation.contractAccepted && conversation.status === 'open' && (
@@ -276,7 +292,7 @@ export function MessageInput({ conversation }: MessageInputProps) {
                         disabled={isCompleting}
                     >
                         {isCompleting ? <Loader2 className="animate-spin mr-1" /> : <CheckCircle className="mr-1 h-4 w-4" />}
-                        {isCompleting ? "Finalizando..." : "Marcar como Concluído"}
+                        {isCompleting ? "Finishing..." : "Mark as Completed"}
                     </Button>
                  )}
             </div>
@@ -287,13 +303,11 @@ export function MessageInput({ conversation }: MessageInputProps) {
       <ContractModal 
         isOpen={isContractModalOpen} 
         onOpenChange={setIsContractModalOpen} 
-        conversationId={conversation.id} 
+        conversation={conversation} 
         acceptedProposal={acceptedProposal}
         onContractSent={() => setCanCreateContract(false)}
       />
-      <ProposalModal isOpen={isProposalModalOpen} onOpenChange={setIsProposalModalOpen} conversationId={conversation.id} />
+      <ProposalModal isOpen={isProposalModalOpen} onOpenChange={setIsProposalModalOpen} conversation={conversation} />
     </>
   );
 }
-
-    

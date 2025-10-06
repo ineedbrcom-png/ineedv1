@@ -33,8 +33,8 @@ import {
 } from "@/components/ui/alert-dialog"
 
 const formSchema = z.object({
-  email: z.string().email("Por favor, insira um e-mail válido."),
-  password: z.string().min(1, "A senha é obrigatória."),
+  email: z.string().email("Please enter a valid email."),
+  password: z.string().min(1, "Password is required."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -64,21 +64,21 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
       const { auth } = getFirebaseClient();
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
-        title: "Login bem-sucedido!",
-        description: "Que bom te ver de novo!",
+        title: "Login successful!",
+        description: "Glad to see you again!",
       });
       onLoginSuccess();
     } catch (error: any) {
       console.error("Login failed:", error);
-      let description = "Ocorreu um erro ao tentar fazer login.";
+      let description = "An error occurred while trying to log in.";
       if (error.code === 'auth/invalid-credential') {
-        description = "E-mail ou senha inválidos. Por favor, tente novamente.";
+        description = "Invalid email or password. Please try again.";
       } else if (error.code === 'auth/configuration-not-found') {
-        description = "O login por e-mail não está habilitado. Por favor, contate o suporte.";
+        description = "Email login is not enabled. Please contact support.";
       }
       toast({
         variant: "destructive",
-        title: "Falha no login",
+        title: "Login failed",
         description,
       });
     } finally {
@@ -88,17 +88,17 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
 
   const handlePasswordReset = async () => {
     if (!resetEmail) {
-        toast({variant: "destructive", title: "E-mail não informado", description: "Por favor, digite seu e-mail para redefinir a senha."});
+        toast({variant: "destructive", title: "Email not provided", description: "Please enter your email to reset your password."});
         return;
     }
     setIsResettingPassword(true);
     try {
         const { auth } = getFirebaseClient();
         await sendPasswordResetEmail(auth, resetEmail);
-        toast({title: "E-mail de redefinição enviado", description: "Verifique sua caixa de entrada para criar uma nova senha."});
+        toast({title: "Reset email sent", description: "Check your inbox to create a new password."});
     } catch (error: any) {
         console.error("Password reset error:", error);
-        toast({variant: "destructive", title: "Falha ao enviar e-mail", description: "Não foi possível enviar o e-mail de redefinição. Verifique o e-mail digitado."});
+        toast({variant: "destructive", title: "Failed to send email", description: "Could not send the reset email. Please check the email provided."});
     } finally {
         setIsResettingPassword(false);
     }
@@ -110,7 +110,7 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
       <SocialLogins />
       <div className="flex items-center">
         <div className="flex-grow border-t border-gray-300"></div>
-        <span className="mx-4 text-gray-500 text-sm">ou</span>
+        <span className="mx-4 text-gray-500 text-sm">or</span>
         <div className="flex-grow border-t border-gray-300"></div>
       </div>
       <Form {...form}>
@@ -120,9 +120,9 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>E-mail</FormLabel>
+                <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="seu@email.com" {...field} />
+                  <Input placeholder="your@email.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -133,9 +133,9 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Senha</FormLabel>
+                <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="Senha" {...field} />
+                  <Input type="password" placeholder="Password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -144,25 +144,25 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
            <div className="text-right text-sm">
              <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="link" type="button" className="p-0 h-auto">Esqueceu sua senha?</Button>
+                    <Button variant="link" type="button" className="p-0 h-auto">Forgot your password?</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                    <AlertDialogTitle>Redefinir sua senha</AlertDialogTitle>
+                    <AlertDialogTitle>Reset your password</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Digite seu endereço de e-mail abaixo e enviaremos um link para você redefinir sua senha.
+                        Enter your email address below and we'll send you a link to reset your password.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <Input 
                         type="email" 
-                        placeholder="seu@email.com" 
+                        placeholder="your@email.com" 
                         value={resetEmail} 
                         onChange={(e) => setResetEmail(e.target.value)}
                     />
                     <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handlePasswordReset} disabled={isResettingPassword}>
-                        {isResettingPassword ? <Loader2 className="animate-spin" /> : "Enviar E-mail"}
+                        {isResettingPassword ? <Loader2 className="animate-spin" /> : "Send Email"}
                     </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -170,19 +170,19 @@ export function LoginForm({ onSwitchToRegister, onLoginSuccess }: LoginFormProps
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="animate-spin" />}
-            {!isLoading && "Entrar"}
+            {!isLoading && "Login"}
           </Button>
         </form>
       </Form>
       <div className="text-center text-gray-600 text-sm">
-        Não tem uma conta?{" "}
+        Don't have an account?{" "}
         <Button
           variant="link"
           type="button"
           onClick={onSwitchToRegister}
           className="p-0 h-auto"
         >
-          Cadastre-se
+          Sign up
         </Button>
       </div>
     </div>

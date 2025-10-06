@@ -1,11 +1,11 @@
-// Importações do Firebase
+// Firebase Imports
 import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
-// Singleton para a instância do app
+// Singleton for the app instance
 let appInstance: ReturnType<typeof initializeApp> | null = null;
 let authInstance: ReturnType<typeof getAuth> | null = null;
 let dbInstance: ReturnType<typeof getFirestore> | null = null;
@@ -16,7 +16,7 @@ function initializeFirebase() {
         return { app: appInstance, auth: authInstance!, db: dbInstance!, storage: storageInstance! };
     }
 
-    // A configuração é lida DENTRO da função para garantir que as variáveis de ambiente estejam disponíveis.
+    // The configuration is read INSIDE the function to ensure environment variables are available.
     const firebaseConfig: FirebaseOptions = {
         apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
         authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -26,7 +26,7 @@ function initializeFirebase() {
         appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     };
     
-    // Validação robusta para garantir que as chaves não estão faltando
+    // Robust validation to ensure keys are not missing
     if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
         throw new Error("Failed to initialize Firebase - missing API Key or Project ID in environment variables.");
     }
@@ -36,7 +36,7 @@ function initializeFirebase() {
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    // App Check para proteger contra abuso de API
+    // App Check to protect against API abuse
     if (typeof window !== "undefined") {
         const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
         if(recaptchaSiteKey) {
@@ -46,10 +46,10 @@ function initializeFirebase() {
                     isTokenAutoRefreshEnabled: true,
                 });
             } catch (e) {
-                console.error("Falha ao inicializar o App Check:", e);
+                console.error("Failed to initialize App Check:", e);
             }
         } else {
-            console.warn("NEXT_PUBLIC_RECAPTCHA_SITE_KEY não definida. App Check não será inicializado.");
+            console.warn("NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set. App Check will not be initialized.");
         }
     }
 
@@ -61,7 +61,7 @@ function initializeFirebase() {
     return { app, auth, db, storage };
 }
 
-// Função exportada para obter os serviços do Firebase
+// Exported function to get Firebase services
 export function getFirebaseClient() {
     return initializeFirebase();
 }

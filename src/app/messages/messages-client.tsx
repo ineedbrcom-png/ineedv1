@@ -13,7 +13,7 @@ import { Loader2, Inbox } from "lucide-react";
 import { 
   collection, query, where, getDocs, onSnapshot, 
   orderBy, doc, getDoc, addDoc, serverTimestamp, 
-  updateDoc, Firestore
+  updateDoc, Firestore, arrayRemove
 } from "firebase/firestore";
 import { getFirebaseClient } from "@/lib/firebase";
 import { useSearchParams } from "next/navigation";
@@ -29,7 +29,6 @@ async function getOrCreateConversation(db: Firestore, currentUser: User, targetU
     }
     const listingData = listingSnap.data();
 
-    // Check if a conversation already exists
     const q = query(
         collection(db, "conversations"),
         where("listingId", "==", targetListingId),
@@ -50,7 +49,6 @@ async function getOrCreateConversation(db: Firestore, currentUser: User, targetU
         return existingConversation;
     }
 
-    // Create a new conversation if none exists
     const participants = [currentUser.uid, targetUserId];
     const user2Doc = await getDoc(doc(db, "users", targetUserId));
 
@@ -65,13 +63,13 @@ async function getOrCreateConversation(db: Firestore, currentUser: User, targetU
     const newConversationData = {
         participants: participants,
         participantsDetails: [
-            { id: user1Data.uid, name: user1Data.displayName || "Usuário", photoURL: user1Data.photoURL || "" },
-            { id: user2Doc.id, name: user2Data?.displayName || "Usuário", photoURL: user2Data?.photoURL || "" },
+            { id: user1Data.uid, name: user1Data.displayName || "User", photoURL: user1Data.photoURL || "" },
+            { id: user2Doc.id, name: user2Data?.displayName || "User", photoURL: user2Data?.photoURL || "" },
         ],
         listingId: targetListingId,
         listingAuthorId: listingData.authorId,
         listingTitle: `Re: ${listingData.title}`,
-        lastMessage: "Nova conversa iniciada!",
+        lastMessage: "New conversation started!",
         lastMessageTimestamp: serverTimestamp(),
         unreadBy: [targetUserId],
         contractAccepted: false,
@@ -102,12 +100,11 @@ export function MessagesClient() {
 
   const handleConversationSelect = useCallback((conversation: Conversation) => {
     setActiveConversation(conversation);
-    // Mark as read
     if (user && conversation.unreadBy.includes(user.uid)) {
         const { db } = getFirebaseClient();
         const conversationRef = doc(db, 'conversations', conversation.id);
         updateDoc(conversationRef, {
-            unreadBy: conversation.unreadBy.filter(id => id !== user.uid)
+            unreadBy: arrayRemove(user.uid)
         });
     }
   }, [user]);
@@ -117,9 +114,6 @@ export function MessagesClient() {
         const { db } = getFirebaseClient();
         getOrCreateConversation(db, user, targetUserId, targetListingId).then(convo => {
             if (convo) {
-                // Since this creates a new conversation, we need to ensure it's added to our state
-                // and set as active. The onSnapshot listener below will pick it up,
-                // but setting it directly gives a faster UI update.
                 setActiveConversation(convo);
                  setConversations(prev => {
                     const exists = prev.some(c => c.id === convo.id);
@@ -159,7 +153,6 @@ export function MessagesClient() {
           setActiveConversation(updatedActiveConvo);
         }
       } else if (convos.length > 0 && !targetListingId) {
-        // Set first conversation as active if none is selected and not coming from a listing
         handleConversationSelect(convos[0]);
       }
     });
@@ -209,12 +202,12 @@ export function MessagesClient() {
       <>
         <div className="flex flex-col items-center justify-center text-center py-20">
           <Card className="w-full max-w-lg p-8">
-            <CardTitle className="text-2xl mb-2">Acesso Negado</CardTitle>
+            <CardTitle className="text-2xl mb-2">Access Denied</CardTitle>
             <CardDescription className="mb-6">
-              Você precisa estar logado para ver suas mensagens.
+              You need to be logged in to view your messages.
             </CardDescription>
             <Button onClick={() => setIsAuthModalOpen(true)}>
-              Fazer Login ou Cadastrar
+              Login or Sign Up
             </Button>
           </Card>
         </div>
@@ -250,9 +243,9 @@ export function MessagesClient() {
         ) : (
           <div className="w-full lg:w-2/3 flex flex-col items-center justify-center text-center p-8">
             <Inbox className="h-16 w-16 text-gray-300 mb-4" />
-            <CardTitle className="text-xl">Você não tem mensagens</CardTitle>
+            <CardTitle className="text-xl">You have no messages</CardTitle>
             <CardDescription className="mt-2">
-              Quando você iniciar uma conversa, ela aparecerá aqui.
+              When you start a conversation, it will appear here.
             </CardDescription>
           </div>
         )}

@@ -8,7 +8,7 @@ export function HowItWorksSection() {
     <section className="py-12 bg-muted/50">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-          Como funciona o iNeed?
+          How iNeed works?
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center">
@@ -16,11 +16,10 @@ export function HowItWorksSection() {
               <Edit className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-gray-800">
-              1. Crie seu pedido
+              1. Create your request
             </h3>
             <p className="text-gray-600">
-              Descreva o que você precisa, seja um produto ou serviço, com o
-              máximo de detalhes possível.
+              Describe what you need, whether it's a product or a service, with as much detail as possible.
             </p>
           </div>
           <div className="text-center">
@@ -28,11 +27,10 @@ export function HowItWorksSection() {
               <Handshake className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-gray-800">
-              2. Receba ofertas
+              2. Receive offers
             </h3>
             <p className="text-gray-600">
-              Pessoas interessadas em atender seu pedido entrarão em contato
-              com propostas e valores.
+              People interested in fulfilling your request will contact you with proposals and prices.
             </p>
           </div>
           <div className="text-center">
@@ -40,11 +38,10 @@ export function HowItWorksSection() {
               <CheckCircle className="h-6 w-6" />
             </div>
             <h3 className="text-xl font-bold mb-2 text-gray-800">
-              3. Feche o acordo
+              3. Close the deal
             </h3>
             <p className="text-gray-600">
-              Escolha a melhor oferta, combine os detalhes e finalize com
-              segurança através da plataforma.
+              Choose the best offer, arrange the details, and finalize it securely through the platform.
             </p>
           </div>
         </div>
