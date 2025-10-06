@@ -1,5 +1,4 @@
 
-require('dotenv').config();
 // Importações do Firebase
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
