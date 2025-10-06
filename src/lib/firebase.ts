@@ -1,23 +1,10 @@
 
 // Importações do Firebase
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, FirebaseOptions } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
-
-
-// Configuração do Firebase a partir de variáveis de ambiente
-// MUITO IMPORTANTE: As variáveis de ambiente do Next.js para o cliente
-// DEVEM começar com NEXT_PUBLIC_
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
 
 // Singleton para a instância do app
 let appInstance: ReturnType<typeof initializeApp> | null = null;
@@ -26,7 +13,24 @@ let dbInstance: ReturnType<typeof getFirestore> | null = null;
 let storageInstance: ReturnType<typeof getStorage> | null = null;
 
 function initializeFirebase() {
-    if (appInstance) return { app: appInstance, auth: authInstance!, db: dbInstance!, storage: storageInstance! };
+    if (appInstance) {
+        return { app: appInstance, auth: authInstance!, db: dbInstance!, storage: storageInstance! };
+    }
+
+    // A configuração é lida DENTRO da função para garantir que as variáveis de ambiente estejam disponíveis.
+    const firebaseConfig: FirebaseOptions = {
+        apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+        authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    };
+    
+    // Validação robusta para garantir que as chaves não estão faltando
+    if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+        throw new Error("Failed to initialize Firebase - missing API Key or Project ID in environment variables.");
+    }
 
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -57,7 +61,6 @@ function initializeFirebase() {
     
     return { app, auth, db, storage };
 }
-
 
 // Função exportada para obter os serviços do Firebase
 export function getFirebaseClient() {

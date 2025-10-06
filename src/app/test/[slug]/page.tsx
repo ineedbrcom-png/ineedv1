@@ -1,5 +1,7 @@
 
-export default async function TestPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+// CORRIGIDO: Removido 'async' e o tipo 'Promise' dos parâmetros.
+export default function TestPage({ params }: { params: { slug: string } }) {
+  // CORRIGIDO: Removido 'await' da desestruturação.
+  const { slug } = params;
   return <div>Test page: {slug}</div>;
 }

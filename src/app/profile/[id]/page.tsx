@@ -11,8 +11,10 @@ function ProfileLoading() {
   );
 }
 
-export default async function UserProfilePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+// CORRIGIDO: Removido 'async' e o tipo 'Promise' dos parâmetros.
+export default function UserProfilePage({ params }: { params: { id: string } }) {
+  // CORRIGIDO: Removido 'await' da desestruturação.
+  const { id } = params;
   return (
     <Suspense fallback={<ProfileLoading />}>
       <ProfileClient profileId={id} />
