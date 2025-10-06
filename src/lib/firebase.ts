@@ -4,10 +4,6 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
-import { config } from 'dotenv';
-
-// Carrega as variáveis de ambiente do arquivo .env
-config();
 
 // Singleton para a instância do app
 let appInstance: ReturnType<typeof initializeApp> | null = null;
