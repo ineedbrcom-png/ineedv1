@@ -19,7 +19,8 @@ import { HeroSection } from "@/components/hero-section";
 interface HomeClientProps {
   productCategories: Category[];
   serviceCategories: Category[];
-  initialListings: Listing[];
+  product_listings: Listing[];
+  service_listings: Listing[];
 }
 
 const categoryColors = [
@@ -36,7 +37,12 @@ const categoryColors = [
   "bg-rose-50 text-rose-600 hover:bg-rose-100",
 ];
 
-export function HomeClient({ productCategories, serviceCategories, initialListings }: HomeClientProps) {
+export function HomeClient({
+  productCategories,
+  serviceCategories,
+  product_listings,
+  service_listings,
+}: HomeClientProps) {
   const { isLoggedIn, isAuthLoading } = useAuth();
   const router = useRouter();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -53,9 +59,6 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
       setIsAuthModalOpen(true);
     }
   };
-
-  const productListings = (initialListings || []).filter((l) => l.category?.type === "product").slice(0, 3);
-  const serviceListings = (initialListings || []).filter((l) => l.category?.type === "service").slice(0, 3);
 
   return (
     <>
@@ -97,7 +100,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                     </Link>
                   </div>
                   <ListingGrid
-                    listings={productListings}
+                    listings={product_listings}
                     isLoading={isAuthLoading}
                     emptyStateType="product"
                     onPostRequestClick={handlePostRequestClick}
@@ -130,7 +133,7 @@ export function HomeClient({ productCategories, serviceCategories, initialListin
                     </Link>
                   </div>
                   <ListingGrid
-                    listings={serviceListings}
+                    listings={service_listings}
                     isLoading={isAuthLoading}
                     emptyStateType="service"
                     onPostRequestClick={handlePostRequestClick}
