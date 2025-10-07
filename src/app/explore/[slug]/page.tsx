@@ -3,25 +3,17 @@ import { ExploreClientPage } from './explore-client-page';
 import { getPaginatedListings } from '@/lib/data';
 import { allCategories } from '@/lib/categories';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
 
-// Componente filho que carrega os dados de forma assíncrona
-async function ExploreListings({ categoryId, slug }: { categoryId: string | undefined, slug: string }) {
-  const initialData = await getPaginatedListings(null, 12, { categoryId });
-  return <ExploreClientPage slug={slug} initialData={initialData} />;
+// Define a interface para as props da página, exatamente como você recomendou.
+interface ExplorePageProps {
+  params: {
+    slug: string; // O 'slug' corresponde ao nome da pasta [slug]
+  };
+  searchParams?: { [key: string]: string | string[] | undefined }; // Opcional para query params
 }
 
-function LoadingSpinner() {
-    return (
-        <div className="flex h-full w-full items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-    );
-}
-
-// Componente da página principal, agora SÍNCRONO
-export default function ExploreCategoryPage({ params }: { params: { slug: string } }) {
+// Usa a interface para tipar as props do componente da página.
+export default async function ExploreCategoryPage({ params }: ExplorePageProps) {
   const { slug } = params;
 
   const category = slug === "all"
@@ -32,10 +24,9 @@ export default function ExploreCategoryPage({ params }: { params: { slug: string
     notFound();
   }
 
-  // Delega a busca de dados e a renderização para o componente filho assíncrono
-  return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <ExploreListings categoryId={category.id === 'all' ? undefined : category.id} slug={slug} />
-    </Suspense>
-  );
+  // Busca os dados iniciais no servidor.
+  const initialData = await getPaginatedListings(null, 12, { categoryId: category.id === 'all' ? undefined : category.id });
+
+  // Renderiza o componente do lado do cliente, passando os dados.
+  return <ExploreClientPage slug={slug} initialData={initialData} />;
 }

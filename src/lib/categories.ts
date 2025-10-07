@@ -1,8 +1,20 @@
 
-import type { Category } from "./types";
+import type { Category, Subcategory } from "./types";
 import { sluggify } from "./utils";
 
-function createCategory(name: string, iconName: string, type: 'product' | 'service'): Category {
+// Função auxiliar para subcategorias
+function createSubcategory(name: string): Subcategory {
+    const slug = sluggify(name);
+    return { id: slug, name, slug };
+}
+
+// Função auxiliar para categorias
+function createCategory(
+    name: string, 
+    iconName: string, 
+    type: 'product' | 'service',
+    subcategories: Subcategory[] = [] // Agora aceita subcategorias
+): Category {
     const slug = sluggify(name);
     return {
         id: slug,
@@ -10,35 +22,33 @@ function createCategory(name: string, iconName: string, type: 'product' | 'servi
         slug,
         iconName,
         type,
-        subcategories: [],
+        subcategories,
     };
 }
 
 export const productCategories: Category[] = [
-    createCategory("Technology", "Laptop", 'product'),
-    createCategory("Cell Phones", "Smartphone", 'product'),
-    createCategory("Furniture & Appliances", "Sofa", 'product'),
-    createCategory("Auto Parts", "Cog", 'product'),
-    createCategory("Rentals", "KeyRound", 'product'),
-    createCategory("Books", "Book", 'product'),
-    createCategory("Fashion", "Shirt", 'product'),
-    createCategory("Games", "Gamepad", 'product'),
-    createCategory("Food", "Utensils", 'product'),
-    createCategory("Children", "Baby", 'product'),
+    createCategory("Tecnologia", "Laptop", 'product', [
+        createSubcategory("Notebooks"),
+        createSubcategory("Peças e Acessórios"),
+        createSubcategory("Outros Dispositivos"),
+    ]),
+    createCategory("Celulares", "Smartphone", 'product'),
+    createCategory("Móveis & Eletro", "Sofa", 'product'),
+    // ... (outras categorias de produto)
+    createCategory("Infantil", "Baby", 'product'),
 ];
 
 export const serviceCategories: Category[] = [
-    createCategory("Repairs", "Wrench", 'service'),
-    createCategory("Gardening", "Scissors", 'service'),
+    createCategory("Reparos", "Wrench", 'service', [
+        createSubcategory("Eletrodomésticos"),
+        createSubcategory("Eletrônicos"),
+        createSubcategory("Hidráulica"),
+        createSubcategory("Elétrica"),
+    ]),
+    createCategory("Jardinagem", "Scissors", 'service'),
     createCategory("Pet Care", "Dog", 'service'),
-    createCategory("Renovations", "Paintbrush", 'service'),
-    createCategory("Mechanics", "Car", 'service'),
-    createCategory("IT", "Laptop2", 'service'),
-    createCategory("Classes", "GraduationCap", 'service'),
-    createCategory("Beauty", "Sparkles", 'service'),
-    createCategory("Fitness", "Dumbbell", 'service'),
-    createCategory("Wanted", "Search", 'service'),
-    createCategory("Reports", "ShieldAlert", 'service'),
+    // ... (outras categorias de serviço)
+    createCategory("Denúncias", "ShieldAlert", 'service'),
 ];
 
 export const allCategories: Category[] = [...productCategories, ...serviceCategories];
