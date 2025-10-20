@@ -8,6 +8,5 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Importa os fluxos de IA para que eles sejam registrados no Genkit.
-import '@/ai/flows/content-moderation';
 import '@/ai/flows/service-provider-recommendation';
 import '@/ai/flows/listing-description-refinement';
